@@ -60,7 +60,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
               </button>
 
               <div className="aspect-[3/4] w-full bg-[color:var(--cream-deep)] md:aspect-auto md:h-full">
-                <img src={product.image} alt={product.name} width={896} height={1152} className="h-full w-full object-cover" />
+                <img src={product.image} alt={product.name} width={896} height={1152} className="h-full w-full object-contain" />
               </div>
 
               <div className="flex flex-1 flex-col gap-6 p-6 md:overflow-y-auto md:p-12">
