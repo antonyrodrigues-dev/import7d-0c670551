@@ -64,7 +64,8 @@
   --cream-deep: oklch(0.92 0.018 78);
   --forest: oklch(0.36 0.06 158);
   --forest-deep: oklch(0.24 0.05 158);
-  --gold: oklch(0.78 0.11 80);
+  --gold: oklch(0.815 0.135 86);
+  --gold-soft: oklch(0.88 0.09 88);
   --ink: oklch(0.22 0.02 150);
   --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
   --font-serif: "Cormorant Garamond", Georgia, serif;
@@ -169,4 +170,53 @@
   height: 1px;
   background: currentColor;
   opacity: 0.4;
+}
+
+@utility tracking-logo {
+  letter-spacing: -0.06em;
+}
+
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2%, -3%); }
+  30% { transform: translate(3%, -2%); }
+  50% { transform: translate(-1%, 4%); }
+  70% { transform: translate(2%, 1%); }
+  90% { transform: translate(-3%, 2%); }
+}
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translate3d(-5%, -5%, 0) scale(1.1); opacity: 0.35; }
+  50% { transform: translate3d(5%, 3%, 0) scale(1.2); opacity: 0.5; }
+}
+
+.grain-overlay {
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  animation: grain-shift 8s steps(6) infinite;
+}
+
+.ambient-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ambient-light::before {
+  content: "";
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  left: 20%;
+  top: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in oklab, var(--gold) 22%, transparent), transparent 60%);
+  filter: blur(80px);
+  animation: ambient-drift 24s ease-in-out infinite;
+  will-change: transform, opacity;
 }
