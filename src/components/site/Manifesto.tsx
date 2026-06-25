@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import manifestoBg from "@/assets/manifesto-bg.asset.json";
 import { Reveal } from "./Reveal";
 
@@ -6,14 +7,18 @@ const WORDS = ["NÃO", "VENDEMOS", "ROUPAS.", "CURAMOS", "PRESENÇA."];
 
 export function Manifesto() {
   const reduce = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? ["0%", "0%"] : ["-3%", "3%"]);
   return (
-    <section id="manifesto" className="relative overflow-hidden bg-[color:var(--forest-deep)] py-28 md:py-40 text-[color:var(--cream)]">
-      <img
+    <section ref={ref} id="manifesto" className="relative overflow-hidden bg-[color:var(--forest-deep)] py-28 md:py-40 text-[color:var(--cream)]">
+      <motion.img
+        style={{ y }}
         src={manifestoBg.url}
         alt=""
         aria-hidden="true"
         loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover opacity-50"
+        className="absolute inset-0 h-[110%] w-full object-cover opacity-50 will-change-transform"
       />
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[color:var(--forest-deep)] via-[color:var(--forest-deep)]/70 to-transparent" />
 

@@ -13,7 +13,7 @@ function Card({ p }: { p: Product }) {
         onClick={() => setOpen(true)}
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="group block w-full text-left"
         aria-label={`Ver detalhes — ${p.name}`}
       >
@@ -25,12 +25,22 @@ function Card({ p }: { p: Product }) {
             height={1152}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[600ms] ease-out group-hover:opacity-0"
             initial={{ scale: 1 }}
-            whileHover={{ scale: 1.03 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
             style={{ willChange: "transform" }}
           />
+          <img
+            src={p.image}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-[600ms] ease-out group-hover:opacity-100 group-hover:scale-[1.02]"
+            style={{ filter: "brightness(0.92) contrast(1.05) saturate(1.05)" }}
+          />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-500 group-hover:scale-x-100" />
         </div>
         <div className="mt-5 flex items-baseline justify-between gap-4">
           <div>

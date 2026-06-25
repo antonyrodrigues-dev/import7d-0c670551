@@ -55,6 +55,7 @@ function Index() {
       <Footer />
       <ReservaDrawer />
       <SearchDrawer />
+      <div className="grain-overlay" aria-hidden="true" />
     </>
   );
 }
