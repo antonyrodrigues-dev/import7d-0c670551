@@ -6,15 +6,16 @@ import { useReserva } from "@/store/reserva";
 export function FeaturedSection() {
   return (
     <section className="relative bg-[color:var(--cream)] py-24 md:py-32">
+      <div className="ambient-light" aria-hidden="true" />
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-14 flex items-end justify-between gap-6">
           <div>
-            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Coleção em destaque</p>
-            <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">Peças desta estação</h2>
+            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Estação</p>
+            <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">Peças em destaque</h2>
           </div>
-          <a href="#acervo" className="hidden md:inline-flex items-center gap-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] group">
+          <a href="#acervo" className="group hidden md:inline-flex items-center gap-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]">
             Ver acervo completo
-            <span aria-hidden="true" className="h-px w-8 bg-current transition-all group-hover:w-12" />
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)] transition-all duration-500 group-hover:w-14" />
           </a>
         </Reveal>
         <FeaturedGrid />
@@ -30,9 +31,9 @@ export function CatalogSection() {
       <div className="relative mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-14 text-center">
           <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Acervo</p>
-          <h2 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] text-[color:var(--forest-deep)]">Galeria editorial</h2>
+          <h2 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] text-[color:var(--forest-deep)]">O acervo, por inteiro</h2>
           <p className="mx-auto mt-5 max-w-xl font-display italic text-lg text-[color:var(--muted-foreground)]">
-            Cada item é numerado e reservado individualmente. Toque para abrir a ficha.
+            Cada peça é numerada e reservada individualmente. Toque para abrir a ficha.
           </p>
         </Reveal>
         <FullGrid />
