@@ -1,9 +1,15 @@
-import p1 from "@/assets/product-1.jpg";
-import p2 from "@/assets/product-2.jpg";
-import p3 from "@/assets/product-3.jpg";
-import p4 from "@/assets/product-4.jpg";
-import p5 from "@/assets/product-5.jpg";
-import p6 from "@/assets/product-6.jpg";
+import m1a from "@/assets/product-m1a.jpg.asset.json";
+import m1b from "@/assets/product-m1b.jpg.asset.json";
+import m2a from "@/assets/product-m2a.jpg.asset.json";
+import m2b from "@/assets/product-m2b.jpg.asset.json";
+import m3a from "@/assets/product-m3a.jpg.asset.json";
+import m3b from "@/assets/product-m3b.jpg.asset.json";
+import m4a from "@/assets/product-m4a.jpg.asset.json";
+import m4b from "@/assets/product-m4b.jpg.asset.json";
+import m5a from "@/assets/product-m5a.jpg.asset.json";
+import m5b from "@/assets/product-m5b.jpg.asset.json";
+import m6a from "@/assets/product-m6a.jpg.asset.json";
+import m6b from "@/assets/product-m6b.jpg.asset.json";
 
 export interface Product {
   slug: string;
@@ -13,16 +19,17 @@ export interface Product {
   price: number;
   sizes: readonly string[];
   image: string;
+  imageAlt: string;
   featured?: boolean;
 }
 
 export const PRODUCTS: Product[] = [
-  { slug: "vestido-esmeralda-seda", name: "Vestido Esmeralda", description: "Seda fluida com drapeado lateral. Peça única em verde esmeralda, evocando a sofisticação de um jardim privado ao entardecer.", category: "Vestidos", price: 1890, sizes: ["P", "M", "G"], image: p1, featured: true },
-  { slug: "blazer-cru-estruturado", name: "Blazer Cru", description: "Lã virgem italiana em corte sartorial. Ombro estruturado, forro em cupro, abotoamento duplo discreto.", category: "Alfaiataria", price: 2640, sizes: ["36", "38", "40", "42"], image: p2, featured: true },
-  { slug: "slip-dress-noir", name: "Slip Dress Noir", description: "Cetim de seda em corte enviesado. Alças finas reguláveis, costura francesa, caimento líquido.", category: "Vestidos", price: 1450, sizes: ["P", "M", "G"], image: p3 },
-  { slug: "casaco-camelo", name: "Casaco Camelo", description: "Cashmere puro escovado à mão. Silhueta longa, lapelas amplas, botões em corozo natural.", category: "Casacos", price: 4280, sizes: ["P", "M", "G"], image: p4, featured: true },
-  { slug: "blusa-veludo-borgonha", name: "Blusa Veludo Borgonha", description: "Veludo de algodão e seda em borgonha profundo. Mangas estruturadas, gola alta envolvente.", category: "Blusas", price: 1180, sizes: ["P", "M", "G"], image: p5 },
-  { slug: "saia-linho-marfim", name: "Saia Linho Marfim", description: "Linho belga lavado em marfim. Cintura alta, movimento amplo, comprimento midi.", category: "Saias", price: 980, sizes: ["36", "38", "40", "42"], image: p6 },
+  { slug: "polo-piquet-marfim", name: "Polo Piquet Marfim", description: "Polo masculina em algodão piquet de alta gramatura. Gola estruturada, abotoamento em madrepérola, corte regular.", category: "Polos", price: 690, sizes: ["P", "M", "G", "GG"], image: m1a.url, imageAlt: m1b.url, featured: true },
+  { slug: "camisa-oxford-azul", name: "Camisa Oxford Azul", description: "Oxford italiano em fio 80. Colarinho semi-italiano, punho duplo, costura francesa interna.", category: "Camisas", price: 890, sizes: ["P", "M", "G", "GG"], image: m2a.url, imageAlt: m2b.url, featured: true },
+  { slug: "jaqueta-couro-conhaque", name: "Jaqueta Couro Conhaque", description: "Couro bovino curtido vegetal em conhaque. Forro em algodão, zíper metálico antique, gola ribana.", category: "Jaquetas", price: 3290, sizes: ["P", "M", "G", "GG"], image: m3a.url, imageAlt: m3b.url, featured: true },
+  { slug: "polo-oliva-tipped", name: "Polo Oliva Tipped", description: "Polo em algodão pima oliva com detalhe contrastante na gola. Caimento ajustado, acabamento sartorial.", category: "Polos", price: 720, sizes: ["P", "M", "G", "GG"], image: m4a.url, imageAlt: m4b.url },
+  { slug: "camisa-linho-marfim", name: "Camisa Linho Marfim", description: "Linho belga em marfim. Caimento solto, mangas longas com punho simples, botões em corozo natural.", category: "Camisas", price: 980, sizes: ["P", "M", "G", "GG"], image: m5a.url, imageAlt: m5b.url },
+  { slug: "bomber-onix", name: "Bomber Ônix", description: "Bomber em nylon técnico preto. Gola e punhos em ribana, zíper duplo, bolsos embutidos.", category: "Jaquetas", price: 1490, sizes: ["P", "M", "G", "GG"], image: m6a.url, imageAlt: m6b.url },
 ];
 
 export const formatBRL = (value: number) =>
