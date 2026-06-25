@@ -1,13 +1,38 @@
 import { useEffect, useState } from "react";
-import { Search, Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Menu, X, Bookmark } from "lucide-react";
 import { useReserva } from "@/store/reserva";
-import { BRAND } from "@/config/attendants";
+
+function NavLink({ href, label, dark }: { href: string; label: string; dark: boolean }) {
+  return (
+    <a
+      href={href}
+      className={`group relative inline-block py-2 text-[11px] tracking-luxe uppercase transition-all duration-300 ${
+        dark ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
+      }`}
+      style={{ opacity: 0.85 }}
+    >
+      <span className="relative inline-block transition-transform duration-300 group-hover:-translate-y-[2px] group-hover:opacity-100">
+        {label}
+      </span>
+      <span
+        aria-hidden="true"
+        className="absolute left-0 -bottom-0.5 h-px w-0 bg-[color:var(--gold)] transition-[width] duration-[250ms] ease-out group-hover:w-full"
+      />
+    </a>
+  );
+}
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { items, setOpen, setSearchOpen } = useReserva();
   const count = items.reduce((a, i) => a + i.quantity, 0);
+  const [pulse, setPulse] = useState(0);
+
+  useEffect(() => {
+    if (count > 0) setPulse((p) => p + 1);
+  }, [count]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -18,8 +43,8 @@ export function Header() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-700 ease-out ${
-        scrolled ? "bg-[color:var(--cream)]/92 backdrop-blur-[6px] border-b border-[color:var(--border)]/60" : "bg-transparent"
+      className={`fixed inset-x-0 top-0 z-40 transition-all duration-[600ms] ease-out ${
+        scrolled ? "bg-[color:var(--cream)]/94 backdrop-blur-[6px]" : "bg-transparent"
       }`}
     >
       <div className="mx-auto flex h-16 md:h-[72px] max-w-[1440px] items-center justify-between px-5 md:px-10">
@@ -32,17 +57,26 @@ export function Header() {
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
 
-        <nav aria-label="Principal" className="hidden md:flex flex-1 items-center gap-10">
-          <a href="#acervo" className={`text-[11px] tracking-luxe uppercase transition-opacity hover:opacity-100 ${scrolled ? "text-[color:var(--forest-deep)] opacity-80" : "text-[color:var(--cream)] opacity-90"}`}>Acervo</a>
-          <a href="#manifesto" className={`text-[11px] tracking-luxe uppercase transition-opacity hover:opacity-100 ${scrolled ? "text-[color:var(--forest-deep)] opacity-80" : "text-[color:var(--cream)] opacity-90"}`}>Manifesto</a>
-          <a href="#atendimento" className={`text-[11px] tracking-luxe uppercase transition-opacity hover:opacity-100 ${scrolled ? "text-[color:var(--forest-deep)] opacity-80" : "text-[color:var(--cream)] opacity-90"}`}>Atendimento</a>
-        </nav>
-
-        <a href="#top" className={`absolute left-1/2 -translate-x-1/2 font-display text-lg md:text-xl tracking-[0.32em] transition-colors duration-500 ${scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"}`}>
-          {BRAND.name}
+        <a
+          href="#top"
+          aria-label="7D Imports — início"
+          className={`flex items-baseline gap-2 transition-colors duration-500 ${
+            scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
+          }`}
+        >
+          <span className="font-display text-2xl md:text-[28px] leading-none font-medium tracking-logo">7D</span>
+          <span className="hidden sm:inline text-[9px] tracking-[0.42em] uppercase opacity-70 -translate-y-[2px]">
+            Imports
+          </span>
         </a>
 
-        <div className="flex flex-1 items-center justify-end gap-1 md:gap-2">
+        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-10">
+          <NavLink href="#acervo" label="Acervo" dark={scrolled} />
+          <NavLink href="#manifesto" label="Manifesto" dark={scrolled} />
+          <NavLink href="#atendimento" label="Atendimento" dark={scrolled} />
+        </nav>
+
+        <div className="flex items-center justify-end gap-1 md:gap-2">
           <button
             aria-label="Buscar peças"
             onClick={() => setSearchOpen(true)}
@@ -50,21 +84,48 @@ export function Header() {
           >
             <Search className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
-          <button
+          <motion.button
             onClick={() => setOpen(true)}
             aria-label={`Sua reserva, ${count} ${count === 1 ? "peça" : "peças"}`}
-            className={`flex h-11 min-w-11 items-center justify-center gap-2 px-3 text-[11px] tracking-luxe uppercase transition-colors ${scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"}`}
+            className={`group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase transition-colors ${scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"}`}
           >
+            <motion.span
+              key={pulse}
+              animate={pulse > 0 ? { scale: [1, 1.08, 1] } : {}}
+              transition={{ type: "spring", stiffness: 420, damping: 14 }}
+              className="inline-flex"
+            >
+              <Bookmark className="h-[18px] w-[18px]" strokeWidth={1.4} aria-hidden="true" />
+            </motion.span>
             <span className="hidden sm:inline">Reserva</span>
-            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-current px-1.5 text-[10px] tabular-nums">{count}</span>
-          </button>
+            <AnimatePresence mode="popLayout">
+              {count > 0 && (
+                <motion.span
+                  key={count}
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.6, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                  className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--gold)] px-1.5 text-[10px] tabular-nums text-[color:var(--forest-deep)]"
+                >
+                  {count}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
         </div>
       </div>
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/60 transition-opacity duration-[600ms] ${
+          scrolled ? "opacity-100" : "opacity-0"
+        }`}
+      />
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 bg-[color:var(--forest-deep)] text-[color:var(--cream)] md:hidden" role="dialog" aria-modal="true">
           <div className="flex items-center justify-between px-5 h-16">
-            <span className="font-display text-lg tracking-[0.32em]">{BRAND.name}</span>
+            <span className="font-display text-2xl tracking-logo font-medium">7D</span>
             <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="flex h-11 w-11 items-center justify-center">
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
