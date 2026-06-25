@@ -52,7 +52,8 @@ export function Header() {
           aria-label="Abrir menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
-          className={`flex h-11 w-11 items-center justify-center md:hidden ${scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"}`}
+          className="flex h-11 w-11 items-center justify-center md:hidden"
+          style={{ color: "#102B27" }}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -60,34 +61,32 @@ export function Header() {
         <a
           href="#top"
           aria-label="7D Imports — início"
-          className={`flex items-baseline gap-2 transition-colors duration-500 ${
-            scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
-          }`}
+          className="font-display font-bold leading-none"
+          style={{ color: "#102B27", fontSize: "28px", letterSpacing: "-0.08em" }}
         >
-          <span className="font-display text-2xl md:text-[28px] leading-none font-medium tracking-logo">7D</span>
-          <span className="hidden sm:inline text-[9px] tracking-[0.42em] uppercase opacity-70 -translate-y-[2px]">
-            Imports
-          </span>
+          7D
         </a>
 
         <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-10">
-          <NavLink href="#acervo" label="Acervo" dark={scrolled} />
-          <NavLink href="#manifesto" label="Manifesto" dark={scrolled} />
-          <NavLink href="#atendimento" label="Atendimento" dark={scrolled} />
+          <NavLink href="#acervo" label="Acervo" dark={true} />
+          <NavLink href="#manifesto" label="Manifesto" dark={true} />
+          <NavLink href="#atendimento" label="Atendimento" dark={true} />
         </nav>
 
         <div className="flex items-center justify-end gap-1 md:gap-2">
           <button
             aria-label="Buscar peças"
             onClick={() => setSearchOpen(true)}
-            className={`flex h-11 w-11 items-center justify-center transition-colors ${scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"}`}
+            className="flex h-11 w-11 items-center justify-center"
+            style={{ color: "#102B27" }}
           >
             <Search className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
           <motion.button
             onClick={() => setOpen(true)}
             aria-label={`Sua reserva, ${count} ${count === 1 ? "peça" : "peças"}`}
-            className={`group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase transition-colors ${scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"}`}
+            className="group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase"
+            style={{ color: "#102B27" }}
           >
             <motion.span
               key={pulse}
