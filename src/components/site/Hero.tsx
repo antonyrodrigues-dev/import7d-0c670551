@@ -4,9 +4,9 @@ import heroPoster from "@/assets/hero-poster.asset.json";
 
 export function Hero() {
   return (
-    <section id="top" className="relative h-dvh w-full overflow-hidden bg-[color:var(--forest-deep)]">
+    <section id="top" className="relative h-dvh w-full overflow-hidden bg-[color:var(--cream)]">
       <video
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover opacity-30"
         autoPlay
         muted
         loop
@@ -18,61 +18,63 @@ export function Hero() {
         <source src={heroVideo.url} type="video/webm" />
       </video>
 
-      <div aria-hidden="true" className="absolute inset-0 bg-[color:var(--forest-deep)]/[0.18]" />
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[color:var(--forest-deep)]/75 via-[color:var(--forest-deep)]/35 to-transparent" />
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[color:var(--forest-deep)]/45 to-transparent" />
+      <div aria-hidden="true" className="absolute inset-0 bg-[color:var(--cream)]/70" />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-[color:var(--cream)]">
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-baseline gap-3 font-display"
+          className="font-display font-bold leading-none"
+          style={{
+            color: "#102B27",
+            fontSize: "clamp(90px, 12vw, 180px)",
+            letterSpacing: "-0.08em",
+          }}
         >
-          <span className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-logo font-medium">7D</span>
-          <span className="text-[11px] tracking-[0.42em] uppercase opacity-80 -translate-y-2">Imports</span>
+          7D
         </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-10 max-w-3xl font-display text-[clamp(1.75rem,4.2vw,3rem)] leading-[1.05] text-[color:var(--cream)]"
+          className="mt-10 max-w-4xl font-display"
+          style={{
+            color: "#102B27",
+            fontWeight: 600,
+            fontSize: "clamp(42px, 4vw, 80px)",
+            letterSpacing: "0.02em",
+            lineHeight: 0.95,
+          }}
         >
-          Não vendemos peças.<br/>Curamos presença.
+            NÃO VENDEMOS PEÇAS.<br />CURAMOS PRESENÇA.
         </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 max-w-md text-[11px] tracking-luxe uppercase text-[color:var(--cream)]/85"
-        >
-          Curadoria privada · Entrega Brasil
-        </motion.p>
 
         <motion.a
           href="#acervo"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
-          className="group mt-12 inline-flex items-center gap-3 border border-[color:var(--cream)]/70 px-8 py-4 text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-all duration-500 hover:bg-[color:var(--cream)] hover:text-[color:var(--forest-deep)] active:scale-[0.98]"
-          style={{ willChange: "transform" }}
+          transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="group mt-14 inline-flex items-center gap-3 px-10 py-4 text-[11px] tracking-luxe uppercase transition-colors"
+          style={{
+            border: "1px solid #102B27",
+            color: "#102B27",
+            transitionDuration: "350ms",
+            transitionTimingFunction: "ease-out",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#102B27";
+            e.currentTarget.style.color = "#F4EFE6";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "#102B27";
+          }}
         >
-          <span className="transition-transform duration-500 group-hover:translate-x-0.5">Explorar acervo</span>
-          <span aria-hidden="true" className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12" />
+          Explorar acervo
         </motion.a>
       </div>
-
-      <motion.div
-        aria-hidden="true"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.4, delay: 1.2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] tracking-luxe uppercase text-[color:var(--cream)]/70"
-      >
-        Role para descobrir
-      </motion.div>
     </section>
   );
 }

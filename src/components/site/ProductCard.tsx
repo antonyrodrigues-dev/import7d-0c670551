@@ -25,20 +25,19 @@ function Card({ p }: { p: Product }) {
             height={1152}
             loading="lazy"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[600ms] ease-out group-hover:opacity-0"
+            className="absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ease-out group-hover:opacity-0"
             initial={{ scale: 1 }}
             whileHover={{ scale: 1.02 }}
-            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             style={{ willChange: "transform" }}
           />
           <img
-            src={p.image}
+            src={p.imageAlt || p.image}
             alt=""
             aria-hidden="true"
             loading="lazy"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-[600ms] ease-out group-hover:opacity-100 group-hover:scale-[1.02]"
-            style={{ filter: "brightness(0.92) contrast(1.05) saturate(1.05)" }}
+            className="absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100"
           />
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-500 group-hover:scale-x-100" />
         </div>
