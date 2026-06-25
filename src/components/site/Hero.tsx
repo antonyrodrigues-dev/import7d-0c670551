@@ -6,7 +6,7 @@ export function Hero() {
   return (
     <section id="top" className="relative h-dvh w-full overflow-hidden bg-[color:var(--cream)]">
       <video
-        className="absolute inset-0 h-full w-full object-cover opacity-30"
+        className="absolute inset-0 h-full w-full object-cover opacity-60"
         autoPlay
         muted
         loop
@@ -18,34 +18,18 @@ export function Hero() {
         <source src={heroVideo.url} type="video/webm" />
       </video>
 
-      <div aria-hidden="true" className="absolute inset-0 bg-[color:var(--cream)]/70" />
-
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display font-bold leading-none"
-          style={{
-            color: "#102B27",
-            fontSize: "clamp(90px, 12vw, 180px)",
-            letterSpacing: "-0.08em",
-          }}
-        >
-          7D
-        </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-10 max-w-4xl font-display"
+          className="max-w-6xl font-display"
           style={{
             color: "#102B27",
             fontWeight: 600,
-            fontSize: "clamp(42px, 4vw, 80px)",
+            fontSize: "clamp(56px, 7vw, 132px)",
             letterSpacing: "0.02em",
-            lineHeight: 0.95,
+            lineHeight: 0.92,
           }}
         >
             NÃO VENDEMOS PEÇAS.<br />CURAMOS PRESENÇA.
