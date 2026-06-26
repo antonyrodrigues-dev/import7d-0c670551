@@ -80,6 +80,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "7D IMPORTS" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "7D IMPORTS" },
+      { name: "twitter:title", content: "7D IMPORTS" },
+      { property: "og:description", content: "Acervo privado de peças selecionadas." },
+      { name: "twitter:description", content: "Acervo privado de peças selecionadas." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ed82d8dc-96f6-4a91-9aa4-b91972e73cdd" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ed82d8dc-96f6-4a91-9aa4-b91972e73cdd" },
     ],
     links: [
       {
