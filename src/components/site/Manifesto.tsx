@@ -3,7 +3,7 @@ import { useRef } from "react";
 import manifestoBg from "@/assets/manifesto-bg.asset.json";
 import { Reveal } from "./Reveal";
 
-const WORDS = ["NÃO", "VENDEMOS", "ROUPAS.", "CURAMOS", "PRESENÇA."];
+const WORDS = ["NÃO", "VENDEMOS", "PEÇAS.", "CURAMOS", "PRESENÇA."];
 
 export function Manifesto() {
   const reduce = useReducedMotion();
@@ -49,7 +49,7 @@ export function Manifesto() {
             assinatura. Recusamos volume. Honramos a escolha.
           </p>
           <p className="not-italic font-sans text-[11px] tracking-luxe uppercase text-[color:var(--gold)]/90">
-            — A casa, 2024
+            — A casa, {new Date().getFullYear()}
           </p>
         </Reveal>
       </div>

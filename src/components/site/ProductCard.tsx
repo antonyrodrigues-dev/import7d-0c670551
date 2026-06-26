@@ -32,7 +32,7 @@ function Card({ p }: { p: Product }) {
             style={{ willChange: "transform" }}
           />
           <img
-            src={p.imageAlt || p.image}
+            src={p.imageHover || p.image}
             alt=""
             aria-hidden="true"
             loading="lazy"
