@@ -6,7 +6,6 @@ import { useReserva } from "@/store/reserva";
 export function FeaturedSection() {
   return (
     <section className="relative bg-[color:var(--cream)] py-24 md:py-32">
-      <div className="ambient-light" aria-hidden="true" />
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-14 flex items-end justify-between gap-6">
           <div>

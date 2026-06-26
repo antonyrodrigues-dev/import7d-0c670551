@@ -1,10 +1,10 @@
 import { BRAND } from "@/config/attendants";
 
 const COLS = [
-  { title: "Marca", links: [["Manifesto", "#manifesto"], ["Atendimento", "#atendimento"]] },
-  { title: "Acervo", links: [["Coleção atual", "#acervo"], ["Destaques", "#acervo"]] },
-  { title: "Suporte", links: [["WhatsApp", "#atendimento"], ["Entrega", "#atendimento"]] },
-  { title: "Legal", links: [["Privacidade", "#"], ["Termos", "#"]] },
+  { title: "Marca", links: [["Manifesto", "/#manifesto"], ["Atendimento", "/#atendimento"]] },
+  { title: "Acervo", links: [["Coleção atual", "/#acervo"], ["Destaques", "/#acervo"]] },
+  { title: "Suporte", links: [["WhatsApp", "/#atendimento"], ["Entrega", "/#atendimento"]] },
+  { title: "Legal", links: [["Privacidade", "/privacidade"], ["Termos", "/termos"]] },
 ] as const;
 
 export function Footer() {

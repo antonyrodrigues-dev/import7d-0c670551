@@ -4,10 +4,13 @@ import { formatBRL } from "@/data/products";
 
 const RULE = "━━━━━━━━━━━━━━";
 
-export function buildReservaMessage(items: ReservaItem[]): string {
+export function buildReservaMessage(items: ReservaItem[], numeroPedido?: string): string {
   const total = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
   const lines: string[] = [];
   lines.push(RULE, "", "7D IMPORTS", "");
+  if (numeroPedido) {
+    lines.push(`Pedido nº ${numeroPedido}`, "");
+  }
   items.forEach((item, idx) => {
     lines.push(
       `Peça ${idx + 1}: ${item.name}`,
@@ -21,7 +24,7 @@ export function buildReservaMessage(items: ReservaItem[]): string {
   return lines.join("\n");
 }
 
-export function buildWhatsAppUrl(items: ReservaItem[], attendant: Attendant = DEFAULT_ATTENDANT): string {
-  const msg = buildReservaMessage(items);
+export function buildWhatsAppUrl(items: ReservaItem[], numeroPedido?: string, attendant: Attendant = DEFAULT_ATTENDANT): string {
+  const msg = buildReservaMessage(items, numeroPedido);
   return `https://wa.me/${attendant.phone}?text=${encodeURIComponent(msg)}`;
 }

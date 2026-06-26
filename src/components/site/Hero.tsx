@@ -18,14 +18,13 @@ export function Hero() {
         <source src={heroVideo.url} type="video/webm" />
       </video>
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-[color:var(--forest-deep)]">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-6xl font-display"
           style={{
-            color: "#102B27",
             fontWeight: 600,
             fontSize: "clamp(56px, 7vw, 132px)",
             letterSpacing: "0.02em",
@@ -40,21 +39,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="group mt-14 inline-flex items-center gap-3 px-10 py-4 text-[11px] tracking-luxe uppercase transition-colors"
-          style={{
-            border: "1px solid #102B27",
-            color: "#102B27",
-            transitionDuration: "350ms",
-            transitionTimingFunction: "ease-out",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#102B27";
-            e.currentTarget.style.color = "#F4EFE6";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "#102B27";
-          }}
+          className="mt-14 inline-flex items-center gap-3 border border-[color:var(--forest-deep)] bg-transparent px-10 py-4 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors duration-[350ms] ease-out hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)]"
         >
           Explorar acervo
         </motion.a>

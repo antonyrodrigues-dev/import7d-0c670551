@@ -14,16 +14,79 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pedidos: {
+        Row: {
+          atendente_nome: string | null
+          atualizado_em: string
+          canal: string
+          criado_em: string
+          id: string
+          itens: Json
+          numero_pedido: string
+          status: string
+          valor_total: number
+        }
+        Insert: {
+          atendente_nome?: string | null
+          atualizado_em?: string
+          canal?: string
+          criado_em?: string
+          id?: string
+          itens: Json
+          numero_pedido?: string
+          status?: string
+          valor_total: number
+        }
+        Update: {
+          atendente_nome?: string | null
+          atualizado_em?: string
+          canal?: string
+          criado_em?: string
+          id?: string
+          itens?: Json
+          numero_pedido?: string
+          status?: string
+          valor_total?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      gerar_numero_pedido: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "atendente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +213,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "atendente"],
+    },
   },
 } as const

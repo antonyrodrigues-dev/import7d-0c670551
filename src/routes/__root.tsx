@@ -14,19 +14,19 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Erro 404</p>
+        <h1 className="mt-4 font-display text-5xl md:text-6xl">Página não encontrada</h1>
+        <p className="mt-4 font-display italic text-lg text-[color:var(--muted-foreground)]">
+          O endereço acessado não pertence ao acervo.
         </p>
-        <div className="mt-6">
+        <div className="mt-8">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center border border-[color:var(--forest-deep)] px-8 py-4 text-[11px] tracking-luxe uppercase transition-colors duration-[350ms] hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)]"
           >
-            Go home
+            Voltar ao acervo
           </Link>
         </div>
       </div>
@@ -42,29 +42,25 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Algo interrompeu</p>
+        <h1 className="mt-4 font-display text-4xl md:text-5xl">Esta página não carregou</h1>
+        <p className="mt-4 font-display italic text-lg text-[color:var(--muted-foreground)]">
+          Tente novamente em instantes ou retorne ao acervo.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            onClick={() => { router.invalidate(); reset(); }}
+            className="inline-flex items-center justify-center bg-[color:var(--forest-deep)] px-8 py-4 text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)]"
           >
-            Try again
+            Tentar novamente
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center border border-[color:var(--forest-deep)] px-8 py-4 text-[11px] tracking-luxe uppercase transition-colors hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)]"
           >
-            Go home
+            Voltar ao acervo
           </a>
         </div>
       </div>
@@ -80,10 +76,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "7D IMPORTS" },
       { name: "description", content: "Acervo privado de peças selecionadas." },
       { name: "author", content: "7D IMPORTS" },
-      { name: "theme-color", content: "#1a3a2a" },
+      { name: "theme-color", content: "#0f2823" },
       { property: "og:site_name", content: "7D IMPORTS" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
@@ -104,7 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>

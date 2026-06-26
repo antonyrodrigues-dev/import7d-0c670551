@@ -44,7 +44,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
             role="dialog"
             aria-modal="true"
             aria-label={`Detalhes — ${product.name}`}
-            className="fixed inset-x-0 bottom-0 z-50 h-[85dvh] overflow-hidden rounded-t-3xl bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl"
+            className="fixed inset-x-0 bottom-0 z-50 h-[85dvh] overflow-hidden bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -54,7 +54,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
               <button
                 onClick={() => onOpenChange(false)}
                 aria-label="Fechar"
-                className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--cream)]/90 text-[color:var(--forest-deep)] shadow"
+                className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center bg-[color:var(--cream)]/95 text-[color:var(--forest-deep)] shadow"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -106,7 +106,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     addItem(product, size, qty);
                     onOpenChange(false);
                   }}
-                  className="mt-auto inline-flex h-14 items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-transform hover:bg-[color:var(--forest)] active:scale-[0.99]"
+                  className="mt-auto inline-flex h-14 items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-transform hover:bg-[color:var(--forest)] active:scale-[0.98]"
                 >
                   Adicionar à reserva
                 </button>

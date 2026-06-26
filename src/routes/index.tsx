@@ -17,6 +17,9 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Curadoria premium. Atendimento personalizado. Entrega para todo o Brasil." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
+      { property: "og:image", content: "/hero-poster.jpg" },
+      { property: "og:image:alt", content: "7D IMPORTS — acervo privado" },
+      { name: "twitter:image", content: "/hero-poster.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
