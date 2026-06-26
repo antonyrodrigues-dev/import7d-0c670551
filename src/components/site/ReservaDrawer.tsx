@@ -32,7 +32,7 @@ export function ReservaDrawer() {
       const { data, error: insErr } = await supabase
         .from("pedidos")
         .insert({
-          itens: items as unknown as Record<string, unknown>[],
+          itens: JSON.parse(JSON.stringify(items)),
           valor_total: total,
           status: "pendente",
           canal: "whatsapp",
