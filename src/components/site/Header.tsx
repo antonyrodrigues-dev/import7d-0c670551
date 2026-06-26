@@ -52,8 +52,7 @@ export function Header() {
           aria-label="Abrir menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
-          className="flex h-11 w-11 items-center justify-center md:hidden"
-          style={{ color: "#102B27" }}
+          className="flex h-11 w-11 items-center justify-center md:hidden text-[color:var(--forest-deep)]"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -61,8 +60,8 @@ export function Header() {
         <a
           href="#top"
           aria-label="7D Imports — início"
-          className="font-display font-bold leading-none"
-          style={{ color: "#102B27", fontSize: "28px", letterSpacing: "-0.08em" }}
+          className="font-display font-bold leading-none text-[color:var(--forest-deep)]"
+          style={{ fontSize: "28px", letterSpacing: "-0.08em" }}
         >
           7D
         </a>
@@ -77,21 +76,19 @@ export function Header() {
           <button
             aria-label="Buscar peças"
             onClick={() => setSearchOpen(true)}
-            className="flex h-11 w-11 items-center justify-center"
-            style={{ color: "#102B27" }}
+            className="flex h-11 w-11 items-center justify-center text-[color:var(--forest-deep)]"
           >
             <Search className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
           <motion.button
             onClick={() => setOpen(true)}
             aria-label={`Sua reserva, ${count} ${count === 1 ? "peça" : "peças"}`}
-            className="group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase"
-            style={{ color: "#102B27" }}
+            className="group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]"
           >
             <motion.span
               key={pulse}
               animate={pulse > 0 ? { scale: [1, 1.08, 1] } : {}}
-              transition={{ type: "spring", stiffness: 420, damping: 14 }}
+              transition={{ type: "spring", stiffness: 420, damping: 44 }}
               className="inline-flex"
             >
               <Bookmark className="h-[18px] w-[18px]" strokeWidth={1.4} aria-hidden="true" />
@@ -104,8 +101,8 @@ export function Header() {
                   initial={{ scale: 0.6, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.6, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 420, damping: 18 }}
-                  className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--gold)] px-1.5 text-[10px] tabular-nums text-[color:var(--forest-deep)]"
+                  transition={{ type: "spring", stiffness: 420, damping: 44 }}
+                  className="ml-1 inline-flex font-display text-[12px] tabular-nums leading-none text-[color:var(--gold)]"
                 >
                   {count}
                 </motion.span>
