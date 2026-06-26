@@ -1,13 +1,16 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useReserva } from "@/store/reserva";
 import { formatBRL } from "@/data/products";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ReservaDrawer() {
   const { open, items, setOpen, removeItem, updateQty } = useReserva();
   const total = items.reduce((a, i) => a + i.price * i.quantity, 0);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -20,6 +23,31 @@ export function ReservaDrawer() {
       document.removeEventListener("keydown", onKey);
     };
   }, [open, setOpen]);
+
+  const finalizar = async () => {
+    if (items.length === 0 || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const { data, error: insErr } = await supabase
+        .from("pedidos")
+        .insert({
+          itens: items as unknown as Record<string, unknown>[],
+          valor_total: total,
+          status: "pendente",
+          canal: "whatsapp",
+        })
+        .select("numero_pedido")
+        .single();
+      if (insErr || !data?.numero_pedido) throw insErr ?? new Error("Falha ao registrar pedido");
+      window.open(buildWhatsAppUrl(items, data.numero_pedido), "_blank", "noopener,noreferrer");
+    } catch (e) {
+      console.error(e);
+      setError("Não foi possível registrar o pedido. Tente novamente em instantes.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -82,20 +110,23 @@ export function ReservaDrawer() {
                 <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Total estimado</span>
                 <span className="font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">{formatBRL(total)}</span>
               </div>
-              <a
-                href={items.length ? buildWhatsAppUrl(items) : undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-disabled={items.length === 0}
-                onClick={(e) => items.length === 0 && e.preventDefault()}
+              <button
+                type="button"
+                onClick={finalizar}
+                disabled={items.length === 0 || submitting}
                 className={`mt-5 inline-flex h-14 w-full items-center justify-center text-[11px] tracking-luxe uppercase transition-colors ${
-                  items.length === 0
+                  items.length === 0 || submitting
                     ? "bg-[color:var(--cream-deep)] text-[color:var(--muted-foreground)] cursor-not-allowed"
                     : "bg-[color:var(--forest-deep)] text-[color:var(--cream)] hover:bg-[color:var(--forest)]"
                 }`}
               >
-                Finalizar via WhatsApp
-              </a>
+                {submitting ? "Registrando pedido…" : "Finalizar via WhatsApp"}
+              </button>
+              {error && (
+                <p role="alert" className="mt-3 text-center text-[11px] tracking-luxe uppercase text-[color:var(--destructive)]">
+                  {error}
+                </p>
+              )}
               <p className="mt-3 text-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
                 Atendimento privado · seg–sáb
               </p>
