@@ -19,4 +19,11 @@ export const BRAND = {
   name: "7D IMPORTS",
   tagline: "Acesso a peças selecionadas",
   url: "",
+  instagram: { handle: "@7dimports", url: "https://instagram.com/7dimports" },
+  whatsapp: { label: "+55 11 99999-9999", url: "https://wa.me/5511999999999" },
+  address: {
+    line: "Rua Oscar Freire, 725 — Jardins, São Paulo · SP",
+    mapsUrl: "https://maps.google.com/?q=Rua+Oscar+Freire+725+São+Paulo",
+  },
+  hours: "Seg a Sex · 10h–19h · Sáb 11h–17h",
 } as const;
