@@ -54,15 +54,6 @@ function Card({ p }: { p: Product }) {
   );
 }
 
-export function FeaturedGrid() {
-  const featured = PRODUCTS.filter((p) => p.featured);
-  return (
-    <div className="grid gap-12 sm:grid-cols-2 md:gap-10 lg:grid-cols-3">
-      {featured.map((p) => <Card key={p.slug} p={p} />)}
-    </div>
-  );
-}
-
 export function FullGrid() {
   const { searchOpen } = useReserva();
   void searchOpen;
