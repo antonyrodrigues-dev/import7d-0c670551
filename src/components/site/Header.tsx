@@ -3,21 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X, Bookmark } from "lucide-react";
 import { useReserva } from "@/store/reserva";
 
-function NavLink({ href, label, dark }: { href: string; label: string; dark: boolean }) {
+function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className={`group relative inline-block py-2 text-[11px] tracking-luxe uppercase transition-all duration-300 ${
-        dark ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
-      }`}
-      style={{ opacity: 0.85 }}
+      className="group relative inline-block py-2 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]/80 transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
     >
-      <span className="relative inline-block transition-transform duration-300 group-hover:-translate-y-[2px] group-hover:opacity-100">
-        {label}
-      </span>
+      <span className="relative inline-block">{label}</span>
       <span
         aria-hidden="true"
-        className="absolute left-0 -bottom-0.5 h-px w-0 bg-[color:var(--gold)] transition-[width] duration-[250ms] ease-out group-hover:w-full"
+        className="pointer-events-none absolute -bottom-0.5 left-1/2 h-px w-0 -translate-x-1/2 bg-[color:var(--gold)]/70 transition-[width] duration-[450ms] ease-out group-hover:w-[60%]"
       />
     </a>
   );
@@ -60,16 +55,16 @@ export function Header() {
         <a
           href="#top"
           aria-label="7D Imports — início"
-          className="font-display font-bold leading-none text-[color:var(--forest-deep)]"
-          style={{ fontSize: "28px", letterSpacing: "-0.08em" }}
+          className="font-display leading-none text-[color:var(--forest-deep)]"
+          style={{ fontSize: "26px", letterSpacing: "-0.07em", fontWeight: 500 }}
         >
           7D
         </a>
 
-        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-10">
-          <NavLink href="#acervo" label="Acervo" dark={true} />
-          <NavLink href="#manifesto" label="Manifesto" dark={true} />
-          <NavLink href="#atendimento" label="Atendimento" dark={true} />
+        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-12">
+          <NavLink href="#acervo" label="Acervo" />
+          <NavLink href="#manifesto" label="Manifesto" />
+          <NavLink href="#atendimento" label="Atendimento" />
         </nav>
 
         <div className="flex items-center justify-end gap-1 md:gap-2">

@@ -1,12 +1,15 @@
 import { Reveal } from "./Reveal";
-import { FeaturedGrid, FullGrid } from "./ProductCard";
+import { FullGrid } from "./ProductCard";
+import { FeaturedCarousel } from "./FeaturedCarousel";
 import catalogBg from "@/assets/catalog-bg.asset.json";
 import { useReserva } from "@/store/reserva";
+import { BRAND } from "@/config/attendants";
+import { Instagram, MapPin, MessageCircle, Clock, ArrowUpRight } from "lucide-react";
 
 export function FeaturedSection() {
   return (
     <section className="relative bg-[color:var(--cream)] py-24 md:py-32">
-      <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-12">
         <Reveal className="mb-14 flex items-end justify-between gap-6">
           <div>
             <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Estação</p>
@@ -17,7 +20,7 @@ export function FeaturedSection() {
             <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)] transition-all duration-500 group-hover:w-14" />
           </a>
         </Reveal>
-        <FeaturedGrid />
+        <FeaturedCarousel />
       </div>
     </section>
   );
@@ -58,12 +61,21 @@ export function DiferenciaisSection() {
         <div className="grid gap-12 md:grid-cols-3 md:gap-16">
           {DIFERENCIAIS.map((d, i) => (
             <Reveal key={d.t} delay={i * 0.1}>
-              <div className="flex items-baseline gap-4">
-                <span className="font-display text-2xl tabular-nums text-[color:var(--gold)]">0{i + 1}</span>
-                <h3 className="font-display text-2xl text-[color:var(--forest-deep)]">{d.t}</h3>
+              <div className="group relative cursor-default border-t border-[color:var(--border)] pt-6 transition-colors duration-500 hover:border-[color:var(--gold)]">
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-0 h-px w-0 bg-[color:var(--gold)] transition-[width] duration-700 ease-out group-hover:w-full"
+                />
+                <div className="flex items-baseline gap-4">
+                  <span className="font-display text-2xl tabular-nums text-[color:var(--gold)] transition-transform duration-500 group-hover:-translate-y-0.5">
+                    0{i + 1}
+                  </span>
+                  <h3 className="font-display text-2xl text-[color:var(--forest-deep)]">{d.t}</h3>
+                </div>
+                <p className="mt-5 leading-relaxed text-[color:var(--muted-foreground)] transition-colors duration-500 group-hover:text-[color:var(--forest-deep)]">
+                  {d.d}
+                </p>
               </div>
-              <div aria-hidden="true" className="my-5 h-px bg-[color:var(--border)]" />
-              <p className="text-[color:var(--muted-foreground)] leading-relaxed">{d.d}</p>
             </Reveal>
           ))}
         </div>
@@ -74,27 +86,84 @@ export function DiferenciaisSection() {
 
 export function AtendimentoSection() {
   const setOpen = useReserva((s) => s.setOpen);
+  const channels = [
+    { icon: MessageCircle, label: "WhatsApp", value: BRAND.whatsapp.label, href: BRAND.whatsapp.url, external: true },
+    { icon: Instagram, label: "Instagram", value: BRAND.instagram.handle, href: BRAND.instagram.url, external: true },
+    { icon: MapPin, label: "Atelier", value: BRAND.address.line, href: BRAND.address.mapsUrl, external: true },
+    { icon: Clock, label: "Horário", value: BRAND.hours, href: null, external: false },
+  ];
+  const mapsEmbed = `https://www.google.com/maps?q=${encodeURIComponent(BRAND.address.line)}&output=embed`;
+
   return (
     <section id="atendimento" className="relative bg-[color:var(--forest-deep)] py-24 md:py-32 text-[color:var(--cream)]">
-      <div className="mx-auto max-w-[920px] px-6 text-center md:px-12">
-        <Reveal>
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Atendimento</p>
-          <h2 className="mt-5 font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.05]">
-            Cada reserva começa com uma conversa.
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl font-display italic text-lg text-[color:var(--cream)]/80">
-            Selecione suas peças, finalize pela reserva e nossa curadoria continua com você no WhatsApp.
-          </p>
-        </Reveal>
-        <Reveal delay={0.2}>
-          <button
-            onClick={() => setOpen(true)}
-            className="mt-12 inline-flex h-14 items-center gap-3 border border-[color:var(--cream)]/70 px-10 text-[11px] tracking-luxe uppercase transition-all duration-500 hover:bg-[color:var(--cream)] hover:text-[color:var(--forest-deep)] active:scale-[0.98]"
-          >
-            <span>Abrir minha reserva</span>
-            <span aria-hidden="true" className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12" />
-          </button>
-        </Reveal>
+      <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+        <div className="grid gap-16 md:grid-cols-[1.1fr_1fr] md:gap-20">
+          <div>
+            <Reveal>
+              <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Atendimento</p>
+              <h2 className="mt-5 font-display text-[clamp(2.25rem,4.5vw,3.5rem)] leading-[1.05]">
+                Cada reserva começa com uma conversa.
+              </h2>
+              <p className="mt-6 max-w-xl font-display italic text-lg text-[color:var(--cream)]/80">
+                Atendimento privado e personalizado. Selecione as peças e seguimos a curadoria com você.
+              </p>
+            </Reveal>
+
+            <Reveal delay={0.15}>
+              <ul className="mt-12 divide-y divide-[color:var(--cream)]/15 border-y border-[color:var(--cream)]/15">
+                {channels.map(({ icon: Icon, label, value, href, external }) => {
+                  const inner = (
+                    <div className="group flex items-center gap-5 py-5 transition-all duration-500">
+                      <Icon className="h-[18px] w-[18px] shrink-0 text-[color:var(--gold)]" strokeWidth={1.4} aria-hidden="true" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--cream)]/55">{label}</p>
+                        <p className="mt-1 truncate font-display text-lg text-[color:var(--cream)]">{value}</p>
+                      </div>
+                      {href && (
+                        <ArrowUpRight
+                          className="h-4 w-4 shrink-0 text-[color:var(--cream)]/40 transition-all duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--gold)]"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </div>
+                  );
+                  return (
+                    <li key={label}>
+                      {href ? (
+                        <a href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}>
+                          {inner}
+                        </a>
+                      ) : (
+                        inner
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Reveal>
+
+            <Reveal delay={0.25}>
+              <button
+                onClick={() => setOpen(true)}
+                className="group mt-10 inline-flex h-14 items-center gap-3 border border-[color:var(--cream)]/70 px-10 text-[11px] tracking-luxe uppercase transition-all duration-500 hover:bg-[color:var(--cream)] hover:text-[color:var(--forest-deep)] active:scale-[0.99]"
+              >
+                <span>Abrir minha reserva</span>
+                <span aria-hidden="true" className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12" />
+              </button>
+            </Reveal>
+          </div>
+
+          <Reveal delay={0.2} className="relative min-h-[360px] overflow-hidden border border-[color:var(--cream)]/15 md:min-h-[520px]">
+            <iframe
+              title="Localização do atelier 7D Imports"
+              src={mapsEmbed}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="absolute inset-0 h-full w-full grayscale [filter:grayscale(1)_contrast(0.95)_brightness(0.88)]"
+            />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[color:var(--forest-deep)]/15 mix-blend-multiply" />
+          </Reveal>
+        </div>
       </div>
     </section>
   );
