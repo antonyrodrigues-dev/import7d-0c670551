@@ -12,7 +12,13 @@ export function Footer() {
     <footer className="border-t border-[color:var(--border)] bg-[color:var(--cream)] py-16 text-[color:var(--forest-deep)]">
       <div className="mx-auto grid max-w-[1280px] gap-14 px-6 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:gap-16 md:px-12">
         <div>
-          <p className="font-display text-[22px] font-medium tracking-[0.34em]">{BRAND.name}</p>
+          <p
+            className="font-display leading-none text-[color:var(--forest-deep)]"
+            style={{ fontSize: "30px", letterSpacing: "-0.07em", fontWeight: 500 }}
+            aria-label="7D Imports"
+          >
+            7D
+          </p>
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-[color:var(--muted-foreground)]">
             Acervo privado de peças selecionadas. Curadoria humana, atendimento personalizado.
           </p>
@@ -37,7 +43,7 @@ export function Footer() {
         <div aria-hidden="true" className="h-px bg-[color:var(--gold)]/25" />
         <div className="mt-6 flex flex-col items-start justify-between gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] md:flex-row">
           <p>© {new Date().getFullYear()} {BRAND.name} · Todos os direitos reservados</p>
-          <p>São Paulo · Brasil</p>
+          <p>Caxias do Sul · Brasil</p>
         </div>
       </div>
     </footer>

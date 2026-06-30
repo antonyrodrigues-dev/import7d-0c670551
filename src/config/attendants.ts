@@ -10,7 +10,7 @@ export interface Attendant {
 }
 
 export const ATTENDANTS: Attendant[] = [
-  { id: "ana", name: "Ana — Curadoria", phone: "5511999999999" },
+  { id: "ana", name: "Ana — Curadoria", phone: "5554981310049" },
 ];
 
 export const DEFAULT_ATTENDANT = ATTENDANTS[0];
@@ -19,11 +19,12 @@ export const BRAND = {
   name: "7D IMPORTS",
   tagline: "Acesso a peças selecionadas",
   url: "",
-  instagram: { handle: "@7dimports", url: "https://instagram.com/7dimports" },
-  whatsapp: { label: "+55 11 99999-9999", url: "https://wa.me/5511999999999" },
+  instagram: { handle: "@7dimports_", url: "https://instagram.com/7dimports_" },
+  whatsapp: { label: "+55 54 98131-0049", url: "https://wa.me/5554981310049" },
   address: {
-    line: "Rua Oscar Freire, 725 — Jardins, São Paulo · SP",
-    mapsUrl: "https://maps.google.com/?q=Rua+Oscar+Freire+725+São+Paulo",
+    line: "Rua Luiz Veronesi, 464 — Cinquentenário, Caxias do Sul · RS",
+    mapsUrl: "https://maps.google.com/?q=Rua+Luiz+Veronesi+464+Cinquentenário+Caxias+do+Sul+RS",
   },
-  hours: "Seg a Sex · 10h–19h · Sáb 11h–17h",
+  hours: "Seg a Sex · 09h–18h · Sáb 10h–16h",
+  location: "Caxias do Sul · Brasil",
 } as const;

@@ -9,7 +9,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
       type="button"
       onClick={onOpen}
       aria-label={`Ver detalhes — ${p.name}`}
-      className="group relative block w-[78vw] shrink-0 snap-center text-left sm:w-[58vw] md:w-[42vw] lg:w-[32vw] xl:w-[28vw]"
+      className="group relative block w-[78vw] shrink-0 snap-center text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99] sm:w-[58vw] md:w-[42vw] lg:w-[32vw] xl:w-[28vw]"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[color:var(--cream-deep)]">
         <img
@@ -17,7 +17,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
           alt={p.name}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ease-out group-hover:opacity-0"
+          className="absolute inset-0 h-full w-full object-contain transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-0"
         />
         <img
           src={p.imageHover || p.image}
@@ -25,8 +25,19 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
           aria-hidden="true"
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+          className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[color:var(--forest-deep)]/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-4 left-4 inline-flex items-center gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--cream)] opacity-0 translate-y-1 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100"
+        >
+          Ver peça
+          <span className="inline-block h-px w-6 bg-[color:var(--gold)]" />
+        </span>
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-[color:var(--gold)] transition-transform duration-700 group-hover:scale-x-100"
@@ -35,7 +46,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
       <div className="mt-5 flex items-baseline justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">{p.category}</p>
-          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)]">{p.name}</h3>
+          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">{p.name}</h3>
         </div>
         <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)]">{formatBRL(p.price)}</span>
       </div>
