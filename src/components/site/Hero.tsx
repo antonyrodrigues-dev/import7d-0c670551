@@ -40,13 +40,13 @@ export function Hero() {
             initial={{ opacity: 0, y: reduce ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-            className="mb-8 flex items-center justify-center gap-4 md:mb-10"
+            className="mb-8 inline-flex items-center gap-4 border border-[color:var(--gold)]/60 bg-[color:var(--cream)]/70 px-5 py-2 backdrop-blur-sm md:mb-10"
           >
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]" />
-            <p className="text-center text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[color:var(--gold)]" />
+            <p className="text-center text-[13px] font-semibold tracking-[0.42em] uppercase text-[color:var(--gold)]">
               Acervo · Primavera 2026
             </p>
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]" />
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[color:var(--gold)]" />
           </motion.div>
 
           <motion.h1
