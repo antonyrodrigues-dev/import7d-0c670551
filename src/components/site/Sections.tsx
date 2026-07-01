@@ -92,78 +92,62 @@ export function AtendimentoSection() {
     { icon: MapPin, label: "Atelier", value: BRAND.address.line, href: BRAND.address.mapsUrl, external: true },
     { icon: Clock, label: "Horário", value: BRAND.hours, href: null, external: false },
   ];
-  const mapsEmbed = `https://www.google.com/maps?q=${encodeURIComponent(BRAND.address.line)}&output=embed`;
 
   return (
     <section id="atendimento" className="relative bg-[color:var(--forest-deep)] py-24 md:py-32 text-[color:var(--cream)]">
-      <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-        <div className="grid gap-16 md:grid-cols-[1.1fr_1fr] md:gap-20">
-          <div>
-            <Reveal>
-              <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Atendimento</p>
-              <h2 className="mt-5 font-display text-[clamp(2.25rem,4.5vw,3.5rem)] leading-[1.05]">
-                Cada reserva começa com uma conversa.
-              </h2>
-              <p className="mt-6 max-w-xl font-display italic text-lg text-[color:var(--cream)]/80">
-                Atendimento privado e personalizado. Selecione as peças e seguimos a curadoria com você.
-              </p>
-            </Reveal>
+      <div className="mx-auto max-w-[1080px] px-6 md:px-12">
+        <Reveal className="text-center">
+          <p className="text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">Atendimento</p>
+          <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(2.25rem,4.5vw,3.5rem)] leading-[1.05]">
+            Cada reserva começa com uma conversa.
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl font-display italic text-lg text-[color:var(--cream)]/80">
+            Atendimento privado e personalizado. Selecione as peças e seguimos a curadoria com você.
+          </p>
+        </Reveal>
 
-            <Reveal delay={0.15}>
-              <ul className="mt-12 divide-y divide-[color:var(--cream)]/15 border-y border-[color:var(--cream)]/15">
-                {channels.map(({ icon: Icon, label, value, href, external }) => {
-                  const inner = (
-                    <div className="group flex items-center gap-5 py-5 transition-all duration-500">
-                      <Icon className="h-[18px] w-[18px] shrink-0 text-[color:var(--gold)]" strokeWidth={1.4} aria-hidden="true" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--cream)]/55">{label}</p>
-                        <p className="mt-1 truncate font-display text-lg text-[color:var(--cream)]">{value}</p>
-                      </div>
-                      {href && (
-                        <ArrowUpRight
-                          className="h-4 w-4 shrink-0 text-[color:var(--cream)]/40 transition-all duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--gold)]"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </div>
-                  );
-                  return (
-                    <li key={label}>
-                      {href ? (
-                        <a href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}>
-                          {inner}
-                        </a>
-                      ) : (
-                        inner
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </Reveal>
+        <Reveal delay={0.15}>
+          <ul className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-x-14 gap-y-2 border-y border-[color:var(--cream)]/15 sm:grid-cols-2">
+            {channels.map(({ icon: Icon, label, value, href, external }) => {
+              const inner = (
+                <div className="group flex items-center gap-5 py-6 transition-all duration-500">
+                  <Icon className="h-[18px] w-[18px] shrink-0 text-[color:var(--gold)]" strokeWidth={1.4} aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] tracking-luxe uppercase text-[color:var(--cream)]/55">{label}</p>
+                    <p className="mt-1 truncate font-display text-lg text-[color:var(--cream)]">{value}</p>
+                  </div>
+                  {href && (
+                    <ArrowUpRight
+                      className="h-4 w-4 shrink-0 text-[color:var(--cream)]/40 transition-all duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--gold)]"
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+              );
+              return (
+                <li key={label} className="border-b border-[color:var(--cream)]/10 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0">
+                  {href ? (
+                    <a href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}>
+                      {inner}
+                    </a>
+                  ) : (
+                    inner
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Reveal>
 
-            <Reveal delay={0.25}>
-              <button
-                onClick={() => setOpen(true)}
-                className="group mt-10 inline-flex h-14 items-center gap-3 border border-[color:var(--cream)]/70 px-10 text-[11px] tracking-luxe uppercase transition-all duration-500 hover:bg-[color:var(--cream)] hover:text-[color:var(--forest-deep)] active:scale-[0.99]"
-              >
-                <span>Abrir minha reserva</span>
-                <span aria-hidden="true" className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12" />
-              </button>
-            </Reveal>
-          </div>
-
-          <Reveal delay={0.2} className="relative min-h-[360px] overflow-hidden border border-[color:var(--cream)]/15 md:min-h-[520px]">
-            <iframe
-              title="Localização do atelier 7D Imports"
-              src={mapsEmbed}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="absolute inset-0 h-full w-full grayscale [filter:grayscale(1)_contrast(0.95)_brightness(0.88)]"
-            />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[color:var(--forest-deep)]/15 mix-blend-multiply" />
-          </Reveal>
-        </div>
+        <Reveal delay={0.25} className="mt-14 flex justify-center">
+          <button
+            onClick={() => setOpen(true)}
+            className="group inline-flex h-14 items-center gap-3 border border-[color:var(--cream)]/70 px-10 text-[11px] tracking-luxe uppercase transition-all duration-500 hover:bg-[color:var(--cream)] hover:text-[color:var(--forest-deep)] active:scale-[0.99]"
+          >
+            <span>Abrir minha reserva</span>
+            <span aria-hidden="true" className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12" />
+          </button>
+        </Reveal>
       </div>
     </section>
   );
