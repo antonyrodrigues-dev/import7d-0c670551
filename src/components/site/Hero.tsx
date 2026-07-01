@@ -27,19 +27,27 @@ export function Hero() {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[color:var(--cream)]/90 via-[color:var(--cream)]/40 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-gradient-to-t from-[color:var(--cream)] via-[color:var(--cream)]/70 to-transparent"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[35%] bg-gradient-to-b from-[color:var(--forest-deep)]/25 to-transparent"
       />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-end px-6 pb-[clamp(64px,11vh,140px)] text-center text-[color:var(--forest-deep)] md:px-10">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center">
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: reduce ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-            className="mb-6 text-center text-[10px] tracking-luxe uppercase text-[color:var(--gold)] md:mb-8"
+            className="mb-8 flex items-center justify-center gap-4 md:mb-10"
           >
-            Acervo · Primavera 2026
-          </motion.p>
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]" />
+            <p className="text-center text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">
+              Acervo · Primavera 2026
+            </p>
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]" />
+          </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
