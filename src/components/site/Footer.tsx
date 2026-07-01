@@ -13,11 +13,16 @@ export function Footer() {
       <div className="mx-auto grid max-w-[1280px] gap-14 px-6 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:gap-16 md:px-12">
         <div>
           <p
-            className="font-display leading-none text-[color:var(--forest-deep)]"
-            style={{ fontSize: "30px", letterSpacing: "-0.07em", fontWeight: 500 }}
+            className="font-display leading-none text-[color:var(--forest-deep)] flex items-baseline gap-3"
             aria-label="7D Imports"
           >
-            7D
+            <span style={{ fontSize: "32px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
+            <span
+              className="text-[color:var(--forest-deep)]/70"
+              style={{ fontSize: "11px", letterSpacing: "0.42em", fontWeight: 500, textTransform: "uppercase" }}
+            >
+              Imports
+            </span>
           </p>
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-[color:var(--muted-foreground)]">
             Acervo privado de peças selecionadas. Curadoria humana, atendimento personalizado.
