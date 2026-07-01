@@ -42,32 +42,34 @@ export function Header() {
         scrolled ? "bg-[color:var(--cream)]/94 backdrop-blur-[6px]" : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 md:h-[72px] max-w-[1440px] items-center justify-between px-5 md:px-10">
+      <div className="mx-auto grid h-16 md:h-[72px] max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 md:px-8 lg:px-10">
+        <div className="flex items-center gap-2 justify-self-start">
         <button
           aria-label="Abrir menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
-          className="flex h-11 w-11 items-center justify-center md:hidden text-[color:var(--forest-deep)]"
+          className="flex h-11 w-11 items-center justify-center lg:hidden text-[color:var(--forest-deep)]"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
+        </div>
 
         <a
           href="#top"
           aria-label="7D Imports — início"
-          className="font-display leading-none text-[color:var(--forest-deep)]"
+          className="font-display leading-none text-[color:var(--forest-deep)] justify-self-center"
           style={{ fontSize: "26px", letterSpacing: "-0.07em", fontWeight: 500 }}
         >
           7D
         </a>
 
-        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-12">
+        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-12">
           <NavLink href="#acervo" label="Acervo" />
           <NavLink href="#manifesto" label="Manifesto" />
           <NavLink href="#atendimento" label="Atendimento" />
         </nav>
 
-        <div className="flex items-center justify-end gap-1 md:gap-2">
+        <div className="flex items-center justify-self-end gap-1 md:gap-2">
           <button
             aria-label="Buscar peças"
             onClick={() => setSearchOpen(true)}
@@ -88,7 +90,7 @@ export function Header() {
             >
               <Bookmark className="h-[18px] w-[18px]" strokeWidth={1.4} aria-hidden="true" />
             </motion.span>
-            <span className="hidden sm:inline">Reserva</span>
+            <span className="hidden lg:inline">Reserva</span>
             <AnimatePresence mode="popLayout">
               {count > 0 && (
                 <motion.span
@@ -114,7 +116,7 @@ export function Header() {
       />
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-[color:var(--forest-deep)] text-[color:var(--cream)] md:hidden" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 bg-[color:var(--forest-deep)] text-[color:var(--cream)] lg:hidden" role="dialog" aria-modal="true">
           <div className="flex items-center justify-between px-5 h-16">
             <span className="font-display text-2xl tracking-logo font-medium">7D</span>
             <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="flex h-11 w-11 items-center justify-center">
