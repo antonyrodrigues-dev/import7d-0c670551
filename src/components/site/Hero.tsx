@@ -34,21 +34,8 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 top-0 h-[35%] bg-gradient-to-b from-[color:var(--forest-deep)]/25 to-transparent"
       />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-end px-6 pb-[clamp(64px,11vh,140px)] text-center text-[color:var(--forest-deep)] md:px-10">
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-[color:var(--forest-deep)] md:px-10">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: reduce ? 0 : 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-            className="mb-8 inline-flex items-center gap-4 border border-[color:var(--gold)]/60 bg-[color:var(--cream)]/70 px-5 py-2 backdrop-blur-sm md:mb-10"
-          >
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[color:var(--gold)]" />
-            <p className="text-center text-[13px] font-semibold tracking-[0.42em] uppercase text-[color:var(--gold)]">
-              Acervo · Primavera 2026
-            </p>
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[color:var(--gold)]" />
-          </motion.div>
-
           <motion.h1
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
