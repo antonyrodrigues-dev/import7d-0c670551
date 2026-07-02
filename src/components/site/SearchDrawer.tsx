@@ -10,9 +10,14 @@ export function SearchDrawer() {
 
   useEffect(() => {
     if (!searchOpen) { setQ(""); return; }
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSearchOpen(false);
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
   }, [searchOpen, setSearchOpen]);
 
   const results = useMemo(() => {
