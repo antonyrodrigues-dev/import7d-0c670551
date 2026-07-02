@@ -3,11 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X, Bookmark } from "lucide-react";
 import { useReserva } from "@/store/reserva";
 
-function NavLink({ href, label }: { href: string; label: string }) {
+function NavLink({ href, label, scrolled }: { href: string; label: string; scrolled: boolean }) {
   return (
     <a
       href={href}
-      className="group relative inline-block py-2 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]/80 transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
+      className={`group relative inline-block py-2 text-[11px] tracking-luxe uppercase transition-colors duration-300 ${
+        scrolled
+          ? "text-[color:var(--forest-deep)]/80 hover:text-[color:var(--forest-deep)]"
+          : "text-[color:var(--cream)]/85 hover:text-[color:var(--cream)]"
+      }`}
     >
       <span className="relative inline-block">{label}</span>
       <span
@@ -36,18 +40,32 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-[600ms] ease-out ${
+      className={`fixed inset-x-0 top-0 z-40 transition-[background-color,backdrop-filter] duration-[600ms] ease-out ${
         scrolled ? "bg-[color:var(--cream)]/94 backdrop-blur-[6px]" : "bg-transparent"
       }`}
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="mx-auto flex h-16 md:h-[72px] max-w-[1440px] items-center justify-between px-5 md:px-10">
+      <div
+        className={`mx-auto flex h-16 md:h-[72px] max-w-[1440px] items-center justify-between px-5 md:px-10 transition-colors duration-[600ms] ease-out ${
+          scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
+        }`}
+      >
         <button
           aria-label="Abrir menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(true)}
-          className="flex h-11 w-11 items-center justify-center md:hidden text-[color:var(--forest-deep)]"
+          className="flex h-11 w-11 items-center justify-center md:hidden"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -55,30 +73,30 @@ export function Header() {
         <a
           href="#top"
           aria-label="7D Imports — início"
-          className="font-display leading-none text-[color:var(--forest-deep)]"
+          className="font-display leading-none"
           style={{ fontSize: "26px", letterSpacing: "-0.07em", fontWeight: 500 }}
         >
           7D
         </a>
 
         <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-12">
-          <NavLink href="#acervo" label="Acervo" />
-          <NavLink href="#manifesto" label="Manifesto" />
-          <NavLink href="#atendimento" label="Atendimento" />
+          <NavLink href="#acervo" label="Acervo" scrolled={scrolled} />
+          <NavLink href="#manifesto" label="Manifesto" scrolled={scrolled} />
+          <NavLink href="#atendimento" label="Atendimento" scrolled={scrolled} />
         </nav>
 
         <div className="flex items-center justify-end gap-1 md:gap-2">
           <button
             aria-label="Buscar peças"
             onClick={() => setSearchOpen(true)}
-            className="flex h-11 w-11 items-center justify-center text-[color:var(--forest-deep)]"
+            className="flex h-11 w-11 items-center justify-center"
           >
             <Search className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
           <motion.button
             onClick={() => setOpen(true)}
             aria-label={`Sua reserva, ${count} ${count === 1 ? "peça" : "peças"}`}
-            className="group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]"
+            className="group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase"
           >
             <motion.span
               key={pulse}
