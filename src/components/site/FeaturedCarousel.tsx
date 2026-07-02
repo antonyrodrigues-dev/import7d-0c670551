@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { PRODUCTS, formatBRL, type Product } from "@/data/products";
 import { ProductSheet } from "./ProductSheet";
 
-function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
+function Slide({ p, onOpen }: { p: Product; onOpen: (slug: string) => void }) {
   return (
     <button
       type="button"
-      onClick={onOpen}
+      onClick={() => onOpen(p.slug)}
       aria-label={`Ver detalhes — ${p.name}`}
       className="group relative block w-[78vw] shrink-0 snap-center text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99] sm:w-[58vw] md:w-[42vw] lg:w-[32vw] xl:w-[28vw]"
     >
@@ -17,6 +17,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
           alt={p.name}
           loading="lazy"
           decoding="async"
+          draggable={false}
           className="absolute inset-0 h-full w-full object-contain transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-0"
         />
         <img
@@ -25,6 +26,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
           aria-hidden="true"
           loading="lazy"
           decoding="async"
+          draggable={false}
           className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
         <div
@@ -55,7 +57,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: () => void }) {
 }
 
 export function FeaturedCarousel() {
-  const featured = PRODUCTS.filter((p) => p.featured);
+  const featured = useMemo(() => PRODUCTS.filter((p) => p.featured), []);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -95,7 +97,7 @@ export function FeaturedCarousel() {
         style={{ scrollPaddingInline: "1.5rem" }}
       >
         {featured.map((p) => (
-          <Slide key={p.slug} p={p} onOpen={() => setOpenSlug(p.slug)} />
+          <Slide key={p.slug} p={p} onOpen={setOpenSlug} />
         ))}
         <div aria-hidden="true" className="shrink-0 pr-2" />
       </div>
@@ -126,14 +128,18 @@ export function FeaturedCarousel() {
         </div>
       </div>
 
-      {featured.map((p) => (
-        <ProductSheet
-          key={p.slug}
-          product={p}
-          open={openSlug === p.slug}
-          onOpenChange={(o) => setOpenSlug(o ? p.slug : null)}
-        />
-      ))}
+      {(() => {
+        const active = openSlug ? featured.find((p) => p.slug === openSlug) : null;
+        if (!active) return null;
+        return (
+          <ProductSheet
+            key={active.slug}
+            product={active}
+            open={!!active}
+            onOpenChange={(o) => setOpenSlug(o ? active.slug : null)}
+          />
+        );
+      })()}
     </div>
   );
 }
