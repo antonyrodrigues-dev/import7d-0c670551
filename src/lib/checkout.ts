@@ -110,7 +110,10 @@ export function formatCPF(v: string) {
 }
 
 // ---------- ViaCEP (best-effort) ----------
-export async function lookupCEP(cep: string, signal?: AbortSignal): Promise<Partial<Address> | null> {
+export async function lookupCEP(
+  cep: string,
+  signal?: AbortSignal,
+): Promise<Partial<Address> | null> {
   const d = digits(cep);
   if (d.length !== 8) return null;
   try {

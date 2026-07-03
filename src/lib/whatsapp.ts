@@ -34,7 +34,9 @@ export function buildReservaMessage(items: ReservaItem[], summary: CheckoutSumma
 
   L.push("*Peças*");
   items.forEach((it, i) => {
-    L.push(`${i + 1}. ${it.name} — Tam ${it.size} — ${it.quantity}x — ${formatBRL(it.price * it.quantity)}`);
+    L.push(
+      `${i + 1}. ${it.name} — Tam ${it.size} — ${it.quantity}x — ${formatBRL(it.price * it.quantity)}`,
+    );
   });
   L.push("");
 

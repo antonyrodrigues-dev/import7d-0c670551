@@ -5,10 +5,7 @@ import { formatBRL } from "@/data/products";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
-    meta: [
-      { title: "Pedidos — 7D IMPORTS" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Pedidos — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: AdminPage,
 });
@@ -93,7 +90,11 @@ function AdminPage() {
         {forbidden ? (
           <p className="mt-16 font-display italic text-lg text-[color:var(--muted-foreground)]">
             Sua conta não tem permissão para visualizar pedidos. Solicite ao administrador o papel
-            de <span className="font-sans not-italic tracking-luxe uppercase text-[11px]">atendente</span>.
+            de{" "}
+            <span className="font-sans not-italic tracking-luxe uppercase text-[11px]">
+              atendente
+            </span>
+            .
           </p>
         ) : (
           <>
@@ -124,7 +125,10 @@ function AdminPage() {
             ) : (
               <ul className="mt-10 flex flex-col gap-6">
                 {visiveis.map((p) => (
-                  <li key={p.id} className="border border-[color:var(--border)] bg-[color:var(--cream)] p-6">
+                  <li
+                    key={p.id}
+                    className="border border-[color:var(--border)] bg-[color:var(--cream)] p-6"
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="font-display text-2xl tabular-nums">{p.numero_pedido}</p>
@@ -133,7 +137,9 @@ function AdminPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-display text-2xl tabular-nums">{formatBRL(Number(p.valor_total))}</p>
+                        <p className="font-display text-2xl tabular-nums">
+                          {formatBRL(Number(p.valor_total))}
+                        </p>
                         <select
                           aria-label="Status do pedido"
                           value={p.status}
@@ -141,15 +147,25 @@ function AdminPage() {
                           className="mt-2 h-10 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]"
                         >
                           {STATUSES.map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
                           ))}
                         </select>
                       </div>
                     </div>
                     <ul className="mt-5 divide-y divide-[color:var(--border)] border-t border-[color:var(--border)]">
                       {(Array.isArray(p.itens) ? p.itens : []).map((it, idx) => (
-                        <li key={`${p.id}-${idx}`} className="flex items-center justify-between py-3 text-sm">
-                          <span>{it.name} <span className="text-[color:var(--muted-foreground)]">· Tam. {it.size} · {it.quantity}x</span></span>
+                        <li
+                          key={`${p.id}-${idx}`}
+                          className="flex items-center justify-between py-3 text-sm"
+                        >
+                          <span>
+                            {it.name}{" "}
+                            <span className="text-[color:var(--muted-foreground)]">
+                              · Tam. {it.size} · {it.quantity}x
+                            </span>
+                          </span>
                           <span className="tabular-nums">{formatBRL(it.price * it.quantity)}</span>
                         </li>
                       ))}

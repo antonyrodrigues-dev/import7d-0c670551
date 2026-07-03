@@ -4,7 +4,10 @@ export const Route = createFileRoute("/termos")({
   head: () => ({
     meta: [
       { title: "Termos de Uso — 7D IMPORTS" },
-      { name: "description", content: "Termos e condições para uso do acervo e finalização de reservas na 7D IMPORTS." },
+      {
+        name: "description",
+        content: "Termos e condições para uso do acervo e finalização de reservas na 7D IMPORTS.",
+      },
       { property: "og:title", content: "Termos de Uso — 7D IMPORTS" },
       { property: "og:url", content: "/termos" },
     ],
@@ -17,7 +20,9 @@ function TermosPage() {
   return (
     <main className="min-h-screen bg-[color:var(--cream)] px-6 py-24 text-[color:var(--forest-deep)] md:px-12">
       <article className="mx-auto max-w-[780px]">
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Documento legal</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+          Documento legal
+        </p>
         <h1 className="mt-4 font-display text-4xl md:text-5xl">Termos de Uso</h1>
         <p className="mt-4 font-display italic text-lg text-[color:var(--muted-foreground)]">
           Última atualização: {new Date().toLocaleDateString("pt-BR")}

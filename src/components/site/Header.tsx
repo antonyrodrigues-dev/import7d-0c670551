@@ -80,13 +80,21 @@ export function Header() {
             className={`hidden sm:inline transition-opacity duration-500 ${
               scrolled ? "opacity-70" : "opacity-80"
             }`}
-            style={{ fontSize: "10px", letterSpacing: "0.42em", fontWeight: 500, textTransform: "uppercase" }}
+            style={{
+              fontSize: "10px",
+              letterSpacing: "0.42em",
+              fontWeight: 500,
+              textTransform: "uppercase",
+            }}
           >
             Imports
           </span>
         </a>
 
-        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-8 lg:gap-12">
+        <nav
+          aria-label="Principal"
+          className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-8 lg:gap-12"
+        >
           <NavLink href="#acervo" label="Acervo" scrolled={scrolled} />
           <NavLink href="#manifesto" label="Manifesto" scrolled={scrolled} />
           <NavLink href="#atendimento" label="Atendimento" scrolled={scrolled} />
@@ -139,16 +147,33 @@ export function Header() {
       />
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-[color:var(--forest-deep)] text-[color:var(--cream)] md:hidden" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-50 bg-[color:var(--forest-deep)] text-[color:var(--cream)] md:hidden"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="flex items-center justify-between px-5 h-16">
             <span className="font-display text-2xl tracking-logo font-medium">7D</span>
-            <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="flex h-11 w-11 items-center justify-center">
+            <button
+              aria-label="Fechar menu"
+              onClick={() => setMenuOpen(false)}
+              className="flex h-11 w-11 items-center justify-center"
+            >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
           <nav aria-label="Menu" className="flex flex-col gap-6 px-8 pt-14">
-            {[["Acervo","#acervo"],["Manifesto","#manifesto"],["Atendimento","#atendimento"]].map(([label, href]) => (
-              <a key={href} href={href} onClick={() => setMenuOpen(false)} className="font-display text-3xl tracking-wide">
+            {[
+              ["Acervo", "#acervo"],
+              ["Manifesto", "#manifesto"],
+              ["Atendimento", "#atendimento"],
+            ].map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                className="font-display text-3xl tracking-wide"
+              >
                 {label}
               </a>
             ))}

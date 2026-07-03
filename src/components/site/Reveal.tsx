@@ -17,7 +17,13 @@ export function Reveal({ children, delay = 0, y = 20, className, as = "div" }: R
   };
   const MotionTag = motion[as] as typeof motion.div;
   return (
-    <MotionTag initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }} variants={variants} className={className}>
+    <MotionTag
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+      variants={variants}
+      className={className}
+    >
       {children}
     </MotionTag>
   );
