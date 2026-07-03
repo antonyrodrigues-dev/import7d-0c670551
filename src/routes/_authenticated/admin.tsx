@@ -72,7 +72,7 @@ function AdminPage() {
   const visiveis = pedidos.filter((p) => filter === "todos" || p.status === filter);
 
   return (
-    <main className="min-h-screen bg-[color:var(--cream)] px-6 py-16 text-[color:var(--forest-deep)] md:px-12">
+    <main className="min-h-dvh bg-[color:var(--cream)] px-6 py-16 text-[color:var(--forest-deep)] md:px-12">
       <div className="mx-auto max-w-[1280px]">
         <header className="flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--border)] pb-8">
           <div>

@@ -16,7 +16,7 @@ import { NetworkStatusWatcher } from "@/components/site/NetworkStatusWatcher";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
+    <div className="flex min-h-dvh items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <div className="max-w-md text-center">
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Erro 404</p>
         <h1 className="mt-4 font-display text-5xl md:text-6xl">Página não encontrada</h1>
@@ -44,7 +44,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
+    <div className="flex min-h-dvh items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <div className="max-w-md text-center">
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
           Algo interrompeu

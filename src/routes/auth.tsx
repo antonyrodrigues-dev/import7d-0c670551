@@ -39,7 +39,7 @@ function AuthPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
+    <main className="flex min-h-dvh items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <form onSubmit={handleSubmit} className="w-full max-w-md">
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
           Acesso restrito

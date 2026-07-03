@@ -18,7 +18,7 @@ export const Route = createFileRoute("/privacidade")({
 
 function PrivacidadePage() {
   return (
-    <main className="min-h-screen bg-[color:var(--cream)] px-6 py-24 text-[color:var(--forest-deep)] md:px-12">
+    <main className="min-h-dvh bg-[color:var(--cream)] px-6 py-24 text-[color:var(--forest-deep)] md:px-12">
       <article className="mx-auto max-w-[780px]">
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
           Documento legal
