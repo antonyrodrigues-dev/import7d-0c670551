@@ -80,7 +80,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 />
               </div>
 
-              <div className="flex flex-1 flex-col gap-6 p-6 md:overflow-y-auto md:p-12">
+              <div className="relative flex flex-1 flex-col gap-6 p-6 pb-24 md:overflow-y-auto md:p-12 md:pb-32">
                 <div>
                   <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
                     {product.category}
@@ -151,7 +151,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     addItem(product, size, qty);
                     onOpenChange(false);
                   }}
-                  className="mt-auto inline-flex h-14 items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-transform hover:bg-[color:var(--forest)] active:scale-[0.98]"
+                  className="sticky bottom-0 -mx-6 -mb-6 mt-auto inline-flex h-14 items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] shadow-[0_-12px_24px_-16px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98] md:-mx-12 md:-mb-12"
                 >
                   Adicionar à reserva
                 </button>
