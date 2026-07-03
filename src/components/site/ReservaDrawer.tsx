@@ -156,14 +156,16 @@ export function ReservaDrawer() {
       try {
         await Promise.race([
           supabase.from("pedidos").insert({
-            numero_pedido: numeroPedido,
-            itens: JSON.parse(JSON.stringify(itemsSnapshot)),
+            itens: JSON.parse(JSON.stringify({
+              produtos: itemsSnapshot,
+              cliente: customer,
+              entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
+              pagamento: payment,
+              numero_local: numeroPedido,
+            })),
             valor_total: total,
             status: "pendente",
             canal: "whatsapp",
-            cliente: customer as unknown as Record<string, unknown>,
-            entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
-            pagamento: payment,
           }),
           new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
         ]);
