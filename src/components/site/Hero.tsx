@@ -31,11 +31,22 @@ export function Hero() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[35%] bg-gradient-to-b from-[color:var(--forest-deep)]/25 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[color:var(--forest-deep)]/35 via-[color:var(--forest-deep)]/10 to-transparent"
       />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-[color:var(--forest-deep)] md:px-10">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center">
+          <motion.span
+            initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
+            className="mb-8 inline-flex items-center gap-4 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]/70 md:mb-10"
+          >
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/70" />
+            Est. Caxias do Sul · MMXXVI
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/70" />
+          </motion.span>
+
           <motion.h1
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -62,6 +73,18 @@ export function Hero() {
             <ArrowRight className="h-4 w-4 transition-transform duration-[400ms] ease-out group-hover:translate-x-1" aria-hidden="true" />
           </motion.a>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2, delay: 1.1, ease: EASE }}
+          className="pointer-events-none absolute inset-x-0 bottom-8 flex flex-col items-center gap-3 text-[9px] tracking-luxe uppercase text-[color:var(--forest-deep)]/55"
+        >
+          <span>Role</span>
+          <span aria-hidden="true" className="relative block h-10 w-px overflow-hidden bg-[color:var(--forest-deep)]/20">
+            <span className="absolute inset-x-0 top-0 h-4 animate-[grain-shift_2.4s_ease-in-out_infinite] bg-[color:var(--gold)]" style={{ animation: "scroll-hint 2.4s ease-in-out infinite" }} />
+          </span>
+        </motion.div>
       </div>
     </section>
   );

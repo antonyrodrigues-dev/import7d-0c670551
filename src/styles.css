@@ -79,7 +79,7 @@
   --secondary: var(--cream-deep);
   --secondary-foreground: var(--forest-deep);
   --muted: var(--cream-deep);
-  --muted-foreground: oklch(0.45 0.02 150);
+  --muted-foreground: oklch(0.42 0.02 150);
   --accent: var(--gold);
   --accent-foreground: var(--forest-deep);
   --destructive: oklch(0.577 0.245 27.325);
@@ -166,6 +166,10 @@
   letter-spacing: 0.28em;
 }
 
+@utility tracking-fine {
+  letter-spacing: 0.18em;
+}
+
 @utility hairline {
   height: 1px;
   background: currentColor;
@@ -188,6 +192,12 @@
 @keyframes ambient-drift {
   0%, 100% { transform: translate3d(-5%, -5%, 0) scale(1.1); opacity: 0.35; }
   50% { transform: translate3d(5%, 3%, 0) scale(1.2); opacity: 0.5; }
+}
+
+@keyframes scroll-hint {
+  0% { transform: translateY(-100%); }
+  60% { transform: translateY(100%); }
+  100% { transform: translateY(100%); }
 }
 
 .grain-overlay {

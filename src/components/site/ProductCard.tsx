@@ -2,7 +2,8 @@ import { memo, useState } from "react";
 import { PRODUCTS, formatBRL, type Product } from "@/data/products";
 import { ProductSheet } from "./ProductSheet";
 
-const Card = memo(function Card({ p, onOpen }: { p: Product; onOpen: (slug: string) => void }) {
+const Card = memo(function Card({ p, onOpen, index }: { p: Product; onOpen: (slug: string) => void; index: number }) {
+  const numeral = String(index + 1).padStart(2, "0");
   return (
     <button
       type="button"
@@ -30,12 +31,29 @@ const Card = memo(function Card({ p, onOpen }: { p: Product; onOpen: (slug: stri
           draggable={false}
           className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-500 group-hover:scale-x-100" />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute top-4 left-4 font-display text-[11px] tabular-nums text-[color:var(--forest-deep)]/45"
+        >
+          N° {numeral}
+        </span>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[color:var(--forest-deep)]/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-4 left-4 inline-flex items-center gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--cream)] opacity-0 translate-y-1 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100"
+        >
+          Ver peça
+          <span className="inline-block h-px w-6 bg-[color:var(--gold)]" />
+        </span>
+        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-700 group-hover:scale-x-100" />
       </div>
       <div className="mt-5 flex items-baseline justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">{p.category}</p>
-          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)]">{p.name}</h3>
+          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">{p.name}</h3>
         </div>
         <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)] shrink-0">{formatBRL(p.price)}</span>
       </div>
@@ -49,8 +67,8 @@ export function FullGrid() {
   return (
     <>
       <div className="grid gap-12 sm:grid-cols-2 md:gap-10 lg:grid-cols-3">
-        {PRODUCTS.map((p) => (
-          <Card key={p.slug} p={p} onOpen={setOpenSlug} />
+        {PRODUCTS.map((p, i) => (
+          <Card key={p.slug} p={p} onOpen={setOpenSlug} index={i} />
         ))}
       </div>
       {activeProduct && (
