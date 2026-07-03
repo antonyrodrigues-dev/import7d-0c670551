@@ -86,7 +86,7 @@ export function Header() {
           </span>
         </a>
 
-        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-12">
+        <nav aria-label="Principal" className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-8 lg:gap-12">
           <NavLink href="#acervo" label="Acervo" scrolled={scrolled} />
           <NavLink href="#manifesto" label="Manifesto" scrolled={scrolled} />
           <NavLink href="#atendimento" label="Atendimento" scrolled={scrolled} />
@@ -113,7 +113,7 @@ export function Header() {
             >
               <Bookmark className="h-[18px] w-[18px]" strokeWidth={1.4} aria-hidden="true" />
             </motion.span>
-            <span className="hidden sm:inline">Reserva</span>
+            <span className="hidden lg:inline">Reserva</span>
             <AnimatePresence mode="popLayout">
               {count > 0 && (
                 <motion.span
