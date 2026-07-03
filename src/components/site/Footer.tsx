@@ -9,27 +9,34 @@ const COLS = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-[color:var(--border)] bg-[color:var(--cream)] py-16 text-[color:var(--forest-deep)]">
-      <div className="mx-auto grid max-w-[1280px] gap-14 px-6 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:gap-16 md:px-12">
+    <footer className="relative overflow-hidden bg-[color:var(--cream)] pt-20 pb-14 text-[color:var(--forest-deep)]">
+      {/* Fio dourado no topo + halo sutil */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[color:var(--gold)]/45" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--gold)_10%,transparent)_0%,transparent_70%)]"
+      />
+      <div className="relative mx-auto grid max-w-[1280px] gap-14 px-6 md:grid-cols-[1.7fr_1fr_1fr_1fr_1fr] md:gap-16 md:px-12">
         <div>
           <p
             className="font-display leading-none text-[color:var(--forest-deep)] flex items-baseline gap-3"
             aria-label="7D Imports"
           >
-            <span style={{ fontSize: "32px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
+            <span style={{ fontSize: "34px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
             <span
-              className="text-[color:var(--forest-deep)]/70"
-              style={{ fontSize: "11px", letterSpacing: "0.42em", fontWeight: 500, textTransform: "uppercase" }}
+              className="text-[color:var(--forest-deep)]/75"
+              style={{ fontSize: "11px", letterSpacing: "0.44em", fontWeight: 500, textTransform: "uppercase" }}
             >
               Imports
             </span>
           </p>
-          <p className="mt-5 max-w-xs text-sm leading-relaxed text-[color:var(--muted-foreground)]">
-            Acervo privado de peças selecionadas. Curadoria humana, atendimento personalizado.
+          <p className="mt-6 max-w-xs font-display italic text-[15px] leading-[1.65] text-[color:var(--muted-foreground)]">
+            Acervo privado de peças selecionadas. Curadoria humana,
+            atendimento personalizado.
           </p>
-          <div className="mt-8 flex items-center gap-3 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]/55">
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
-            Est. MMXXVI
+          <div className="mt-8 flex items-center gap-3 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]/60">
+            <span aria-hidden="true" className="h-px w-10 bg-[color:var(--gold)]/70" />
+            Est. Caxias do Sul · MMXXVI
           </div>
         </div>
         {COLS.map((c) => (
@@ -48,11 +55,11 @@ export function Footer() {
           </nav>
         ))}
       </div>
-      <div className="mx-auto mt-16 max-w-[1280px] px-6 md:px-12">
-        <div aria-hidden="true" className="h-px bg-[color:var(--gold)]/25" />
-        <div className="mt-6 flex flex-col items-start justify-between gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] md:flex-row">
+      <div className="relative mx-auto mt-16 max-w-[1280px] px-6 md:px-12">
+        <div aria-hidden="true" className="h-px bg-[color:var(--gold)]/30" />
+        <div className="mt-6 flex flex-col items-start justify-between gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} {BRAND.name} · Todos os direitos reservados</p>
-          <p>Caxias do Sul · Brasil</p>
+          <p className="text-[color:var(--forest-deep)]/60">Curadoria · Caxias do Sul · Brasil</p>
         </div>
       </div>
     </footer>

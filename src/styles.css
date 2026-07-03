@@ -62,10 +62,10 @@
   --foreground: oklch(0.22 0.02 150);
   --cream: oklch(0.965 0.012 80);
   --cream-deep: oklch(0.92 0.018 78);
-  --forest: oklch(0.36 0.06 158);
-  --forest-deep: oklch(0.24 0.05 158);
-  --gold: oklch(0.74 0.06 84);
-  --gold-soft: oklch(0.84 0.05 84);
+  --forest: oklch(0.42 0.078 156);
+  --forest-deep: oklch(0.28 0.088 156);
+  --gold: oklch(0.76 0.078 84);
+  --gold-soft: oklch(0.86 0.055 84);
   --ink: oklch(0.22 0.02 150);
   --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
   --font-serif: "Cormorant Garamond", Georgia, serif;
@@ -84,7 +84,7 @@
   --accent-foreground: var(--forest-deep);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.88 0.015 80);
+  --border: oklch(0.86 0.014 80);
   --input: oklch(0.88 0.015 80);
   --ring: var(--forest);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -164,6 +164,11 @@
   ::selection {
     background: var(--forest);
     color: var(--cream);
+  }
+
+  :where(a, button, [role="button"], input, select, textarea):focus-visible {
+    outline: 1px solid var(--gold);
+    outline-offset: 3px;
   }
 }
 
