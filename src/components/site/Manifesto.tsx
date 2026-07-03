@@ -48,9 +48,12 @@ export function Manifesto() {
             Cada peça que entra no acervo passa por um filtro humano — tecido, corte, origem,
             assinatura. Recusamos volume. Honramos a escolha.
           </p>
-          <p className="not-italic font-sans text-[11px] tracking-luxe uppercase text-[color:var(--gold)]/90">
-            — A casa, {new Date().getFullYear()}
-          </p>
+          <div className="flex items-center gap-4 pt-2">
+            <span aria-hidden="true" className="h-px w-10 bg-[color:var(--gold)]/60" />
+            <p className="not-italic font-sans text-[11px] tracking-luxe uppercase text-[color:var(--gold)]/90">
+              A casa · MMXXVI
+            </p>
+          </div>
         </Reveal>
       </div>
     </section>

@@ -27,6 +27,10 @@ export function Footer() {
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-[color:var(--muted-foreground)]">
             Acervo privado de peças selecionadas. Curadoria humana, atendimento personalizado.
           </p>
+          <div className="mt-8 flex items-center gap-3 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]/55">
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
+            Est. MMXXVI
+          </div>
         </div>
         {COLS.map((c) => (
           <nav key={c.title} aria-label={c.title}>
