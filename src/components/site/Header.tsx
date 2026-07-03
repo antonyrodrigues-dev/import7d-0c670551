@@ -130,7 +130,7 @@ export function Header() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.6, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 420, damping: 44 }}
-                  className="ml-1 inline-flex font-display text-[12px] tabular-nums leading-none text-[color:var(--gold)]"
+                  className="ml-1 inline-flex font-display text-[14px] font-medium tabular-nums leading-none text-[color:var(--gold)]"
                 >
                   {count}
                 </motion.span>
