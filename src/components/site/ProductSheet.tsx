@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Minus, Plus } from "lucide-react";
 import { formatBRL, type Product } from "@/data/products";
 import { useReserva } from "@/store/reserva";
@@ -10,10 +10,21 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
+const MAX_QTY = 10;
+
 export function ProductSheet({ product, open, onOpenChange }: Props) {
   const [size, setSize] = useState<string>(product.sizes[0]);
   const [qty, setQty] = useState(1);
   const addItem = useReserva((s) => s.addItem);
+  const addingRef = useRef(false);
+
+  // Reset qty when the sheet closes so reopening starts fresh.
+  useEffect(() => {
+    if (!open) {
+      setQty(1);
+      addingRef.current = false;
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -97,12 +108,14 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                   <div className="ml-2 flex items-center border border-[color:var(--border)]">
                     <button aria-label="Diminuir" onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex h-11 w-11 items-center justify-center"><Minus className="h-4 w-4" aria-hidden="true" /></button>
                     <span aria-live="polite" className="min-w-8 text-center tabular-nums">{qty}</span>
-                    <button aria-label="Aumentar" onClick={() => setQty((q) => q + 1)} className="flex h-11 w-11 items-center justify-center"><Plus className="h-4 w-4" aria-hidden="true" /></button>
+                    <button aria-label="Aumentar" onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))} className="flex h-11 w-11 items-center justify-center"><Plus className="h-4 w-4" aria-hidden="true" /></button>
                   </div>
                 </div>
 
                 <button
                   onClick={() => {
+                    if (addingRef.current) return;
+                    addingRef.current = true;
                     addItem(product, size, qty);
                     onOpenChange(false);
                   }}

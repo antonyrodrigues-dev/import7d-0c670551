@@ -1,16 +1,18 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { formatBRL } from "@/data/products";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 
 export function ReservaDrawer() {
-  const { open, items, setOpen, removeItem, updateQty } = useReserva();
+  const { open, items, setOpen, removeItem, updateQty, clear } = useReserva();
   const total = items.reduce((a, i) => a + i.price * i.quantity, 0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingWhats, setPendingWhats] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -24,26 +26,79 @@ export function ReservaDrawer() {
     };
   }, [open, setOpen]);
 
+  // Reset transient states when drawer closes or cart empties.
+  useEffect(() => {
+    if (!open) {
+      setError(null);
+      setPendingWhats(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (items.length === 0) setPendingWhats(null);
+  }, [items.length]);
+
   const finalizar = async () => {
     if (items.length === 0 || submitting) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setError("Sem conexão. Verifique sua internet e tente novamente.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
+    setPendingWhats(null);
+
+    const itemsSnapshot = items.map((i) => ({ ...i }));
+    const totalSnapshot = total;
+
+    // 15s timeout so a hanging backend never blocks the UI indefinitely.
+    const timeoutMs = 15_000;
+    let timedOut = false;
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        timedOut = true;
+        reject(new Error("timeout"));
+      }, timeoutMs);
+    });
+
     try {
-      const { data, error: insErr } = await supabase
+      const insertPromise = supabase
         .from("pedidos")
         .insert({
-          itens: JSON.parse(JSON.stringify(items)),
-          valor_total: total,
+          itens: JSON.parse(JSON.stringify(itemsSnapshot)),
+          valor_total: totalSnapshot,
           status: "pendente",
           canal: "whatsapp",
         })
         .select("numero_pedido")
-        .single();
-      if (insErr || !data?.numero_pedido) throw insErr ?? new Error("Falha ao registrar pedido");
-      window.open(buildWhatsAppUrl(items, data.numero_pedido), "_blank", "noopener,noreferrer");
+        .maybeSingle();
+
+      const { data, error: insErr } = await Promise.race([insertPromise, timeout]) as Awaited<typeof insertPromise>;
+      if (insErr || !data?.numero_pedido) throw insErr ?? new Error("empty");
+
+      const url = buildWhatsAppUrl(itemsSnapshot, data.numero_pedido);
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+
+      if (!popup) {
+        // Popup blocked — surface a manual link the user can click.
+        setPendingWhats(url);
+        toast.message("Pedido registrado", {
+          description: "Toque em 'Abrir WhatsApp' para continuar.",
+        });
+      } else {
+        toast.success(`Pedido ${data.numero_pedido} enviado`, {
+          description: "Prossiga a conversa no WhatsApp para confirmar.",
+        });
+        clear();
+        setOpen(false);
+      }
     } catch (e) {
       console.error(e);
-      setError("Não foi possível registrar o pedido. Tente novamente em instantes.");
+      setError(
+        timedOut
+          ? "A resposta demorou demais. Verifique sua conexão e tente novamente."
+          : "Não foi possível registrar o pedido. Tente novamente em instantes.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -110,10 +165,26 @@ export function ReservaDrawer() {
                 <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Total estimado</span>
                 <span className="font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">{formatBRL(total)}</span>
               </div>
-              <button
+              {pendingWhats ? (
+                <a
+                  href={pendingWhats}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    clear();
+                    setOpen(false);
+                  }}
+                  className="mt-5 inline-flex h-14 w-full items-center justify-center gap-2 bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)]"
+                >
+                  Abrir WhatsApp
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              ) : (
+                <button
                 type="button"
                 onClick={finalizar}
                 disabled={items.length === 0 || submitting}
+                aria-busy={submitting}
                 className={`mt-5 inline-flex h-14 w-full items-center justify-center text-[11px] tracking-luxe uppercase transition-colors ${
                   items.length === 0 || submitting
                     ? "bg-[color:var(--cream-deep)] text-[color:var(--muted-foreground)] cursor-not-allowed"
@@ -121,7 +192,8 @@ export function ReservaDrawer() {
                 }`}
               >
                 {submitting ? "Registrando pedido…" : "Finalizar via WhatsApp"}
-              </button>
+                </button>
+              )}
               {error && (
                 <p role="alert" className="mt-3 text-center text-[11px] tracking-luxe uppercase text-[color:var(--destructive)]">
                   {error}
