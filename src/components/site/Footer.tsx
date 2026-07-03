@@ -65,10 +65,6 @@ export function Footer() {
           <p className="mt-6 max-w-xs font-display italic text-[15px] leading-[1.65] text-[color:var(--muted-foreground)]">
             Acervo privado de peças selecionadas. Curadoria humana, atendimento personalizado.
           </p>
-          <div className="mt-8 flex items-center gap-3 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]/60">
-            <span aria-hidden="true" className="h-px w-10 bg-[color:var(--gold)]/70" />
-            Est. Caxias do Sul · MMXXVI
-          </div>
         </div>
         {COLS.map((c) => (
           <nav key={c.title} aria-label={c.title}>
