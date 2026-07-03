@@ -2,7 +2,15 @@ import { memo, useState } from "react";
 import { PRODUCTS, formatBRL, type Product } from "@/data/products";
 import { ProductSheet } from "./ProductSheet";
 
-const Card = memo(function Card({ p, onOpen, index }: { p: Product; onOpen: (slug: string) => void; index: number }) {
+const Card = memo(function Card({
+  p,
+  onOpen,
+  index,
+}: {
+  p: Product;
+  onOpen: (slug: string) => void;
+  index: number;
+}) {
   const numeral = String(index + 1).padStart(2, "0");
   return (
     <button
@@ -48,14 +56,23 @@ const Card = memo(function Card({ p, onOpen, index }: { p: Product; onOpen: (slu
           Ver peça
           <span className="inline-block h-px w-6 bg-[color:var(--gold)]" />
         </span>
-        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-700 group-hover:scale-x-100" />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-700 group-hover:scale-x-100"
+        />
       </div>
       <div className="mt-5 flex items-baseline justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">{p.category}</p>
-          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">{p.name}</h3>
+          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            {p.category}
+          </p>
+          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">
+            {p.name}
+          </h3>
         </div>
-        <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)] shrink-0">{formatBRL(p.price)}</span>
+        <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)] shrink-0">
+          {formatBRL(p.price)}
+        </span>
       </div>
     </button>
   );
@@ -63,7 +80,7 @@ const Card = memo(function Card({ p, onOpen, index }: { p: Product; onOpen: (slu
 
 export function FullGrid() {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const activeProduct = openSlug ? PRODUCTS.find((p) => p.slug === openSlug) ?? null : null;
+  const activeProduct = openSlug ? (PRODUCTS.find((p) => p.slug === openSlug) ?? null) : null;
   return (
     <>
       <div className="grid gap-12 sm:grid-cols-2 md:gap-10 lg:grid-cols-3">

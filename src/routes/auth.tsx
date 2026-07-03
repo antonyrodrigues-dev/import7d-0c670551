@@ -39,9 +39,11 @@ function AuthPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
+    <main className="flex min-h-dvh items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Acesso restrito</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+          Acesso restrito
+        </p>
         <h1 className="mt-4 font-display text-4xl">Atendimento 7D</h1>
         <p className="mt-3 font-display italic text-base text-[color:var(--muted-foreground)]">
           Área exclusiva para a equipe de atendimento.
@@ -49,7 +51,9 @@ function AuthPage() {
 
         <div className="mt-10 space-y-5">
           <label className="block">
-            <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">E-mail</span>
+            <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+              E-mail
+            </span>
             <input
               type="email"
               required
@@ -59,7 +63,9 @@ function AuthPage() {
             />
           </label>
           <label className="block">
-            <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Senha</span>
+            <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+              Senha
+            </span>
             <input
               type="password"
               required
@@ -71,7 +77,10 @@ function AuthPage() {
         </div>
 
         {error && (
-          <p role="alert" className="mt-5 text-[11px] tracking-luxe uppercase text-[color:var(--destructive)]">
+          <p
+            role="alert"
+            className="mt-5 text-[11px] tracking-luxe uppercase text-[color:var(--destructive)]"
+          >
             {error}
           </p>
         )}

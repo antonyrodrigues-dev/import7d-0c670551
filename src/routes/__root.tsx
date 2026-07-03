@@ -16,7 +16,7 @@ import { NetworkStatusWatcher } from "@/components/site/NetworkStatusWatcher";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
+    <div className="flex min-h-dvh items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <div className="max-w-md text-center">
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Erro 404</p>
         <h1 className="mt-4 font-display text-5xl md:text-6xl">Página não encontrada</h1>
@@ -44,16 +44,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
+    <div className="flex min-h-dvh items-center justify-center bg-[color:var(--cream)] px-6 text-[color:var(--forest-deep)]">
       <div className="max-w-md text-center">
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Algo interrompeu</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+          Algo interrompeu
+        </p>
         <h1 className="mt-4 font-display text-4xl md:text-5xl">Esta página não carregou</h1>
         <p className="mt-4 font-display italic text-lg text-[color:var(--muted-foreground)]">
           Tente novamente em instantes ou retorne ao acervo.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center bg-[color:var(--forest-deep)] px-8 py-4 text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)]"
           >
             Tentar novamente
@@ -86,8 +91,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "7D IMPORTS" },
       { property: "og:description", content: "Acervo privado de peças selecionadas." },
       { name: "twitter:description", content: "Acervo privado de peças selecionadas." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ed82d8dc-96f6-4a91-9aa4-b91972e73cdd" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ed82d8dc-96f6-4a91-9aa4-b91972e73cdd" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ed82d8dc-96f6-4a91-9aa4-b91972e73cdd",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ed82d8dc-96f6-4a91-9aa4-b91972e73cdd",
+      },
     ],
     links: [
       {

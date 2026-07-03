@@ -64,7 +64,9 @@ export function Hero() {
             }}
           >
             <span className="block">NÃO VENDEMOS PEÇAS</span>
-            <span className="mt-1 block italic text-[color:var(--forest)] md:mt-2">curamos presença</span>
+            <span className="mt-1 block italic text-[color:var(--forest)] md:mt-2">
+              curamos presença
+            </span>
           </motion.h1>
 
           <motion.a
@@ -75,7 +77,10 @@ export function Hero() {
             className="group mt-10 inline-flex h-[56px] items-center gap-3 border border-[color:var(--forest-deep)] bg-transparent px-10 text-[12px] font-medium tracking-luxe uppercase text-[color:var(--forest-deep)] transition-all duration-[400ms] ease-out hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--cream)] md:mt-12 md:h-[60px] md:px-12"
           >
             <span>Explorar acervo</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-[400ms] ease-out group-hover:translate-x-1" aria-hidden="true" />
+            <ArrowRight
+              className="h-4 w-4 transition-transform duration-[400ms] ease-out group-hover:translate-x-1"
+              aria-hidden="true"
+            />
           </motion.a>
         </div>
 
@@ -86,8 +91,14 @@ export function Hero() {
           className="pointer-events-none absolute inset-x-0 bottom-8 flex flex-col items-center gap-3 text-[9px] tracking-luxe uppercase text-[color:var(--forest-deep)]/55"
         >
           <span>Role</span>
-          <span aria-hidden="true" className="relative block h-10 w-px overflow-hidden bg-[color:var(--forest-deep)]/20">
-            <span className="absolute inset-x-0 top-0 h-4 animate-[grain-shift_2.4s_ease-in-out_infinite] bg-[color:var(--gold)]" style={{ animation: "scroll-hint 2.4s ease-in-out infinite" }} />
+          <span
+            aria-hidden="true"
+            className="relative block h-10 w-px overflow-hidden bg-[color:var(--forest-deep)]/20"
+          >
+            <span
+              className="absolute inset-x-0 top-0 h-4 animate-[grain-shift_2.4s_ease-in-out_infinite] bg-[color:var(--gold)]"
+              style={{ animation: "scroll-hint 2.4s ease-in-out infinite" }}
+            />
           </span>
         </motion.div>
       </div>

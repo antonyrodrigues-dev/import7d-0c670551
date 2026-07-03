@@ -71,19 +71,35 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
               </button>
 
               <div className="aspect-[3/4] w-full bg-[color:var(--cream-deep)] md:aspect-auto md:h-full">
-                <img src={product.image} alt={product.name} width={896} height={1152} className="h-full w-full object-contain" />
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  width={896}
+                  height={1152}
+                  className="h-full w-full object-contain"
+                />
               </div>
 
               <div className="flex flex-1 flex-col gap-6 p-6 md:overflow-y-auto md:p-12">
                 <div>
-                  <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">{product.category}</p>
-                  <h2 className="mt-2 font-display text-3xl md:text-4xl text-[color:var(--forest-deep)]">{product.name}</h2>
-                  <p className="mt-4 font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">{formatBRL(product.price)}</p>
+                  <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                    {product.category}
+                  </p>
+                  <h2 className="mt-2 font-display text-3xl md:text-4xl text-[color:var(--forest-deep)]">
+                    {product.name}
+                  </h2>
+                  <p className="mt-4 font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">
+                    {formatBRL(product.price)}
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed text-[color:var(--muted-foreground)]">{product.description}</p>
+                <p className="text-sm leading-relaxed text-[color:var(--muted-foreground)]">
+                  {product.description}
+                </p>
 
                 <fieldset className="border-0 p-0">
-                  <legend className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Tamanho</legend>
+                  <legend className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                    Tamanho
+                  </legend>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {product.sizes.map((s) => (
                       <button
@@ -104,11 +120,27 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 </fieldset>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Quantidade</span>
+                  <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                    Quantidade
+                  </span>
                   <div className="ml-2 flex items-center border border-[color:var(--border)]">
-                    <button aria-label="Diminuir" onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex h-11 w-11 items-center justify-center"><Minus className="h-4 w-4" aria-hidden="true" /></button>
-                    <span aria-live="polite" className="min-w-8 text-center tabular-nums">{qty}</span>
-                    <button aria-label="Aumentar" onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))} className="flex h-11 w-11 items-center justify-center"><Plus className="h-4 w-4" aria-hidden="true" /></button>
+                    <button
+                      aria-label="Diminuir"
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      className="flex h-11 w-11 items-center justify-center"
+                    >
+                      <Minus className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <span aria-live="polite" className="min-w-8 text-center tabular-nums">
+                      {qty}
+                    </span>
+                    <button
+                      aria-label="Aumentar"
+                      onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
+                      className="flex h-11 w-11 items-center justify-center"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden="true" />
+                    </button>
                   </div>
                 </div>
 

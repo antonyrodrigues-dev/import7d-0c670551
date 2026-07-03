@@ -42,7 +42,10 @@ export const useReserva = create<ReservaState>()(
             return { items: next, open: true };
           }
           return {
-            items: [...s.items, { slug: p.slug, name: p.name, price: p.price, image: p.image, size, quantity: q }],
+            items: [
+              ...s.items,
+              { slug: p.slug, name: p.name, price: p.price, image: p.image, size, quantity: q },
+            ],
             open: true,
           };
         }),
@@ -50,7 +53,9 @@ export const useReserva = create<ReservaState>()(
         set((s) => ({ items: s.items.filter((i) => !(i.slug === slug && i.size === size)) })),
       updateQty: (slug, size, quantity) =>
         set((s) => ({
-          items: s.items.map((i) => (i.slug === slug && i.size === size ? { ...i, quantity: clampQty(quantity) } : i)),
+          items: s.items.map((i) =>
+            i.slug === slug && i.size === size ? { ...i, quantity: clampQty(quantity) } : i,
+          ),
         })),
       clear: () => set({ items: [] }),
       setOpen: (open) => set({ open }),

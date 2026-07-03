@@ -47,10 +47,16 @@ function Slide({ p, onOpen }: { p: Product; onOpen: (slug: string) => void }) {
       </div>
       <div className="mt-5 flex items-baseline justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">{p.category}</p>
-          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">{p.name}</h3>
+          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            {p.category}
+          </p>
+          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">
+            {p.name}
+          </h3>
         </div>
-        <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)]">{formatBRL(p.price)}</span>
+        <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)]">
+          {formatBRL(p.price)}
+        </span>
       </div>
     </button>
   );

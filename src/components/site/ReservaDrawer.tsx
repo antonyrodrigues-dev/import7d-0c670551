@@ -34,7 +34,14 @@ const STEPS: { key: Step; label: string }[] = [
   { key: 4, label: "Revisão" },
 ];
 
-const emptyAddress: Address = { cep: "", rua: "", numero: "", complemento: "", bairro: "", cidade: "" };
+const emptyAddress: Address = {
+  cep: "",
+  rua: "",
+  numero: "",
+  complemento: "",
+  bairro: "",
+  cidade: "",
+};
 const emptyCustomer: Customer = { nome: "", telefone: "", cpf: "", observacoes: "" };
 
 export function ReservaDrawer() {
@@ -130,9 +137,9 @@ export function ReservaDrawer() {
 
   const goNext = () => {
     if (!validateStep()) return;
-    setStep((s) => (Math.min(4, (s as number) + 1) as Step));
+    setStep((s) => Math.min(4, (s as number) + 1) as Step);
   };
-  const goBack = () => setStep((s) => (Math.max(0, (s as number) - 1) as Step));
+  const goBack = () => setStep((s) => Math.max(0, (s as number) - 1) as Step);
 
   const finalizar = async () => {
     if (items.length === 0 || submittingRef.current) return;
@@ -156,13 +163,15 @@ export function ReservaDrawer() {
       try {
         await Promise.race([
           supabase.from("pedidos").insert({
-            itens: JSON.parse(JSON.stringify({
-              produtos: itemsSnapshot,
-              cliente: customer,
-              entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
-              pagamento: payment,
-              numero_local: numeroPedido,
-            })),
+            itens: JSON.parse(
+              JSON.stringify({
+                produtos: itemsSnapshot,
+                cliente: customer,
+                entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
+                pagamento: payment,
+                numero_local: numeroPedido,
+              }),
+            ),
             valor_total: total,
             status: "pendente",
             canal: "whatsapp",
@@ -175,7 +184,8 @@ export function ReservaDrawer() {
     })();
 
     const url = buildWhatsAppUrl(itemsSnapshot, summary);
-    const popup = typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
+    const popup =
+      typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
 
     if (!popup) {
       setPendingWhats(url);
@@ -287,7 +297,9 @@ export function ReservaDrawer() {
                           >
                             −
                           </button>
-                          <span className="min-w-6 text-center text-sm tabular-nums">{i.quantity}</span>
+                          <span className="min-w-6 text-center text-sm tabular-nums">
+                            {i.quantity}
+                          </span>
                           <button
                             aria-label="Aumentar"
                             onClick={() => updateQty(i.slug, i.size, i.quantity + 1)}
@@ -449,9 +461,7 @@ function Field({
         {label}
       </label>
       {children}
-      {error && (
-        <p className="mt-1 text-[11px] text-[color:var(--destructive)]">{error}</p>
-      )}
+      {error && <p className="mt-1 text-[11px] text-[color:var(--destructive)]">{error}</p>}
     </div>
   );
 }
@@ -561,7 +571,12 @@ function StepEntrega({
               className={inputCls}
             />
           </Field>
-          <Field label="Bairro" htmlFor="bairro" error={errors.bairro} className="col-span-2 sm:col-span-1">
+          <Field
+            label="Bairro"
+            htmlFor="bairro"
+            error={errors.bairro}
+            className="col-span-2 sm:col-span-1"
+          >
             <input
               id="bairro"
               value={address.bairro}
@@ -569,7 +584,12 @@ function StepEntrega({
               className={inputCls}
             />
           </Field>
-          <Field label="Cidade" htmlFor="cidade" error={errors.cidade} className="col-span-2 sm:col-span-1">
+          <Field
+            label="Cidade"
+            htmlFor="cidade"
+            error={errors.cidade}
+            className="col-span-2 sm:col-span-1"
+          >
             <input
               id="cidade"
               autoComplete="address-level2"
@@ -588,7 +608,9 @@ function StepEntrega({
             Retirada
           </p>
           <p className="mt-2 font-display text-lg">Rua Luiz Veronesi, 464</p>
-          <p className="text-[color:var(--muted-foreground)]">Cinquentenário · Caxias do Sul · RS</p>
+          <p className="text-[color:var(--muted-foreground)]">
+            Cinquentenário · Caxias do Sul · RS
+          </p>
           <p className="mt-3 text-[11px] text-[color:var(--muted-foreground)]">
             Combinaremos o melhor horário via WhatsApp.
           </p>
@@ -618,7 +640,12 @@ function StepCliente({
           className={inputCls}
         />
       </Field>
-      <Field label="Telefone" htmlFor="tel" error={errors.telefone} className="col-span-2 sm:col-span-1">
+      <Field
+        label="Telefone"
+        htmlFor="tel"
+        error={errors.telefone}
+        className="col-span-2 sm:col-span-1"
+      >
         <input
           id="tel"
           inputMode="tel"
@@ -629,7 +656,12 @@ function StepCliente({
           className={inputCls}
         />
       </Field>
-      <Field label="CPF (opcional)" htmlFor="cpf" error={errors.cpf} className="col-span-2 sm:col-span-1">
+      <Field
+        label="CPF (opcional)"
+        htmlFor="cpf"
+        error={errors.cpf}
+        className="col-span-2 sm:col-span-1"
+      >
         <input
           id="cpf"
           inputMode="numeric"
@@ -639,7 +671,12 @@ function StepCliente({
           className={inputCls}
         />
       </Field>
-      <Field label="Observações (opcional)" htmlFor="obs" error={errors.observacoes} className="col-span-2">
+      <Field
+        label="Observações (opcional)"
+        htmlFor="obs"
+        error={errors.observacoes}
+        className="col-span-2"
+      >
         <textarea
           id="obs"
           rows={3}
@@ -710,12 +747,15 @@ function StepRevisao({
   return (
     <div className="flex flex-col gap-6 text-sm text-[color:var(--forest-deep)]">
       <section>
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Peças</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Peças
+        </p>
         <ul className="mt-2 flex flex-col gap-1">
           {items.map((i) => (
             <li key={`${i.slug}-${i.size}`} className="flex items-baseline justify-between gap-3">
               <span className="truncate">
-                {i.quantity}× {i.name} <span className="text-[color:var(--muted-foreground)]">· Tam {i.size}</span>
+                {i.quantity}× {i.name}{" "}
+                <span className="text-[color:var(--muted-foreground)]">· Tam {i.size}</span>
               </span>
               <span className="tabular-nums">{formatBRL(i.price * i.quantity)}</span>
             </li>
@@ -724,31 +764,40 @@ function StepRevisao({
       </section>
 
       <section>
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Cliente</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Cliente
+        </p>
         <p className="mt-2">{customer.nome}</p>
         <p className="text-[color:var(--muted-foreground)]">{customer.telefone}</p>
         {customer.cpf && <p className="text-[color:var(--muted-foreground)]">CPF {customer.cpf}</p>}
       </section>
 
       <section>
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Entrega</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Entrega
+        </p>
         <p className="mt-2">{DELIVERY_LABEL[delivery]}</p>
         {delivery === "entrega" && (
           <p className="text-[color:var(--muted-foreground)]">
             {address.rua}, {address.numero}
-            {address.complemento ? ` · ${address.complemento}` : ""} — {address.bairro}, {address.cidade} · CEP {address.cep}
+            {address.complemento ? ` · ${address.complemento}` : ""} — {address.bairro},{" "}
+            {address.cidade} · CEP {address.cep}
           </p>
         )}
       </section>
 
       <section>
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Pagamento</p>
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Pagamento
+        </p>
         <p className="mt-2">{PAYMENT_LABEL[payment]}</p>
       </section>
 
       {customer.observacoes && (
         <section>
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">Observações</p>
+          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            Observações
+          </p>
           <p className="mt-2 whitespace-pre-wrap">{customer.observacoes}</p>
         </section>
       )}
@@ -760,7 +809,9 @@ function StepRevisao({
         </div>
         <div className="mt-1 flex justify-between text-[color:var(--muted-foreground)]">
           <span>Frete</span>
-          <span className="tabular-nums">{freight.cost != null ? formatBRL(freight.cost) : freight.label}</span>
+          <span className="tabular-nums">
+            {freight.cost != null ? formatBRL(freight.cost) : freight.label}
+          </span>
         </div>
         <div className="mt-2 flex items-baseline justify-between">
           <span className="text-[10px] tracking-luxe uppercase">Total</span>

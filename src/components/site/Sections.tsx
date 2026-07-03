@@ -13,11 +13,19 @@ export function FeaturedSection() {
         <Reveal className="mb-14 flex items-end justify-between gap-6">
           <div>
             <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Estação</p>
-            <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">Peças em destaque</h2>
+            <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">
+              Peças em destaque
+            </h2>
           </div>
-          <a href="#acervo" className="group hidden md:inline-flex items-center gap-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]">
+          <a
+            href="#acervo"
+            className="group hidden md:inline-flex items-center gap-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]"
+          >
             Ver acervo completo
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)] transition-all duration-500 group-hover:w-14" />
+            <span
+              aria-hidden="true"
+              className="h-px w-8 bg-[color:var(--gold)] transition-all duration-500 group-hover:w-14"
+            />
           </a>
         </Reveal>
         <FeaturedCarousel />
@@ -28,7 +36,10 @@ export function FeaturedSection() {
 
 export function CatalogSection() {
   return (
-    <section id="acervo" className="relative overflow-hidden bg-[color:var(--cream-deep)] py-24 md:py-32">
+    <section
+      id="acervo"
+      className="relative overflow-hidden bg-[color:var(--cream-deep)] py-24 md:py-32"
+    >
       <img
         src={catalogBg.url}
         alt=""
@@ -41,8 +52,14 @@ export function CatalogSection() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--forest-deep)_9%,transparent)_0%,transparent_55%),radial-gradient(ellipse_at_bottom,color-mix(in_oklab,var(--forest-deep)_6%,transparent)_0%,transparent_60%)]"
       />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[color:var(--gold)]/40" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/40" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[color:var(--gold)]/40"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/40"
+      />
       <div className="relative mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-14 text-center">
           <p className="inline-flex items-center gap-4 text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
@@ -50,7 +67,9 @@ export function CatalogSection() {
             Acervo
             <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
           </p>
-          <h2 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] text-[color:var(--forest-deep)]">O acervo, por inteiro</h2>
+          <h2 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] text-[color:var(--forest-deep)]">
+            O acervo, por inteiro
+          </h2>
           <p className="mx-auto mt-5 max-w-xl font-display italic text-lg text-[color:var(--muted-foreground)]">
             Cada peça é numerada e reservada individualmente. Toque para abrir a ficha.
           </p>
@@ -62,7 +81,10 @@ export function CatalogSection() {
 }
 
 const DIFERENCIAIS = [
-  { t: "Curadoria", d: "Cada peça é avaliada por critérios de tecido, corte, origem e assinatura." },
+  {
+    t: "Curadoria",
+    d: "Cada peça é avaliada por critérios de tecido, corte, origem e assinatura.",
+  },
   { t: "Numeração", d: "Estoque limitado. Reserva exclusiva por atendimento privado." },
   { t: "Entrega", d: "Embalagem editorial e envio rastreado para todo o Brasil." },
 ];
@@ -73,7 +95,9 @@ export function DiferenciaisSection() {
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-16">
           <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">A casa</p>
-          <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">Três compromissos.</h2>
+          <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">
+            Três compromissos.
+          </h2>
         </Reveal>
         <div className="grid gap-12 md:grid-cols-3 md:gap-16">
           {DIFERENCIAIS.map((d, i) => (
@@ -104,17 +128,40 @@ export function DiferenciaisSection() {
 export function AtendimentoSection() {
   const setOpen = useReserva((s) => s.setOpen);
   const channels = [
-    { icon: MessageCircle, label: "WhatsApp", value: BRAND.whatsapp.label, href: BRAND.whatsapp.url, external: true },
-    { icon: Instagram, label: "Instagram", value: BRAND.instagram.handle, href: BRAND.instagram.url, external: true },
-    { icon: MapPin, label: "Atelier", value: BRAND.address.line, href: BRAND.address.mapsUrl, external: true },
+    {
+      icon: MessageCircle,
+      label: "WhatsApp",
+      value: BRAND.whatsapp.label,
+      href: BRAND.whatsapp.url,
+      external: true,
+    },
+    {
+      icon: Instagram,
+      label: "Instagram",
+      value: BRAND.instagram.handle,
+      href: BRAND.instagram.url,
+      external: true,
+    },
+    {
+      icon: MapPin,
+      label: "Atelier",
+      value: BRAND.address.line,
+      href: BRAND.address.mapsUrl,
+      external: true,
+    },
     { icon: Clock, label: "Horário", value: BRAND.hours, href: null, external: false },
   ];
 
   return (
-    <section id="atendimento" className="relative bg-[color:var(--forest-deep)] py-24 md:py-32 text-[color:var(--cream)]">
+    <section
+      id="atendimento"
+      className="relative bg-[color:var(--forest-deep)] py-24 md:py-32 text-[color:var(--cream)]"
+    >
       <div className="mx-auto max-w-[1080px] px-6 md:px-12">
         <Reveal className="text-center">
-          <p className="text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">Atendimento</p>
+          <p className="text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">
+            Atendimento
+          </p>
           <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(2.25rem,4.5vw,3.5rem)] leading-[1.05]">
             Cada reserva começa com uma conversa.
           </h2>
@@ -128,10 +175,18 @@ export function AtendimentoSection() {
             {channels.map(({ icon: Icon, label, value, href, external }) => {
               const inner = (
                 <div className="group flex items-center gap-5 py-6 transition-all duration-500">
-                  <Icon className="h-[18px] w-[18px] shrink-0 text-[color:var(--gold)]" strokeWidth={1.4} aria-hidden="true" />
+                  <Icon
+                    className="h-[18px] w-[18px] shrink-0 text-[color:var(--gold)]"
+                    strokeWidth={1.4}
+                    aria-hidden="true"
+                  />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] tracking-luxe uppercase text-[color:var(--cream)]/55">{label}</p>
-                    <p className="mt-1 truncate font-display text-lg text-[color:var(--cream)]">{value}</p>
+                    <p className="text-[10px] tracking-luxe uppercase text-[color:var(--cream)]/55">
+                      {label}
+                    </p>
+                    <p className="mt-1 truncate font-display text-lg text-[color:var(--cream)]">
+                      {value}
+                    </p>
                   </div>
                   {href && (
                     <ArrowUpRight
@@ -142,9 +197,16 @@ export function AtendimentoSection() {
                 </div>
               );
               return (
-                <li key={label} className="border-b border-[color:var(--cream)]/10 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0">
+                <li
+                  key={label}
+                  className="border-b border-[color:var(--cream)]/10 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0"
+                >
                   {href ? (
-                    <a href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}>
+                    <a
+                      href={href}
+                      target={external ? "_blank" : undefined}
+                      rel={external ? "noopener noreferrer" : undefined}
+                    >
                       {inner}
                     </a>
                   ) : (
@@ -162,7 +224,10 @@ export function AtendimentoSection() {
             className="group inline-flex h-14 items-center gap-3 border border-[color:var(--cream)]/70 px-10 text-[11px] tracking-luxe uppercase transition-all duration-500 hover:bg-[color:var(--cream)] hover:text-[color:var(--forest-deep)] active:scale-[0.99]"
           >
             <span>Abrir minha reserva</span>
-            <span aria-hidden="true" className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12" />
+            <span
+              aria-hidden="true"
+              className="h-px w-8 bg-current transition-all duration-500 group-hover:w-12"
+            />
           </button>
         </Reveal>
       </div>
