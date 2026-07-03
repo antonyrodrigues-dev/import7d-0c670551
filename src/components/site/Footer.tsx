@@ -45,9 +45,14 @@ export function Footer() {
       />
       <div className="relative mx-auto grid max-w-[1280px] gap-14 px-6 md:grid-cols-[1.7fr_1fr_1fr_1fr_1fr] md:gap-16 md:px-12">
         <div>
-          <p
-            className="font-display leading-none text-[color:var(--forest-deep)] flex items-baseline gap-3"
-            aria-label="7D Imports"
+          <a
+            href="#top"
+            aria-label="7D Imports — voltar ao topo"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="font-display leading-none text-[color:var(--forest-deep)] flex items-baseline gap-3 transition-opacity duration-300 hover:opacity-80 focus-visible:opacity-80"
           >
             <span style={{ fontSize: "34px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
             <span
@@ -61,7 +66,7 @@ export function Footer() {
             >
               Imports
             </span>
-          </p>
+          </a>
           <p className="mt-6 max-w-xs font-display italic text-[15px] leading-[1.65] text-[color:var(--muted-foreground)]">
             Acervo privado de peças selecionadas. Curadoria humana, atendimento personalizado.
           </p>
