@@ -29,10 +29,27 @@ export function FeaturedSection() {
 export function CatalogSection() {
   return (
     <section id="acervo" className="relative overflow-hidden bg-[color:var(--cream-deep)] py-24 md:py-32">
-      <img src={catalogBg.url} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-[0.18]" />
+      <img
+        src={catalogBg.url}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover opacity-[0.14]"
+      />
+      {/* Ambient wash — verde Lacoste sutil no topo/base para dar profundidade */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--forest-deep)_9%,transparent)_0%,transparent_55%),radial-gradient(ellipse_at_bottom,color-mix(in_oklab,var(--forest-deep)_6%,transparent)_0%,transparent_60%)]"
+      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[color:var(--gold)]/40" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/40" />
       <div className="relative mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-14 text-center">
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Acervo</p>
+          <p className="inline-flex items-center gap-4 text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
+            Acervo
+            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
+          </p>
           <h2 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] text-[color:var(--forest-deep)]">O acervo, por inteiro</h2>
           <p className="mx-auto mt-5 max-w-xl font-display italic text-lg text-[color:var(--muted-foreground)]">
             Cada peça é numerada e reservada individualmente. Toque para abrir a ficha.
