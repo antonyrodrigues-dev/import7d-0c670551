@@ -14,6 +14,7 @@ export function Hero() {
     >
       <video
         className="absolute inset-0 h-full w-full object-cover"
+        style={{ filter: "contrast(1.05) saturate(1.06)" }}
         autoPlay
         muted
         loop
@@ -27,11 +28,15 @@ export function Hero() {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-gradient-to-t from-[color:var(--cream)] via-[color:var(--cream)]/70 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-[color:var(--cream)] via-[color:var(--cream)]/60 to-transparent"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[color:var(--forest-deep)]/35 via-[color:var(--forest-deep)]/10 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-[color:var(--forest-deep)]/22 to-transparent"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/55"
       />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-[color:var(--forest-deep)] md:px-10">
