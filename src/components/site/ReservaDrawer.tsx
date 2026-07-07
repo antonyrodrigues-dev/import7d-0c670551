@@ -24,6 +24,11 @@ import {
   type Freight,
   type PaymentMethod,
 } from "@/lib/checkout";
+import {
+  DEFAULT_INSTALLMENTS_CONFIG,
+  getInstallmentOption,
+  getInstallmentOptions,
+} from "@/lib/installments";
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
@@ -54,6 +59,7 @@ export function ReservaDrawer() {
   const [address, setAddress] = useState<Address>(emptyAddress);
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
   const [payment, setPayment] = useState<PaymentMethod>("pix");
+  const [installments, setInstallments] = useState<number>(1);
   const [freight, setFreight] = useState<Freight>({ cost: null, label: "A combinar" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -61,7 +67,17 @@ export function ReservaDrawer() {
   const [cepLoading, setCepLoading] = useState(false);
   const submittingRef = useRef(false);
 
-  const total = subtotal + (freight.cost ?? 0);
+  const baseTotal = subtotal + (freight.cost ?? 0);
+  const installmentInfo = useMemo(
+    () => (payment === "credito" ? getInstallmentOption(baseTotal, installments) : null),
+    [payment, baseTotal, installments],
+  );
+  const total = installmentInfo ? installmentInfo.total : baseTotal;
+
+  // Reset parcelas quando muda para uma forma que não seja crédito.
+  useEffect(() => {
+    if (payment !== "credito" && installments !== 1) setInstallments(1);
+  }, [payment, installments]);
 
   // body scroll lock + esc
   useEffect(() => {
@@ -161,6 +177,7 @@ export function ReservaDrawer() {
       freight,
       customer,
       payment,
+      installments: payment === "credito" ? installments : undefined,
     };
 
     // Best-effort log to backend — falhas não bloqueiam o WhatsApp.
@@ -173,7 +190,11 @@ export function ReservaDrawer() {
                 produtos: itemsSnapshot,
                 cliente: customer,
                 entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
-                pagamento: payment,
+                pagamento: {
+                  metodo: payment,
+                  parcelas: payment === "credito" ? installments : 1,
+                  valor_por_parcela: installmentInfo?.perInstallment ?? total,
+                },
                 numero_local: numeroPedido,
               }),
             ),
@@ -377,7 +398,13 @@ export function ReservaDrawer() {
               ) : step === 2 ? (
                 <StepCliente customer={customer} setCustomer={setCustomer} errors={errors} />
               ) : step === 3 ? (
-                <StepPagamento payment={payment} setPayment={setPayment} />
+                <StepPagamento
+                  payment={payment}
+                  setPayment={setPayment}
+                  installments={installments}
+                  setInstallments={setInstallments}
+                  baseTotal={baseTotal}
+                />
               ) : (
                 <StepRevisao
                   items={items}
@@ -385,8 +412,10 @@ export function ReservaDrawer() {
                   address={address}
                   customer={customer}
                   payment={payment}
+                  installments={installments}
                   freight={freight}
                   subtotal={subtotal}
+                  baseTotal={baseTotal}
                   total={total}
                 />
               )}
