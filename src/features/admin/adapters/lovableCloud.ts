@@ -84,6 +84,7 @@ function parseItens(raw: unknown) {
 function mapRow(row: PedidoRow): AdminOrder {
   const parsed = parseItens(row.itens);
   const quantidadeTotal = parsed.itens.reduce((a, it) => a + (it.quantity ?? 0), 0);
+  const status = mapStatus(row.status);
   return {
     id: row.id,
     numero: row.numero_pedido,
@@ -94,10 +95,16 @@ function mapRow(row: PedidoRow): AdminOrder {
     entrega: parsed.entrega,
     endereco: parsed.endereco,
     pagamento: parsed.pagamento,
-    status: mapStatus(row.status),
+    status,
     observacoes: parsed.observacoes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
+    historico: [
+      { status: "novo", at: row.criado_em, note: "Pedido criado" },
+      ...(status !== "novo"
+        ? [{ status, at: row.atualizado_em, note: "Status atual" } as const]
+        : []),
+    ],
   };
 }
 
