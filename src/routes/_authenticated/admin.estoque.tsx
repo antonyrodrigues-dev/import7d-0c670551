@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { formatBRL } from "@/data/products";
 import { PageHeader, EmptyState, Skeleton } from "@/features/admin/components/PageHeader";
 import { LOW_STOCK_THRESHOLD } from "@/features/admin/constants";
-import { useInventoryStore } from "@/features/admin/stores/inventory";
+import { useInventory } from "@/features/admin/hooks";
 
 export const Route = createFileRoute("/_authenticated/admin/estoque")({
   head: () => ({
@@ -24,12 +24,7 @@ function EstoquePage() {
     setFilterBrand,
     setFilterCategory,
     setFilterStatus,
-    refresh,
-  } = useInventoryStore();
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  } = useInventory();
 
   const brands = useMemo(() => Array.from(new Set(items.map((i) => i.brand))), [items]);
   const categories = useMemo(() => Array.from(new Set(items.map((i) => i.category))), [items]);
