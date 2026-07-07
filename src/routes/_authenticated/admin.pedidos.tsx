@@ -81,7 +81,7 @@ function PedidosPage() {
                 </div>
               </div>
               <ul className="mt-4 divide-y divide-[color:var(--border)] border-t border-[color:var(--border)]">
-                {p.itens.map((it, idx) => (
+                {p.itens.map((it: { name: string; size: string; quantity: number; price: number }, idx: number) => (
                   <li key={`${p.id}-${idx}`} className="flex items-center justify-between py-3 text-sm">
                     <span>
                       {it.name}{" "}
