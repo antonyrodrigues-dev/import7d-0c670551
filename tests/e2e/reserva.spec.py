@@ -31,10 +31,10 @@ SIZE = "M"
 
 
 async def add_first_product(page: Page) -> None:
-    await page.goto(BASE_URL, wait_until="domcontentloaded")
+    await page.goto(BASE_URL, wait_until="networkidle")
     card = page.get_by_test_id(f"product-card-{SLUG}").first
     await card.scroll_into_view_if_needed()
-    await card.click()
+    await card.click(force=True)
     await expect(page.locator("[role='dialog']").last).to_be_visible()
     # Selecionar tamanho e adicionar
     await page.get_by_test_id(f"size-{SIZE}").click()
