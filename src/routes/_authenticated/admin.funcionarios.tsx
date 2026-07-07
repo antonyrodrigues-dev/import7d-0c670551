@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { PageHeader, EmptyState, ErrorState, Skeleton } from "@/features/admin/components/PageHeader";
 import { EMPLOYEE_ROLES, ROLE_PERMISSIONS } from "@/features/admin/constants";
-import { useEmployeesStore } from "@/features/admin/stores/employees";
-import { usePermissions } from "@/features/admin/hooks/usePermissions";
+import { useEmployees, usePermissions } from "@/features/admin/hooks";
 
 export const Route = createFileRoute("/_authenticated/admin/funcionarios")({
   head: () => ({
@@ -13,12 +11,8 @@ export const Route = createFileRoute("/_authenticated/admin/funcionarios")({
 });
 
 function FuncionariosPage() {
-  const { employees, state, error, refresh } = useEmployeesStore();
+  const { employees, state, error, refresh } = useEmployees();
   const { can, isAdmin } = usePermissions();
-
-  useEffect(() => {
-    if (can("employees:view")) void refresh();
-  }, [refresh, can]);
 
   if (!can("employees:view")) {
     return (
