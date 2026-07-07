@@ -39,24 +39,13 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/55"
       />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-[color:var(--forest-deep)] md:px-10">
-        <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center">
-          <motion.span
-            initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-            className="mb-8 inline-flex items-center gap-4 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]/70 md:mb-10"
-          >
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/70" />
-            Est. Caxias do Sul · MMXXVI
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/70" />
-          </motion.span>
-
+      <div className="relative z-10 flex h-full flex-col items-start justify-center px-6 text-left text-[color:var(--forest-deep)] md:px-10">
+        <div className="mx-auto flex w-full max-w-[1100px] flex-col items-start">
           <motion.h1
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.32, ease: EASE }}
-            className="text-center font-display font-medium"
+            className="text-left font-display font-medium"
             style={{
               fontSize: "clamp(44px, 6.4vw, 108px)",
               letterSpacing: "-0.018em",
