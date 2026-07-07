@@ -83,7 +83,7 @@ function ConfiguracoesPage() {
         }}
       >
         {FIELDS.map((f) => (
-          <label key={f.key} className={f.type === "textarea" ? "md:col-span-2 flex flex-col gap-1" : "flex flex-col gap-1"}>
+          <label key={String(f.key)} className={f.type === "textarea" ? "md:col-span-2 flex flex-col gap-1" : "flex flex-col gap-1"}>
             <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
               {f.label}
             </span>
