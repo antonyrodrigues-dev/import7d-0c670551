@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X, Bookmark } from "lucide-react";
 import { useReserva } from "@/store/reserva";
+import { track } from "@/lib/analytics";
 
 function NavLink({ href, label, scrolled }: { href: string; label: string; scrolled: boolean }) {
   return (
@@ -109,8 +110,12 @@ export function Header() {
             <Search className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
           <motion.button
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              setOpen(true);
+              track({ name: "reserve_open", count });
+            }}
             aria-label={`Sua reserva, ${count} ${count === 1 ? "peça" : "peças"}`}
+            data-testid="header-reserve"
             className="group flex h-11 items-center gap-2 px-3 text-[11px] tracking-luxe uppercase"
           >
             <motion.span
