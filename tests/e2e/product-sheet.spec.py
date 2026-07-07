@@ -201,8 +201,12 @@ async def run_viewport(browser, name: str, vp: dict) -> None:
     print(f"  CLS acumulado: {perf['cls']:.4f}")
     assert perf["cls"] <= 0.1, f"CLS {perf['cls']} acima da meta 0.1"
 
-    # (8) fechar pelo backdrop → scroll restaurado
-    await page.mouse.click(5, 5)
+    # (8) fechar (backdrop no desktop, botão X em tablet/mobile onde o
+    # sheet ocupa 100dvh) → scroll restaurado
+    if name == "desktop":
+        await page.mouse.click(5, 5)
+    else:
+        await page.get_by_test_id("product-close").click()
     await expect(page.get_by_test_id("product-sheet")).to_be_hidden()
     scroll_after = await page.evaluate("window.scrollY")
     assert scroll_before == scroll_after, (
