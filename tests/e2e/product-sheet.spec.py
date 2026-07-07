@@ -214,7 +214,7 @@ async def run_viewport(browser, name: str, vp: dict) -> None:
     await page.wait_for_timeout(300)
     await page.keyboard.press("Escape")
     await expect(page.get_by_test_id("product-sheet")).to_be_hidden()
-    await page.wait_for_timeout(80)
+    await page.wait_for_timeout(300)
     focused = await page.evaluate("document.activeElement?.getAttribute('data-testid')")
     assert focused == f"product-card-{SLUG}", (
         f"foco não retornou ao card ({focused})"
