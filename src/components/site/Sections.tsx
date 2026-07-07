@@ -179,7 +179,7 @@ export function AtendimentoSection() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/35"
       />
-      <div className="mx-auto max-w-[1080px] px-6 md:px-12">
+      <div className="relative mx-auto max-w-[1080px] px-6 md:px-12">
         <Reveal className="text-center">
           <p className="text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">
             Atendimento
