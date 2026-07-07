@@ -153,13 +153,11 @@ export function ReservaDrawer() {
       toast.error("Preencha os campos obrigatórios para continuar.");
       return;
     }
-    setStep((s) => {
-      const next = Math.min(4, (s as number) + 1) as Step;
-      track({ name: "checkout_step", step: next });
-      return next;
-    });
+    const next = Math.min(4, (step as number) + 1) as Step;
+    setStep(next);
+    track({ name: "checkout_step", step: next });
   };
-  const goBack = () => setStep((s) => Math.max(0, (s as number) - 1) as Step);
+  const goBack = () => setStep(Math.max(0, (step as number) - 1) as Step);
 
   const finalizar = async () => {
     if (items.length === 0 || submittingRef.current) return;
