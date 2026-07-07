@@ -14,7 +14,7 @@ export const STORE_ORIGIN = {
 } as const;
 
 export type DeliveryMethod = "entrega" | "retirada";
-export type PaymentMethod = "pix" | "cartao" | "dinheiro";
+export type PaymentMethod = "pix" | "debito" | "credito" | "dinheiro";
 
 export const DELIVERY_LABEL: Record<DeliveryMethod, string> = {
   entrega: "Entrega",
@@ -23,7 +23,8 @@ export const DELIVERY_LABEL: Record<DeliveryMethod, string> = {
 
 export const PAYMENT_LABEL: Record<PaymentMethod, string> = {
   pix: "PIX",
-  cartao: "Cartão",
+  debito: "Cartão de Débito",
+  credito: "Cartão de Crédito",
   dinheiro: "Dinheiro",
 };
 

@@ -24,6 +24,11 @@ import {
   type Freight,
   type PaymentMethod,
 } from "@/lib/checkout";
+import {
+  DEFAULT_INSTALLMENTS_CONFIG,
+  getInstallmentOption,
+  getInstallmentOptions,
+} from "@/lib/installments";
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
@@ -54,6 +59,7 @@ export function ReservaDrawer() {
   const [address, setAddress] = useState<Address>(emptyAddress);
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
   const [payment, setPayment] = useState<PaymentMethod>("pix");
+  const [installments, setInstallments] = useState<number>(1);
   const [freight, setFreight] = useState<Freight>({ cost: null, label: "A combinar" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -61,7 +67,17 @@ export function ReservaDrawer() {
   const [cepLoading, setCepLoading] = useState(false);
   const submittingRef = useRef(false);
 
-  const total = subtotal + (freight.cost ?? 0);
+  const baseTotal = subtotal + (freight.cost ?? 0);
+  const installmentInfo = useMemo(
+    () => (payment === "credito" ? getInstallmentOption(baseTotal, installments) : null),
+    [payment, baseTotal, installments],
+  );
+  const total = installmentInfo ? installmentInfo.total : baseTotal;
+
+  // Reset parcelas quando muda para uma forma que não seja crédito.
+  useEffect(() => {
+    if (payment !== "credito" && installments !== 1) setInstallments(1);
+  }, [payment, installments]);
 
   // body scroll lock + esc
   useEffect(() => {
@@ -161,6 +177,7 @@ export function ReservaDrawer() {
       freight,
       customer,
       payment,
+      installments: payment === "credito" ? installments : undefined,
     };
 
     // Best-effort log to backend — falhas não bloqueiam o WhatsApp.
@@ -173,7 +190,11 @@ export function ReservaDrawer() {
                 produtos: itemsSnapshot,
                 cliente: customer,
                 entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
-                pagamento: payment,
+                pagamento: {
+                  metodo: payment,
+                  parcelas: payment === "credito" ? installments : 1,
+                  valor_por_parcela: installmentInfo?.perInstallment ?? total,
+                },
                 numero_local: numeroPedido,
               }),
             ),
@@ -377,7 +398,13 @@ export function ReservaDrawer() {
               ) : step === 2 ? (
                 <StepCliente customer={customer} setCustomer={setCustomer} errors={errors} />
               ) : step === 3 ? (
-                <StepPagamento payment={payment} setPayment={setPayment} />
+                <StepPagamento
+                  payment={payment}
+                  setPayment={setPayment}
+                  installments={installments}
+                  setInstallments={setInstallments}
+                  baseTotal={baseTotal}
+                />
               ) : (
                 <StepRevisao
                   items={items}
@@ -385,8 +412,10 @@ export function ReservaDrawer() {
                   address={address}
                   customer={customer}
                   payment={payment}
+                  installments={installments}
                   freight={freight}
                   subtotal={subtotal}
+                  baseTotal={baseTotal}
                   total={total}
                 />
               )}
@@ -733,18 +762,25 @@ function StepCliente({
 function StepPagamento({
   payment,
   setPayment,
+  installments,
+  setInstallments,
+  baseTotal,
 }: {
   payment: PaymentMethod;
   setPayment: (p: PaymentMethod) => void;
+  installments: number;
+  setInstallments: (n: number) => void;
+  baseTotal: number;
 }) {
-  const options: PaymentMethod[] = ["pix", "cartao", "dinheiro"];
+  const options: PaymentMethod[] = ["pix", "debito", "credito", "dinheiro"];
+  const installmentOptions = getInstallmentOptions(baseTotal);
   return (
     <div className="grid grid-cols-1 gap-3">
       {options.map((p) => {
         const selected = payment === p;
         return (
+          <div key={p} className="flex flex-col gap-3">
           <button
-            key={p}
             type="button"
             onClick={() => setPayment(p)}
             className={`flex items-center justify-between border p-4 text-left transition-colors ${
@@ -756,6 +792,42 @@ function StepPagamento({
             <span className="font-display text-lg">{PAYMENT_LABEL[p]}</span>
             {selected && <Check className="h-4 w-4" aria-hidden="true" />}
           </button>
+          {p === "credito" && selected && (
+            <div
+              role="radiogroup"
+              aria-label="Parcelamento"
+              className="flex flex-col gap-2 border border-[color:var(--border)] p-3"
+            >
+              <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                Parcelamento (até {DEFAULT_INSTALLMENTS_CONFIG.maxInstallments}x)
+              </p>
+              {installmentOptions.map((opt) => {
+                const active = installments === opt.count;
+                return (
+                  <button
+                    key={opt.count}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setInstallments(opt.count)}
+                    className={`flex items-center justify-between border px-3 py-2 text-left transition-colors ${
+                      active
+                        ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)]/5"
+                        : "border-[color:var(--border)] hover:border-[color:var(--forest-deep)]"
+                    }`}
+                  >
+                    <span className="font-sans text-sm tabular-nums text-[color:var(--forest-deep)]">
+                      {opt.count}x de {formatBRL(opt.perInstallment)}
+                    </span>
+                    <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] tabular-nums">
+                      Total {formatBRL(opt.total)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          </div>
         );
       })}
       <p className="mt-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -771,8 +843,10 @@ function StepRevisao({
   address,
   customer,
   payment,
+  installments,
   freight,
   subtotal,
+  baseTotal,
   total,
 }: {
   items: { slug: string; name: string; size: string; quantity: number; price: number }[];
@@ -780,10 +854,14 @@ function StepRevisao({
   address: Address;
   customer: Customer;
   payment: PaymentMethod;
+  installments: number;
   freight: Freight;
   subtotal: number;
+  baseTotal: number;
   total: number;
 }) {
+  const installmentInfo =
+    payment === "credito" ? getInstallmentOption(baseTotal, installments) : null;
   return (
     <div className="flex flex-col gap-6 text-sm text-[color:var(--forest-deep)]">
       <section>
@@ -828,9 +906,17 @@ function StepRevisao({
 
       <section>
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-          Pagamento
+          Forma de pagamento
         </p>
         <p className="mt-2">{PAYMENT_LABEL[payment]}</p>
+        <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Parcelamento
+        </p>
+        <p className="mt-2 tabular-nums">
+          {installmentInfo && installmentInfo.count > 1
+            ? `${installmentInfo.count}x de ${formatBRL(installmentInfo.perInstallment)}`
+            : "À vista"}
+        </p>
       </section>
 
       {customer.observacoes && (
@@ -853,10 +939,26 @@ function StepRevisao({
             {freight.cost != null ? formatBRL(freight.cost) : freight.label}
           </span>
         </div>
+        {installmentInfo && installmentInfo.surcharge > 0 && (
+          <div className="mt-1 flex justify-between text-[color:var(--muted-foreground)]">
+            <span>Acréscimo cartão</span>
+            <span className="tabular-nums">
+              {formatBRL(installmentInfo.total - baseTotal)}
+            </span>
+          </div>
+        )}
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-[10px] tracking-luxe uppercase">Total</span>
+          <span className="text-[10px] tracking-luxe uppercase">Valor total</span>
           <span className="font-display text-xl tabular-nums">{formatBRL(total)}</span>
         </div>
+        {installmentInfo && installmentInfo.count > 1 && (
+          <div className="mt-1 flex items-baseline justify-between text-[color:var(--muted-foreground)]">
+            <span className="text-[10px] tracking-luxe uppercase">Valor por parcela</span>
+            <span className="tabular-nums">
+              {installmentInfo.count}x de {formatBRL(installmentInfo.perInstallment)}
+            </span>
+          </div>
+        )}
       </section>
     </div>
   );
