@@ -3,8 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Menu, X, LogOut, Search, Bell, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_NAV } from "../constants";
-import { usePermissions } from "../hooks/usePermissions";
-import { useNotificationsStore } from "../stores/notifications";
+import { usePermissions, useAdminNotifications } from "../hooks";
 
 /**
  * Shell administrativo — sidebar fixa em desktop, drawer em mobile.
@@ -16,13 +15,9 @@ export function AdminShell() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { roles, reset: resetPerms } = usePermissions();
-  const { notifications, hydrate } = useNotificationsStore();
+  const { notifications } = useAdminNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const unread = notifications.filter((n) => !n.read).length;
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
 
   useEffect(() => {
     setMobileOpen(false);
