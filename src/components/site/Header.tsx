@@ -115,8 +115,8 @@ export function Header() {
           >
             <motion.span
               key={pulse}
-              animate={pulse > 0 ? { scale: [1, 1.08, 1] } : {}}
-              transition={{ type: "spring", stiffness: 420, damping: 44 }}
+              animate={pulse > 0 ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="inline-flex"
             >
               <Bookmark className="h-[18px] w-[18px]" strokeWidth={1.4} aria-hidden="true" />
