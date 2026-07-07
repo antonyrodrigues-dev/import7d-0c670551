@@ -26,15 +26,16 @@ VIEWPORTS = {
     "mobile": {"width": 390, "height": 844},
 }
 
-SLUG = "polo-piquet-marfim"
+SLUG = "polo-oliva-tipped"
 SIZE = "M"
 
 
 async def add_first_product(page: Page) -> None:
     await page.goto(BASE_URL, wait_until="domcontentloaded")
-    card = page.get_by_test_id(f"product-card-{SLUG}")
-    await card.first.scroll_into_view_if_needed()
-    await card.first.click()
+    card = page.get_by_test_id(f"product-card-{SLUG}").first
+    await card.scroll_into_view_if_needed()
+    await card.click()
+    await expect(page.locator("[role='dialog']").last).to_be_visible()
     # Selecionar tamanho e adicionar
     await page.get_by_test_id(f"size-{SIZE}").click()
     await page.get_by_test_id("product-add").click()
