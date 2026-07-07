@@ -23,6 +23,31 @@ function NavLink({ href, label, scrolled }: { href: string; label: string; scrol
   );
 }
 
+function LogoLink({ className, scrolled }: { className?: string; scrolled: boolean }) {
+  return (
+    <a
+      href="#top"
+      aria-label="7D Imports — início"
+      className={`group font-display leading-none flex items-baseline gap-2.5 ${className ?? ""}`}
+    >
+      <span style={{ fontSize: "26px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
+      <span
+        className={`hidden sm:inline transition-opacity duration-500 ${
+          scrolled ? "opacity-70" : "opacity-80"
+        }`}
+        style={{
+          fontSize: "10px",
+          letterSpacing: "0.42em",
+          fontWeight: 500,
+          textTransform: "uppercase",
+        }}
+      >
+        Imports
+      </span>
+    </a>
+  );
+}
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,9 +83,9 @@ export function Header() {
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div
-        className={`mx-auto grid h-16 md:h-[72px] max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-5 md:px-10 transition-colors duration-[600ms] ease-out text-[color:var(--forest-deep)]`}
+        className={`mx-auto grid h-16 md:h-[72px] max-w-[1440px] grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] items-center px-5 md:px-10 transition-colors duration-[600ms] ease-out text-[color:var(--forest-deep)]`}
       >
-        <div className="flex items-center justify-self-start">
+        <div className="flex items-center justify-self-start gap-4">
           <button
             aria-label="Abrir menu"
             aria-expanded={menuOpen}
@@ -69,37 +94,20 @@ export function Header() {
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
+          <LogoLink className="hidden md:flex" scrolled={scrolled} />
         </div>
 
-        <a
-          href="#top"
-          aria-label="7D Imports — início"
-          className="group font-display leading-none flex items-baseline gap-2.5 justify-self-center"
-        >
-          <span style={{ fontSize: "26px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
-          <span
-            className={`hidden sm:inline transition-opacity duration-500 ${
-              scrolled ? "opacity-70" : "opacity-80"
-            }`}
-            style={{
-              fontSize: "10px",
-              letterSpacing: "0.42em",
-              fontWeight: 500,
-              textTransform: "uppercase",
-            }}
+        <div className="flex items-center justify-center md:justify-center">
+          <LogoLink className="flex md:hidden" scrolled={scrolled} />
+          <nav
+            aria-label="Principal"
+            className="hidden md:flex items-center gap-8 lg:gap-12"
           >
-            Imports
-          </span>
-        </a>
-
-        <nav
-          aria-label="Principal"
-          className="pointer-events-none absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-8 lg:gap-12 [&>*]:pointer-events-auto"
-        >
-          <NavLink href="#acervo" label="Acervo" scrolled={scrolled} />
-          <NavLink href="#manifesto" label="Manifesto" scrolled={scrolled} />
-          <NavLink href="#atendimento" label="Atendimento" scrolled={scrolled} />
-        </nav>
+            <NavLink href="#acervo" label="Acervo" scrolled={scrolled} />
+            <NavLink href="#manifesto" label="Manifesto" scrolled={scrolled} />
+            <NavLink href="#atendimento" label="Atendimento" scrolled={scrolled} />
+          </nav>
+        </div>
 
         <div className="flex items-center justify-self-end gap-1 md:gap-2">
           <button
