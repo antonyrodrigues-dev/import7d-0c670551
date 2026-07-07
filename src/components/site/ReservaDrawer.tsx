@@ -4,7 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { formatBRL } from "@/data/products";
-import { buildWhatsAppUrl, type CheckoutSummary } from "@/lib/whatsapp";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { buildOrder, type OrderPickup } from "@/lib/order";
+import {
+  getUpcomingPickupSlots,
+  isValidPickupSlot,
+  formatPickupSlot,
+  type PickupDay,
+} from "@/lib/pickup";
 import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,7 +22,6 @@ import {
   formatCEP,
   formatCPF,
   formatPhone,
-  generateOrderNumber,
   lookupCEP,
   PAYMENT_LABEL,
   type Address,
@@ -61,6 +67,7 @@ export function ReservaDrawer() {
   const [payment, setPayment] = useState<PaymentMethod>("pix");
   const [installments, setInstallments] = useState<number>(1);
   const [freight, setFreight] = useState<Freight>({ cost: null, label: "A combinar" });
+  const [pickup, setPickup] = useState<OrderPickup | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [pendingWhats, setPendingWhats] = useState<string | null>(null);
@@ -139,6 +146,11 @@ export function ReservaDrawer() {
         }
       }
     }
+    if (step === 1 && delivery === "retirada") {
+      if (!pickup || !isValidPickupSlot(pickup.date, pickup.time)) {
+        next.pickup = "Selecione um horário disponível";
+      }
+    }
     if (step === 2) {
       const r = customerSchema.safeParse(customer);
       if (!r.success) {
@@ -168,17 +180,18 @@ export function ReservaDrawer() {
     setSubmitting(true);
     setPendingWhats(null);
 
-    const numeroPedido = generateOrderNumber();
-    const itemsSnapshot = items.map((i) => ({ ...i }));
-    const summary: CheckoutSummary = {
-      numeroPedido,
+    // Fonte única do pedido — WhatsApp, futuras persistências e o painel
+    // administrativo derivam desse objeto, nunca dos campos do formulário.
+    const order = buildOrder({
+      items,
+      customer,
       delivery,
       address: delivery === "entrega" ? address : undefined,
       freight,
-      customer,
+      pickup: delivery === "retirada" ? pickup ?? undefined : undefined,
       payment,
-      installments: payment === "credito" ? installments : undefined,
-    };
+      installments,
+    });
 
     // Best-effort log to backend — falhas não bloqueiam o WhatsApp.
     void (async () => {
@@ -187,18 +200,25 @@ export function ReservaDrawer() {
           supabase.from("pedidos").insert({
             itens: JSON.parse(
               JSON.stringify({
-                produtos: itemsSnapshot,
-                cliente: customer,
-                entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
-                pagamento: {
-                  metodo: payment,
-                  parcelas: payment === "credito" ? installments : 1,
-                  valor_por_parcela: installmentInfo?.perInstallment ?? total,
+                produtos: order.itens,
+                cliente: order.cliente,
+                entrega: {
+                  metodo: order.entrega.metodo,
+                  endereco: order.entrega.endereco ?? null,
+                  frete: order.entrega.frete,
+                  retirada: order.entrega.retirada ?? null,
                 },
-                numero_local: numeroPedido,
+                pagamento: {
+                  metodo: order.pagamento.metodo,
+                  parcelas: order.pagamento.parcelas,
+                  valor_por_parcela:
+                    order.pagamento.parcelamento?.perInstallment ?? order.totais.total,
+                },
+                numero_local: order.numero,
+                criado_em: order.criadoEm,
               }),
             ),
-            valor_total: total,
+            valor_total: order.totais.total,
             status: "pendente",
             canal: "whatsapp",
           }),
@@ -209,11 +229,11 @@ export function ReservaDrawer() {
       }
     })();
 
-    const url = buildWhatsAppUrl(itemsSnapshot, summary);
+    const url = buildWhatsAppUrl(order);
     track({
       name: "checkout_whatsapp",
-      total,
-      items: itemsSnapshot.reduce((a, i) => a + i.quantity, 0),
+      total: order.totais.total,
+      items: order.itens.reduce((a, i) => a + i.quantity, 0),
     });
     const popup =
       typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
@@ -224,7 +244,7 @@ export function ReservaDrawer() {
         description: "Toque em 'Abrir WhatsApp' para continuar.",
       });
     } else {
-      toast.success(`Pedido ${numeroPedido} enviado`, {
+      toast.success(`Pedido ${order.numero} enviado`, {
         description: "Prossiga a conversa no WhatsApp para confirmar.",
       });
       clear();
