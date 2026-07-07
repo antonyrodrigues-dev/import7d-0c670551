@@ -155,9 +155,31 @@ export function AtendimentoSection() {
   return (
     <section
       id="atendimento"
-      className="relative bg-[color:var(--forest-deep)] py-24 md:py-32 text-[color:var(--cream)]"
+      className="relative overflow-hidden bg-[color:var(--forest-deep)] py-24 md:py-32 text-[color:var(--cream)]"
     >
-      <div className="mx-auto max-w-[1080px] px-6 md:px-12">
+      {/* Textura de papel/linho — extremamente sutil, não compete com o conteúdo */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.85 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+          backgroundSize: "220px 220px",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--gold)_8%,transparent)_0%,transparent_55%),radial-gradient(ellipse_at_bottom,color-mix(in_oklab,var(--forest)_45%,transparent)_0%,transparent_60%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[color:var(--gold)]/35"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/35"
+      />
+      <div className="relative mx-auto max-w-[1080px] px-6 md:px-12">
         <Reveal className="text-center">
           <p className="text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">
             Atendimento

@@ -64,8 +64,9 @@
   --cream-deep: oklch(0.92 0.018 78);
   --forest: oklch(0.42 0.078 156);
   --forest-deep: oklch(0.28 0.088 156);
-  --gold: oklch(0.76 0.078 84);
-  --gold-soft: oklch(0.86 0.055 84);
+  --gold: oklch(0.66 0.098 78);
+  --gold-soft: oklch(0.82 0.062 82);
+  --gold-bright: oklch(0.78 0.09 84);
   --ink: oklch(0.22 0.02 150);
   --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
   --font-serif: "Cormorant Garamond", Georgia, serif;
