@@ -78,9 +78,14 @@ export function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-[background-color,backdrop-filter] duration-[600ms] ease-out ${
-        scrolled ? "bg-[color:var(--cream)]/94 backdrop-blur-[6px]" : "bg-transparent"
+        scrolled ? "backdrop-blur-[8px]" : "bg-transparent"
       }`}
-      style={{ paddingTop: "env(safe-area-inset-top)" }}
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        backgroundColor: scrolled
+          ? "color-mix(in oklab, var(--cream) 96%, transparent)"
+          : "transparent",
+      }}
     >
       <div
         className={`mx-auto grid h-16 md:h-[72px] max-w-[1440px] grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] items-center px-5 md:px-10 transition-colors duration-[600ms] ease-out text-[color:var(--forest-deep)]`}
