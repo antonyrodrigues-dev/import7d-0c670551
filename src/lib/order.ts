@@ -30,10 +30,23 @@ export interface OrderPickup {
   time: string;
 }
 
+export type OrderStatus = "pending" | "sent" | "confirmed" | "cancelled";
+
+export interface OrderMetadata {
+  /** Canal por onde o pedido foi enviado ("whatsapp" | "admin" | ...). */
+  canal: "whatsapp" | "admin";
+  /** User agent — auxilia futura análise sem gravar PII. */
+  userAgent?: string;
+}
+
 export interface Order {
   numero: string;
   /** ISO com fuso — momento de criação do pedido. */
   criadoEm: string;
+  /** ISO — última atualização. Igual a criadoEm até que o painel altere. */
+  atualizadoEm: string;
+  status: OrderStatus;
+  metadata: OrderMetadata;
   cliente: Customer;
   itens: ReservaItem[];
   entrega: {
@@ -66,6 +79,7 @@ export interface BuildOrderInput {
   pickup?: OrderPickup;
   payment: PaymentMethod;
   installments: number;
+  metadata?: Partial<OrderMetadata>;
   /** Opcional: injeta número/data para testes. */
   numero?: string;
   criadoEm?: string;
@@ -78,10 +92,19 @@ export function buildOrder(input: BuildOrderInput): Order {
   const parcelamento =
     input.payment === "credito" ? getInstallmentOption(baseTotal, input.installments) : null;
   const total = parcelamento ? parcelamento.total : baseTotal;
+  const criadoEm = input.criadoEm ?? new Date().toISOString();
 
   return {
     numero: input.numero ?? generateOrderNumber(),
-    criadoEm: input.criadoEm ?? new Date().toISOString(),
+    criadoEm,
+    atualizadoEm: criadoEm,
+    status: "pending",
+    metadata: {
+      canal: input.metadata?.canal ?? "whatsapp",
+      userAgent:
+        input.metadata?.userAgent ??
+        (typeof navigator !== "undefined" ? navigator.userAgent : undefined),
+    },
     cliente: input.customer,
     itens: input.items.map((i) => ({ ...i })),
     entrega: {
@@ -101,4 +124,12 @@ export function buildOrder(input: BuildOrderInput): Order {
       total,
     },
   };
+}
+
+/**
+ * Marca o pedido como enviado (WhatsApp aberto pelo cliente).
+ * Retorna uma cópia — pedidos são imutáveis para facilitar rastreamento.
+ */
+export function markOrderSent(order: Order): Order {
+  return { ...order, status: "sent", atualizadoEm: new Date().toISOString() };
 }

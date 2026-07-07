@@ -1,23 +1,32 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Trash2, ExternalLink, ArrowLeft, ArrowRight, Check, Store, Truck } from "lucide-react";
+import {
+  X,
+  Trash2,
+  ExternalLink,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Store,
+  Truck,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
+import { useCheckout, type CheckoutStep } from "@/store/checkout";
 import { formatBRL } from "@/data/products";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
-import { buildOrder, type OrderPickup } from "@/lib/order";
+import { buildReservaMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
+import { buildOrder, markOrderSent, type OrderPickup } from "@/lib/order";
 import {
   getUpcomingPickupSlots,
-  isValidPickupSlot,
   formatPickupSlot,
   type PickupDay,
 } from "@/lib/pickup";
+import { validateStep, validateOrder } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  addressSchema,
   calculateFreight,
-  customerSchema,
   DELIVERY_LABEL,
   formatCEP,
   formatCPF,
@@ -36,7 +45,7 @@ import {
   getInstallmentOptions,
 } from "@/lib/installments";
 
-type Step = 0 | 1 | 2 | 3 | 4;
+type Step = CheckoutStep;
 
 const STEPS: { key: Step; label: string }[] = [
   { key: 0, label: "Reserva" },
@@ -46,28 +55,29 @@ const STEPS: { key: Step; label: string }[] = [
   { key: 4, label: "Revisão" },
 ];
 
-const emptyAddress: Address = {
-  cep: "",
-  rua: "",
-  numero: "",
-  complemento: "",
-  bairro: "",
-  cidade: "",
-};
-const emptyCustomer: Customer = { nome: "", telefone: "", cpf: "", observacoes: "" };
-
 export function ReservaDrawer() {
   const { open, items, setOpen, removeItem, updateQty, clear } = useReserva();
+  const {
+    step,
+    delivery,
+    address,
+    customer,
+    payment,
+    installments,
+    pickup,
+    setStep,
+    setDelivery,
+    setAddress,
+    setCustomer,
+    setPayment,
+    setInstallments,
+    setPickup,
+    reset: resetCheckout,
+  } = useCheckout();
+
   const subtotal = items.reduce((a, i) => a + i.price * i.quantity, 0);
 
-  const [step, setStep] = useState<Step>(0);
-  const [delivery, setDelivery] = useState<DeliveryMethod>("retirada");
-  const [address, setAddress] = useState<Address>(emptyAddress);
-  const [customer, setCustomer] = useState<Customer>(emptyCustomer);
-  const [payment, setPayment] = useState<PaymentMethod>("pix");
-  const [installments, setInstallments] = useState<number>(1);
   const [freight, setFreight] = useState<Freight>({ cost: null, label: "A combinar" });
-  const [pickup, setPickup] = useState<OrderPickup | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [pendingWhats, setPendingWhats] = useState<string | null>(null);
@@ -80,11 +90,6 @@ export function ReservaDrawer() {
     [payment, baseTotal, installments],
   );
   const total = installmentInfo ? installmentInfo.total : baseTotal;
-
-  // Reset parcelas quando muda para uma forma que não seja crédito.
-  useEffect(() => {
-    if (payment !== "credito" && installments !== 1) setInstallments(1);
-  }, [payment, installments]);
 
   // body scroll lock + esc
   useEffect(() => {
@@ -113,7 +118,7 @@ export function ReservaDrawer() {
       setStep(0);
       setPendingWhats(null);
     }
-  }, [items.length]);
+  }, [items.length, setStep]);
 
   // recompute freight when address/delivery change
   useEffect(() => {
@@ -122,67 +127,60 @@ export function ReservaDrawer() {
       setFreight({ cost: null, label: "Retirada na loja" });
       return;
     }
-    const parsed = addressSchema.safeParse(address);
-    if (!parsed.success) {
+    const r = validateStep(1, { items, delivery, address, pickup, customer, payment, installments });
+    if (!r.ok) {
       setFreight({ cost: null, label: "Preencha o endereço" });
       return;
     }
-    calculateFreight(parsed.data).then((f) => {
+    calculateFreight(address).then((f) => {
       if (!cancelled) setFreight(f);
     });
     return () => {
       cancelled = true;
     };
-  }, [delivery, address]);
+  }, [delivery, address, items, pickup, customer, payment, installments]);
 
-  const validateStep = (): boolean => {
-    const next: Record<string, string> = {};
-    if (step === 1 && delivery === "entrega") {
-      const r = addressSchema.safeParse(address);
-      if (!r.success) {
-        for (const issue of r.error.issues) {
-          const k = issue.path[0]?.toString() ?? "form";
-          if (!next[k]) next[k] = issue.message;
-        }
-      }
-    }
-    if (step === 1 && delivery === "retirada") {
-      if (!pickup || !isValidPickupSlot(pickup.date, pickup.time)) {
-        next.pickup = "Selecione um horário disponível";
-      }
-    }
-    if (step === 2) {
-      const r = customerSchema.safeParse(customer);
-      if (!r.success) {
-        for (const issue of r.error.issues) {
-          const k = issue.path[0]?.toString() ?? "form";
-          if (!next[k]) next[k] = issue.message;
-        }
-      }
-    }
-    setErrors(next);
-    return Object.keys(next).length === 0;
+  const snapshot = { items, delivery, address, pickup, customer, payment, installments };
+
+  const runStepValidation = (): boolean => {
+    const r = validateStep(step, snapshot);
+    setErrors(r.errors);
+    return r.ok;
   };
 
   const goNext = () => {
-    if (!validateStep()) return;
-    setStep((s) => {
-      const next = Math.min(4, (s as number) + 1) as Step;
-      track({ name: "checkout_step", step: next });
-      return next;
-    });
+    if (!runStepValidation()) {
+      toast.error("Preencha os campos obrigatórios para continuar.");
+      return;
+    }
+    const next = Math.min(4, (step as number) + 1) as Step;
+    setStep(next);
+    track({ name: "checkout_step", step: next });
   };
-  const goBack = () => setStep((s) => Math.max(0, (s as number) - 1) as Step);
+  const goBack = () => setStep(Math.max(0, (step as number) - 1) as Step);
 
   const finalizar = async () => {
     if (items.length === 0 || submittingRef.current) return;
+    // Validação única antes de gerar o pedido.
+    const check = validateOrder(snapshot);
+    if (!check.ok) {
+      setErrors(check.errors);
+      toast.error("Revise as etapas do pedido antes de finalizar.");
+      // Navegar para a primeira etapa incompleta.
+      const missing = check.missing[0];
+      if (missing === "items") setStep(0);
+      else if (missing === "address" || missing === "pickup") setStep(1);
+      else if (missing === "customer") setStep(2);
+      else if (missing === "payment" || missing === "installments") setStep(3);
+      return;
+    }
     submittingRef.current = true;
     setSubmitting(true);
     setPendingWhats(null);
 
     // Fonte única do pedido — WhatsApp, futuras persistências e o painel
     // administrativo derivam desse objeto, nunca dos campos do formulário.
-    const order = buildOrder({
+    let order = buildOrder({
       items,
       customer,
       delivery,
@@ -229,31 +227,40 @@ export function ReservaDrawer() {
       }
     })();
 
-    const url = buildWhatsAppUrl(order);
-    track({
-      name: "checkout_whatsapp",
-      total: order.totais.total,
-      items: order.itens.reduce((a, i) => a + i.quantity, 0),
-    });
-    const popup =
-      typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
+    try {
+      // Prova de integridade da mensagem antes de tentar abrir o WhatsApp.
+      const preview = buildReservaMessage(order);
+      if (!preview || preview.length < 20) throw new Error("mensagem inválida");
+      const url = buildWhatsAppUrl(order);
+      track({
+        name: "checkout_whatsapp",
+        total: order.totais.total,
+        items: order.itens.reduce((a, i) => a + i.quantity, 0),
+      });
+      const popup =
+        typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
 
-    if (!popup) {
-      setPendingWhats(url);
-      toast.message("Pedido pronto", {
-        description: "Toque em 'Abrir WhatsApp' para continuar.",
-      });
-    } else {
-      toast.success(`Pedido ${order.numero} enviado`, {
-        description: "Prossiga a conversa no WhatsApp para confirmar.",
-      });
-      clear();
-      setOpen(false);
-      setStep(0);
+      if (!popup) {
+        // Popup bloqueado — apresentamos o link para o cliente concluir.
+        setPendingWhats(url);
+        toast.message("Pedido pronto", {
+          description: "Toque em 'Abrir WhatsApp' para continuar.",
+        });
+      } else {
+        order = markOrderSent(order);
+        toast.success(`Pedido ${order.numero} enviado`, {
+          description: "Prossiga a conversa no WhatsApp para confirmar.",
+        });
+        clear();
+        resetCheckout();
+        setOpen(false);
+      }
+    } catch {
+      toast.error("Não foi possível preparar o pedido. Tente novamente.");
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
-
-    submittingRef.current = false;
-    setSubmitting(false);
   };
 
   const currentIndex = useMemo(() => STEPS.findIndex((s) => s.key === step), [step]);

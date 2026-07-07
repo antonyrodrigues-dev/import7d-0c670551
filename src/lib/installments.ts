@@ -50,8 +50,11 @@ export function getInstallmentOptions(
   const options: InstallmentOption[] = [];
   for (let i = 1; i <= max; i++) {
     const surcharge = config.surchargePerInstallment[i - 1] ?? 0;
-    const total = round2(baseTotal * (1 + surcharge));
-    const perInstallment = round2(total / i);
+    // Arredondamento em duas etapas garante que
+    // perInstallment * count === total (sem drift de centavos ao exibir).
+    const rawTotal = baseTotal * (1 + surcharge);
+    const perInstallment = round2(rawTotal / i);
+    const total = round2(perInstallment * i);
     options.push({ count: i, total, perInstallment, surcharge });
   }
   return options;
