@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { formatBRL } from "@/data/products";
 import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
-import { useOrdersStore } from "@/features/admin/stores/orders";
-import { useCustomersStore } from "@/features/admin/stores/customers";
-import { deriveCustomersFromOrders } from "@/features/admin/services/customers.service";
+import { useOrders, useCustomers } from "@/features/admin/hooks";
 
 const PAGE_SIZE = 20;
 
@@ -16,17 +14,9 @@ export const Route = createFileRoute("/_authenticated/admin/clientes")({
 });
 
 function ClientesPage() {
-  const { orders, refresh } = useOrdersStore();
-  const { customers, query, sortBy, setQuery, setSortBy, set } = useCustomersStore();
+  useOrders();
+  const { customers, query, sortBy, setQuery, setSortBy } = useCustomers();
   const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    set(deriveCustomersFromOrders(orders));
-  }, [orders, set]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
