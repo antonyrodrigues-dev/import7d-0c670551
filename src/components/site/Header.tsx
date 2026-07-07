@@ -8,11 +8,7 @@ function NavLink({ href, label, scrolled }: { href: string; label: string; scrol
   return (
     <a
       href={href}
-      className={`group relative inline-block py-2 text-[11px] tracking-luxe uppercase transition-colors duration-300 ${
-        scrolled
-          ? "text-[color:var(--forest-deep)]/80 hover:text-[color:var(--forest-deep)]"
-          : "text-[color:var(--cream)]/85 hover:text-[color:var(--cream)]"
-      }`}
+      className="group relative inline-block py-2 text-[11px] tracking-luxe uppercase transition-colors duration-300 text-[color:var(--forest-deep)]/80 hover:text-[color:var(--forest-deep)]"
     >
       <span className="relative inline-block">{label}</span>
       <span
