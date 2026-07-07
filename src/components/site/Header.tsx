@@ -59,7 +59,7 @@ export function Header() {
     >
       <div
         className={`mx-auto flex h-16 md:h-[72px] max-w-[1440px] items-center justify-between px-5 md:px-10 transition-colors duration-[600ms] ease-out ${
-          scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
+          scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--forest-deep)]"
         }`}
       >
         <button
