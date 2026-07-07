@@ -11,7 +11,7 @@ function NavLink({ href, label, scrolled }: { href: string; label: string; scrol
       className={`group relative inline-block py-2 text-[11px] tracking-luxe uppercase transition-colors duration-300 ${
         scrolled
           ? "text-[color:var(--forest-deep)]/80 hover:text-[color:var(--forest-deep)]"
-          : "text-[color:var(--cream)]/85 hover:text-[color:var(--cream)]"
+          : "text-[color:var(--forest-deep)]/80 hover:text-[color:var(--forest-deep)]"
       }`}
     >
       <span className="relative inline-block">{label}</span>
@@ -59,7 +59,7 @@ export function Header() {
     >
       <div
         className={`mx-auto flex h-16 md:h-[72px] max-w-[1440px] items-center justify-between px-5 md:px-10 transition-colors duration-[600ms] ease-out ${
-          scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--cream)]"
+          scrolled ? "text-[color:var(--forest-deep)]" : "text-[color:var(--forest-deep)]"
         }`}
       >
         <button
