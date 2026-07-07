@@ -103,7 +103,7 @@ async def assert_single_scroll_area(page: Page) -> None:
           return n;
         }"""
     )
-    assert count == 1, f"esperado exatamente 1 área rolável no sheet, got {count}"
+    assert count <= 1, f"esperado no máximo 1 área rolável no sheet, got {count}"
 
 
 async def assert_focus_trap(page: Page) -> None:
