@@ -10,6 +10,7 @@ import {
   type Freight,
   type PaymentMethod,
 } from "@/lib/checkout";
+import { getInstallmentOption } from "@/lib/installments";
 
 export interface CheckoutSummary {
   numeroPedido: string;
@@ -18,12 +19,20 @@ export interface CheckoutSummary {
   freight: Freight;
   customer: Customer;
   payment: PaymentMethod;
+  /** Quantidade de parcelas escolhida quando payment === "credito". */
+  installments?: number;
 }
 
 export function buildReservaMessage(items: ReservaItem[], summary: CheckoutSummary): string {
   const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
   const freightCost = summary.freight.cost ?? 0;
-  const total = subtotal + freightCost;
+  const baseTotal = subtotal + freightCost;
+
+  const installmentInfo =
+    summary.payment === "credito"
+      ? getInstallmentOption(baseTotal, summary.installments ?? 1)
+      : null;
+  const total = installmentInfo ? installmentInfo.total : baseTotal;
 
   const L: string[] = [];
   L.push("*7D IMPORTS*", `Pedido nº ${summary.numeroPedido}`, "");
@@ -52,7 +61,14 @@ export function buildReservaMessage(items: ReservaItem[], summary: CheckoutSumma
   }
   L.push("");
 
-  L.push("*Pagamento*", PAYMENT_LABEL[summary.payment], "");
+  L.push("*Forma de pagamento*", PAYMENT_LABEL[summary.payment], "");
+  L.push("*Parcelamento*");
+  if (installmentInfo && installmentInfo.count > 1) {
+    L.push(`${installmentInfo.count}x de ${formatBRL(installmentInfo.perInstallment)}`);
+  } else {
+    L.push("À vista");
+  }
+  L.push("");
 
   if (summary.customer.observacoes) {
     L.push("*Observações*", summary.customer.observacoes, "");
@@ -60,7 +76,12 @@ export function buildReservaMessage(items: ReservaItem[], summary: CheckoutSumma
 
   L.push(`Subtotal: ${formatBRL(subtotal)}`);
   if (summary.freight.cost != null) L.push(`Frete: ${formatBRL(summary.freight.cost)}`);
-  L.push(`*Total: ${formatBRL(total)}*`);
+  L.push(`*Valor total: ${formatBRL(total)}*`);
+  if (installmentInfo && installmentInfo.count > 1) {
+    L.push(
+      `Valor por parcela: ${installmentInfo.count}x de ${formatBRL(installmentInfo.perInstallment)}`,
+    );
+  }
 
   return L.join("\n");
 }
