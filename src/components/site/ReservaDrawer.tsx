@@ -4,7 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { formatBRL } from "@/data/products";
-import { buildWhatsAppUrl, type CheckoutSummary } from "@/lib/whatsapp";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { buildOrder, type OrderPickup } from "@/lib/order";
+import {
+  getUpcomingPickupSlots,
+  isValidPickupSlot,
+  formatPickupSlot,
+  type PickupDay,
+} from "@/lib/pickup";
 import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,7 +22,6 @@ import {
   formatCEP,
   formatCPF,
   formatPhone,
-  generateOrderNumber,
   lookupCEP,
   PAYMENT_LABEL,
   type Address,
@@ -61,6 +67,7 @@ export function ReservaDrawer() {
   const [payment, setPayment] = useState<PaymentMethod>("pix");
   const [installments, setInstallments] = useState<number>(1);
   const [freight, setFreight] = useState<Freight>({ cost: null, label: "A combinar" });
+  const [pickup, setPickup] = useState<OrderPickup | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [pendingWhats, setPendingWhats] = useState<string | null>(null);
@@ -139,6 +146,11 @@ export function ReservaDrawer() {
         }
       }
     }
+    if (step === 1 && delivery === "retirada") {
+      if (!pickup || !isValidPickupSlot(pickup.date, pickup.time)) {
+        next.pickup = "Selecione um horário disponível";
+      }
+    }
     if (step === 2) {
       const r = customerSchema.safeParse(customer);
       if (!r.success) {
@@ -168,17 +180,18 @@ export function ReservaDrawer() {
     setSubmitting(true);
     setPendingWhats(null);
 
-    const numeroPedido = generateOrderNumber();
-    const itemsSnapshot = items.map((i) => ({ ...i }));
-    const summary: CheckoutSummary = {
-      numeroPedido,
+    // Fonte única do pedido — WhatsApp, futuras persistências e o painel
+    // administrativo derivam desse objeto, nunca dos campos do formulário.
+    const order = buildOrder({
+      items,
+      customer,
       delivery,
       address: delivery === "entrega" ? address : undefined,
       freight,
-      customer,
+      pickup: delivery === "retirada" ? pickup ?? undefined : undefined,
       payment,
-      installments: payment === "credito" ? installments : undefined,
-    };
+      installments,
+    });
 
     // Best-effort log to backend — falhas não bloqueiam o WhatsApp.
     void (async () => {
@@ -187,18 +200,25 @@ export function ReservaDrawer() {
           supabase.from("pedidos").insert({
             itens: JSON.parse(
               JSON.stringify({
-                produtos: itemsSnapshot,
-                cliente: customer,
-                entrega: { metodo: delivery, endereco: summary.address ?? null, frete: freight },
-                pagamento: {
-                  metodo: payment,
-                  parcelas: payment === "credito" ? installments : 1,
-                  valor_por_parcela: installmentInfo?.perInstallment ?? total,
+                produtos: order.itens,
+                cliente: order.cliente,
+                entrega: {
+                  metodo: order.entrega.metodo,
+                  endereco: order.entrega.endereco ?? null,
+                  frete: order.entrega.frete,
+                  retirada: order.entrega.retirada ?? null,
                 },
-                numero_local: numeroPedido,
+                pagamento: {
+                  metodo: order.pagamento.metodo,
+                  parcelas: order.pagamento.parcelas,
+                  valor_por_parcela:
+                    order.pagamento.parcelamento?.perInstallment ?? order.totais.total,
+                },
+                numero_local: order.numero,
+                criado_em: order.criadoEm,
               }),
             ),
-            valor_total: total,
+            valor_total: order.totais.total,
             status: "pendente",
             canal: "whatsapp",
           }),
@@ -209,11 +229,11 @@ export function ReservaDrawer() {
       }
     })();
 
-    const url = buildWhatsAppUrl(itemsSnapshot, summary);
+    const url = buildWhatsAppUrl(order);
     track({
       name: "checkout_whatsapp",
-      total,
-      items: itemsSnapshot.reduce((a, i) => a + i.quantity, 0),
+      total: order.totais.total,
+      items: order.itens.reduce((a, i) => a + i.quantity, 0),
     });
     const popup =
       typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
@@ -224,7 +244,7 @@ export function ReservaDrawer() {
         description: "Toque em 'Abrir WhatsApp' para continuar.",
       });
     } else {
-      toast.success(`Pedido ${numeroPedido} enviado`, {
+      toast.success(`Pedido ${order.numero} enviado`, {
         description: "Prossiga a conversa no WhatsApp para confirmar.",
       });
       clear();
@@ -391,6 +411,8 @@ export function ReservaDrawer() {
                   setDelivery={setDelivery}
                   address={address}
                   setAddress={setAddress}
+                  pickup={pickup}
+                  setPickup={setPickup}
                   errors={errors}
                   cepLoading={cepLoading}
                   setCepLoading={setCepLoading}
@@ -410,6 +432,7 @@ export function ReservaDrawer() {
                   items={items}
                   delivery={delivery}
                   address={address}
+                  pickup={pickup}
                   customer={customer}
                   payment={payment}
                   installments={installments}
@@ -543,6 +566,8 @@ function StepEntrega({
   setDelivery,
   address,
   setAddress,
+  pickup,
+  setPickup,
   errors,
   cepLoading,
   setCepLoading,
@@ -551,6 +576,8 @@ function StepEntrega({
   setDelivery: (d: DeliveryMethod) => void;
   address: Address;
   setAddress: (a: Address) => void;
+  pickup: OrderPickup | null;
+  setPickup: (p: OrderPickup | null) => void;
   errors: Record<string, string>;
   cepLoading: boolean;
   setCepLoading: (v: boolean) => void;
@@ -569,6 +596,9 @@ function StepEntrega({
       });
     }
   };
+
+  const pickupDays: PickupDay[] = useMemo(() => getUpcomingPickupSlots(), []);
+  const selectedDay = pickup ? pickupDays.find((d) => d.date === pickup.date) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -672,17 +702,89 @@ function StepEntrega({
           </p>
         </div>
       ) : (
-        <div className="border border-[color:var(--border)] p-4 text-sm text-[color:var(--forest-deep)]">
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-            Retirada
-          </p>
-          <p className="mt-2 font-display text-lg">Rua Luiz Veronesi, 464</p>
-          <p className="text-[color:var(--muted-foreground)]">
-            Cinquentenário · Caxias do Sul · RS
-          </p>
-          <p className="mt-3 text-[11px] text-[color:var(--muted-foreground)]">
-            Combinaremos o melhor horário via WhatsApp.
-          </p>
+        <div className="flex flex-col gap-4">
+          <div className="border border-[color:var(--border)] p-4 text-sm text-[color:var(--forest-deep)]">
+            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+              Retirada
+            </p>
+            <p className="mt-2 font-display text-lg">Rua Luiz Veronesi, 464</p>
+            <p className="text-[color:var(--muted-foreground)]">
+              Cinquentenário · Caxias do Sul · RS
+            </p>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+              Dia da retirada
+            </p>
+            {pickupDays.length === 0 ? (
+              <p className="text-[11px] text-[color:var(--muted-foreground)]">
+                Sem horários disponíveis nos próximos dias.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Dia da retirada">
+                {pickupDays.map((d) => {
+                  const active = pickup?.date === d.date;
+                  return (
+                    <button
+                      key={d.date}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      data-testid={`pickup-day-${d.date}`}
+                      onClick={() =>
+                        setPickup({
+                          date: d.date,
+                          time: pickup?.date === d.date && pickup.time ? pickup.time : d.slots[0],
+                        })
+                      }
+                      className={`border px-3 py-2 text-[11px] tracking-luxe uppercase transition-colors ${
+                        active
+                          ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                          : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {selectedDay && (
+            <div>
+              <p className="mb-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                Horário
+              </p>
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Horário da retirada">
+                {selectedDay.slots.map((s) => {
+                  const active = pickup?.time === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      data-testid={`pickup-slot-${s}`}
+                      onClick={() => setPickup({ date: selectedDay.date, time: s })}
+                      className={`border px-3 py-2 font-sans text-sm tabular-nums transition-colors ${
+                        active
+                          ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                          : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {errors.pickup && (
+            <p className="text-[11px] text-[color:var(--destructive)]">{errors.pickup}</p>
+          )}
         </div>
       )}
     </div>
@@ -841,6 +943,7 @@ function StepRevisao({
   items,
   delivery,
   address,
+  pickup,
   customer,
   payment,
   installments,
@@ -852,6 +955,7 @@ function StepRevisao({
   items: { slug: string; name: string; size: string; quantity: number; price: number }[];
   delivery: DeliveryMethod;
   address: Address;
+  pickup: OrderPickup | null;
   customer: Customer;
   payment: PaymentMethod;
   installments: number;
@@ -900,6 +1004,11 @@ function StepRevisao({
             {address.rua}, {address.numero}
             {address.complemento ? ` · ${address.complemento}` : ""} — {address.bairro},{" "}
             {address.cidade} · CEP {address.cep}
+          </p>
+        )}
+        {delivery === "retirada" && pickup && (
+          <p className="text-[color:var(--muted-foreground)]">
+            Horário: {formatPickupSlot(pickup.date, pickup.time)}
           </p>
         )}
       </section>
