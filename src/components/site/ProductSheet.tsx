@@ -108,6 +108,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                         type="button"
                         onClick={() => setSize(s)}
                         aria-pressed={size === s}
+                        data-testid={`size-${s}`}
                         className={`min-h-11 min-w-11 border px-4 text-sm tracking-wider transition-colors ${
                           size === s
                             ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
