@@ -138,7 +138,11 @@ export function ReservaDrawer() {
 
   const goNext = () => {
     if (!validateStep()) return;
-    setStep((s) => Math.min(4, (s as number) + 1) as Step);
+    setStep((s) => {
+      const next = Math.min(4, (s as number) + 1) as Step;
+      track({ name: "checkout_step", step: next });
+      return next;
+    });
   };
   const goBack = () => setStep((s) => Math.max(0, (s as number) - 1) as Step);
 
@@ -185,6 +189,11 @@ export function ReservaDrawer() {
     })();
 
     const url = buildWhatsAppUrl(itemsSnapshot, summary);
+    track({
+      name: "checkout_whatsapp",
+      total,
+      items: itemsSnapshot.reduce((a, i) => a + i.quantity, 0),
+    });
     const popup =
       typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
 
