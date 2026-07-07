@@ -18,6 +18,9 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
   const [qty, setQty] = useState(1);
   const addItem = useReserva((s) => s.addItem);
   const addingRef = useRef(false);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   // Reset qty when the sheet closes so reopening starts fresh.
   useEffect(() => {
@@ -29,6 +32,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    returnFocusRef.current = (document.activeElement as HTMLElement | null) ?? null;
     // Robust scroll lock — preserves scroll position and works on iOS Safari
     // (where overflow:hidden on body alone still allows touch scroll).
     const scrollY = window.scrollY;
@@ -48,7 +52,38 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
     body.style.width = "100%";
     body.style.overflow = "hidden";
 
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onOpenChange(false);
+    // Initial focus into the dialog (close button is the safest anchor).
+    requestAnimationFrame(() => closeRef.current?.focus());
+
+    const getFocusable = () => {
+      const root = dialogRef.current;
+      if (!root) return [] as HTMLElement[];
+      return Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute("aria-hidden") && el.offsetParent !== null);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onOpenChange(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const nodes = getFocusable();
+      if (nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
     return () => {
       body.style.position = prev.position;
@@ -59,6 +94,9 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
       body.style.overflow = prev.overflow;
       window.scrollTo(0, scrollY);
       document.removeEventListener("keydown", onKey);
+      // Restore focus to the trigger that opened the dialog.
+      const t = returnFocusRef.current;
+      if (t && document.contains(t)) requestAnimationFrame(() => t.focus());
     };
   }, [open, onOpenChange]);
 
@@ -79,6 +117,10 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
             role="dialog"
             aria-modal="true"
             aria-label={`Detalhes — ${product.name}`}
+            ref={(el) => {
+              dialogRef.current = el;
+            }}
+            data-testid="product-sheet"
             className="fixed inset-x-0 bottom-0 z-50 flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl lg:h-[90dvh] lg:max-h-[90dvh]"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -89,6 +131,8 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
               <button
                 onClick={() => onOpenChange(false)}
                 aria-label="Fechar"
+                ref={closeRef}
+                data-testid="product-close"
                 className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center bg-[color:var(--cream)]/95 text-[color:var(--forest-deep)] shadow"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -154,16 +198,22 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     <button
                       aria-label="Diminuir"
                       onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      data-testid="product-qty-dec"
                       className="flex h-11 w-11 items-center justify-center"
                     >
                       <Minus className="h-4 w-4" aria-hidden="true" />
                     </button>
-                    <span aria-live="polite" className="min-w-8 text-center tabular-nums">
+                    <span
+                      aria-live="polite"
+                      data-testid="product-qty-value"
+                      className="min-w-8 text-center tabular-nums"
+                    >
                       {qty}
                     </span>
                     <button
                       aria-label="Aumentar"
                       onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
+                      data-testid="product-qty-inc"
                       className="flex h-11 w-11 items-center justify-center"
                     >
                       <Plus className="h-4 w-4" aria-hidden="true" />
