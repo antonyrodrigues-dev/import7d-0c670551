@@ -36,7 +36,7 @@ async def add_first_product(page: Page) -> None:
     await card.first.scroll_into_view_if_needed()
     await card.first.click()
     # Selecionar tamanho e adicionar
-    await page.get_by_role("button", name=SIZE, exact=True).first.click()
+    await page.get_by_test_id(f"size-{SIZE}").click()
     await page.get_by_test_id("product-add").click()
     await expect(page.get_by_test_id("reserva-drawer")).to_be_visible()
 
