@@ -4,6 +4,27 @@ import { formatBRL } from "@/data/products";
 import { PageHeader, EmptyState, Skeleton } from "@/features/admin/components/PageHeader";
 import { LOW_STOCK_THRESHOLD } from "@/features/admin/constants";
 import { useInventory } from "@/features/admin/hooks";
+import type { InventoryItem } from "@/features/admin/types";
+
+type StockLevel = "sem" | "baixo" | "normal";
+
+function levelOf(i: InventoryItem): StockLevel {
+  if (i.quantity <= 0) return "sem";
+  if (i.quantity <= LOW_STOCK_THRESHOLD) return "baixo";
+  return "normal";
+}
+
+const LEVEL_LABEL: Record<StockLevel, string> = {
+  sem: "Sem estoque",
+  baixo: "Estoque baixo",
+  normal: "Estoque normal",
+};
+
+const LEVEL_CLASS: Record<StockLevel, string> = {
+  sem: "text-[color:var(--destructive)]",
+  baixo: "text-[color:var(--gold)]",
+  normal: "text-[color:var(--forest-deep)]",
+};
 
 export const Route = createFileRoute("/_authenticated/admin/estoque")({
   head: () => ({
@@ -126,12 +147,11 @@ function EstoquePage() {
                   <td className="px-4 py-3">{i.brand}</td>
                   <td className="px-4 py-3">{i.category}</td>
                   <td className="px-4 py-3">{i.color}</td>
-                  <td
-                    className={`px-4 py-3 text-right tabular-nums ${
-                      i.quantity <= LOW_STOCK_THRESHOLD ? "text-[color:var(--destructive)]" : ""
-                    }`}
-                  >
-                    {i.quantity}
+                  <td className={`px-4 py-3 text-right tabular-nums ${LEVEL_CLASS[levelOf(i)]}`}>
+                    <span>{i.quantity}</span>
+                    <span className="ml-2 text-[10px] tracking-luxe uppercase">
+                      {LEVEL_LABEL[levelOf(i)]}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatBRL(i.price)}</td>
                   <td className="px-4 py-3">
