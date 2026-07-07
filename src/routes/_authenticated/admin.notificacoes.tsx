@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
-import { useNotificationsStore } from "@/features/admin/stores/notifications";
+import { useAdminNotifications } from "@/features/admin/hooks";
 
 export const Route = createFileRoute("/_authenticated/admin/notificacoes")({
   head: () => ({
@@ -11,11 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/notificacoes")({
 });
 
 function NotificacoesPage() {
-  const { notifications, hydrate, markAllRead, markRead, clear } = useNotificationsStore();
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
+  const { notifications, markAllRead, markRead, clear } = useAdminNotifications();
 
   return (
     <>
