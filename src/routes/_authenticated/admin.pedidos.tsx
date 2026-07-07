@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { formatBRL } from "@/data/products";
 import { PageHeader, EmptyState, ErrorState, Skeleton } from "@/features/admin/components/PageHeader";
 import { ORDER_STATUSES } from "@/features/admin/constants";
-import { useOrdersStore } from "@/features/admin/stores/orders";
-import { usePermissions } from "@/features/admin/hooks/usePermissions";
+import { useOrders, usePermissions } from "@/features/admin/hooks";
 import type { OrderStatus } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
@@ -15,12 +13,8 @@ export const Route = createFileRoute("/_authenticated/admin/pedidos")({
 });
 
 function PedidosPage() {
-  const { orders, state, filter, error, setFilter, refresh, setStatus } = useOrdersStore();
+  const { orders, state, filter, error, setFilter, refresh, setStatus } = useOrders();
   const { can } = usePermissions();
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const visiveis = orders.filter((o) => filter === "todos" || o.status === filter);
 

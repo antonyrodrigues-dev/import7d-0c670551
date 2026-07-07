@@ -23,6 +23,7 @@ export const useNotificationsStore = create<NotificationsStore>()(
               id: n.id ?? crypto.randomUUID(),
               createdAt: new Date().toISOString(),
               read: false,
+              priority: n.priority ?? "media",
               kind: n.kind,
               title: n.title,
               body: n.body,

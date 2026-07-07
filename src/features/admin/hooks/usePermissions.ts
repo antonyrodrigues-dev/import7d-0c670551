@@ -2,13 +2,12 @@
  * Autorização centralizada do painel administrativo.
  *
  * Único ponto onde componentes verificam se o usuário pode ver / editar.
- * Nenhum componente pode chamar `supabase.auth.getUser()` para decidir
- * permissões — devem consumir este hook.
+ * Nenhum componente consulta a origem de dados diretamente — vai por aqui.
  */
 
 import { useEffect } from "react";
 import { create } from "zustand";
-import { supabase } from "@/integrations/supabase/client";
+import { adminDataSource } from "../adapters";
 import { ROLE_PERMISSIONS } from "../constants";
 import type { EmployeeRole, Permission } from "../types";
 
@@ -20,33 +19,17 @@ interface PermissionsState {
   clear: () => void;
 }
 
-// Mapeia papéis vindos do banco (`admin`, `atendente`) para o vocabulário
-// oficial do módulo administrativo (`admin`, `vendedor`).
-function mapDbRole(dbRole: string): EmployeeRole | null {
-  if (dbRole === "admin") return "admin";
-  if (dbRole === "atendente" || dbRole === "vendedor") return "vendedor";
-  return null;
-}
-
 const useStore = create<PermissionsState>((set) => ({
   ready: false,
   roles: [],
   userId: null,
   hydrate: async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData.user;
-    if (!user) {
+    try {
+      const identity = await adminDataSource.currentIdentity();
+      set({ ready: true, roles: identity.roles, userId: identity.userId });
+    } catch {
       set({ ready: true, roles: [], userId: null });
-      return;
     }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-    const roles = (data ?? [])
-      .map((r) => mapDbRole(String(r.role)))
-      .filter((r): r is EmployeeRole => Boolean(r));
-    set({ ready: true, roles, userId: user.id });
   },
   clear: () => set({ ready: false, roles: [], userId: null }),
 }));
