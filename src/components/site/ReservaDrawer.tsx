@@ -233,6 +233,7 @@ export function ReservaDrawer() {
             role="dialog"
             aria-modal="true"
             aria-label="Sua reserva"
+            data-testid="reserva-drawer"
             className="fixed inset-y-0 right-0 z-50 flex h-dvh w-full max-w-md flex-col bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
