@@ -23,6 +23,31 @@ function NavLink({ href, label, scrolled }: { href: string; label: string; scrol
   );
 }
 
+function LogoLink({ className, scrolled }: { className?: string; scrolled: boolean }) {
+  return (
+    <a
+      href="#top"
+      aria-label="7D Imports — início"
+      className={`group font-display leading-none flex items-baseline gap-2.5 ${className ?? ""}`}
+    >
+      <span style={{ fontSize: "26px", letterSpacing: "-0.07em", fontWeight: 500 }}>7D</span>
+      <span
+        className={`hidden sm:inline transition-opacity duration-500 ${
+          scrolled ? "opacity-70" : "opacity-80"
+        }`}
+        style={{
+          fontSize: "10px",
+          letterSpacing: "0.42em",
+          fontWeight: 500,
+          textTransform: "uppercase",
+        }}
+      >
+        Imports
+      </span>
+    </a>
+  );
+}
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
