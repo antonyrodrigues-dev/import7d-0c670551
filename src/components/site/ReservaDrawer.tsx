@@ -411,6 +411,8 @@ export function ReservaDrawer() {
                   setDelivery={setDelivery}
                   address={address}
                   setAddress={setAddress}
+                  pickup={pickup}
+                  setPickup={setPickup}
                   errors={errors}
                   cepLoading={cepLoading}
                   setCepLoading={setCepLoading}
@@ -430,6 +432,7 @@ export function ReservaDrawer() {
                   items={items}
                   delivery={delivery}
                   address={address}
+                  pickup={pickup}
                   customer={customer}
                   payment={payment}
                   installments={installments}
