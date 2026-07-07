@@ -8,6 +8,7 @@ function Slide({ p, onOpen }: { p: Product; onOpen: (slug: string) => void }) {
     <button
       type="button"
       onClick={() => onOpen(p.slug)}
+      data-testid={`product-card-${p.slug}`}
       aria-label={`Ver detalhes — ${p.name}`}
       className="group relative block w-[78vw] shrink-0 snap-center text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99] sm:w-[58vw] md:w-[42vw] lg:w-[32vw] xl:w-[28vw]"
     >

@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://import7d.lovable.app/sitemap.xml

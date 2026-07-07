@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Minus, Plus } from "lucide-react";
 import { formatBRL, type Product } from "@/data/products";
 import { useReserva } from "@/store/reserva";
+import { track } from "@/lib/analytics";
 
 interface Props {
   product: Product;
@@ -107,6 +108,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                         type="button"
                         onClick={() => setSize(s)}
                         aria-pressed={size === s}
+                        data-testid={`size-${s}`}
                         className={`min-h-11 min-w-11 border px-4 text-sm tracking-wider transition-colors ${
                           size === s
                             ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
@@ -149,8 +151,16 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     if (addingRef.current) return;
                     addingRef.current = true;
                     addItem(product, size, qty);
+                    track({
+                      name: "reserve_add",
+                      slug: product.slug,
+                      size,
+                      quantity: qty,
+                      price: product.price,
+                    });
                     onOpenChange(false);
                   }}
+                  data-testid="product-add"
                   className="sticky bottom-0 -mx-6 -mb-6 mt-auto inline-flex h-14 items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] shadow-[0_-12px_24px_-16px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98] md:-mx-12 md:-mb-12"
                 >
                   Adicionar à reserva

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { formatBRL } from "@/data/products";
 import { buildWhatsAppUrl, type CheckoutSummary } from "@/lib/whatsapp";
+import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import {
   addressSchema,
@@ -137,7 +138,11 @@ export function ReservaDrawer() {
 
   const goNext = () => {
     if (!validateStep()) return;
-    setStep((s) => Math.min(4, (s as number) + 1) as Step);
+    setStep((s) => {
+      const next = Math.min(4, (s as number) + 1) as Step;
+      track({ name: "checkout_step", step: next });
+      return next;
+    });
   };
   const goBack = () => setStep((s) => Math.max(0, (s as number) - 1) as Step);
 
@@ -184,6 +189,11 @@ export function ReservaDrawer() {
     })();
 
     const url = buildWhatsAppUrl(itemsSnapshot, summary);
+    track({
+      name: "checkout_whatsapp",
+      total,
+      items: itemsSnapshot.reduce((a, i) => a + i.quantity, 0),
+    });
     const popup =
       typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
 
@@ -223,6 +233,7 @@ export function ReservaDrawer() {
             role="dialog"
             aria-modal="true"
             aria-label="Sua reserva"
+            data-testid="reserva-drawer"
             className="fixed inset-y-0 right-0 z-50 flex h-dvh w-full max-w-md flex-col bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -292,17 +303,42 @@ export function ReservaDrawer() {
                         <div className="mt-2 inline-flex items-center border border-[color:var(--border)]">
                           <button
                             aria-label="Diminuir"
-                            onClick={() => updateQty(i.slug, i.size, i.quantity - 1)}
+                            onClick={() => {
+                              const to = Math.max(1, i.quantity - 1);
+                              updateQty(i.slug, i.size, to);
+                              track({
+                                name: "reserve_qty_change",
+                                slug: i.slug,
+                                size: i.size,
+                                from: i.quantity,
+                                to,
+                              });
+                            }}
+                            data-testid={`qty-dec-${i.slug}-${i.size}`}
                             className="flex h-8 w-8 items-center justify-center"
                           >
                             −
                           </button>
-                          <span className="min-w-6 text-center text-sm tabular-nums">
+                          <span
+                            data-testid={`qty-${i.slug}-${i.size}`}
+                            className="min-w-6 text-center text-sm tabular-nums"
+                          >
                             {i.quantity}
                           </span>
                           <button
                             aria-label="Aumentar"
-                            onClick={() => updateQty(i.slug, i.size, i.quantity + 1)}
+                            onClick={() => {
+                              const to = i.quantity + 1;
+                              updateQty(i.slug, i.size, to);
+                              track({
+                                name: "reserve_qty_change",
+                                slug: i.slug,
+                                size: i.size,
+                                from: i.quantity,
+                                to,
+                              });
+                            }}
+                            data-testid={`qty-inc-${i.slug}-${i.size}`}
                             className="flex h-8 w-8 items-center justify-center"
                           >
                             +
@@ -315,7 +351,11 @@ export function ReservaDrawer() {
                         </span>
                         <button
                           aria-label={`Remover ${i.name}`}
-                          onClick={() => removeItem(i.slug, i.size)}
+                          onClick={() => {
+                            removeItem(i.slug, i.size);
+                            track({ name: "reserve_remove", slug: i.slug, size: i.size });
+                          }}
+                          data-testid={`qty-remove-${i.slug}-${i.size}`}
                           className="flex h-9 w-9 items-center justify-center text-[color:var(--muted-foreground)] hover:text-[color:var(--forest-deep)]"
                         >
                           <Trash2 className="h-4 w-4" aria-hidden="true" />

@@ -16,6 +16,7 @@ const Card = memo(function Card({
     <button
       type="button"
       onClick={() => onOpen(p.slug)}
+      data-testid={`product-card-${p.slug}`}
       className="group block w-full text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99]"
       aria-label={`Ver detalhes — ${p.name}`}
     >
