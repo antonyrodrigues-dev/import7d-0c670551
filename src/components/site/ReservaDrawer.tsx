@@ -943,6 +943,7 @@ function StepRevisao({
   items,
   delivery,
   address,
+  pickup,
   customer,
   payment,
   installments,
@@ -954,6 +955,7 @@ function StepRevisao({
   items: { slug: string; name: string; size: string; quantity: number; price: number }[];
   delivery: DeliveryMethod;
   address: Address;
+  pickup: OrderPickup | null;
   customer: Customer;
   payment: PaymentMethod;
   installments: number;
@@ -1002,6 +1004,11 @@ function StepRevisao({
             {address.rua}, {address.numero}
             {address.complemento ? ` · ${address.complemento}` : ""} — {address.bairro},{" "}
             {address.cidade} · CEP {address.cep}
+          </p>
+        )}
+        {delivery === "retirada" && pickup && (
+          <p className="text-[color:var(--muted-foreground)]">
+            Horário: {formatPickupSlot(pickup.date, pickup.time)}
           </p>
         )}
       </section>
