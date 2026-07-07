@@ -73,15 +73,19 @@ export function Footer() {
         </div>
         {COLS.map((c) => (
           <nav key={c.title} aria-label={c.title}>
-            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+            <p className="font-display text-[13px] font-medium tracking-[0.22em] uppercase text-[color:var(--forest-deep)]">
               {c.title}
             </p>
-            <ul className="mt-6 space-y-4">
+            <span
+              aria-hidden="true"
+              className="mt-2 block h-px w-8 bg-[color:var(--gold)]/70"
+            />
+            <ul className="mt-5 space-y-3.5">
               {c.links.map(([label, href]) => (
                 <li key={label}>
                   <a
                     href={href}
-                    className="group relative inline-block text-sm text-[color:var(--forest-deep)]/85 transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
+                    className="group relative inline-block text-[14px] text-[color:var(--forest-deep)]/80 transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
                   >
                     {label}
                     <span
@@ -97,11 +101,22 @@ export function Footer() {
       </div>
       <div className="relative mx-auto mt-16 max-w-[1280px] px-6 md:px-12">
         <div aria-hidden="true" className="h-px bg-[color:var(--gold)]/30" />
-        <div className="mt-6 flex flex-col items-start justify-between gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] md:flex-row md:items-center">
+        <div className="mt-6 flex flex-col items-start justify-between gap-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] md:flex-row md:items-center">
           <p>
             © {new Date().getFullYear()} {BRAND.name} · Todos os direitos reservados
           </p>
           <p className="text-[color:var(--forest-deep)]/60">Curadoria · Caxias do Sul · Brasil</p>
+          <p className="text-[color:var(--forest-deep)]/45">
+            Criado pela{" "}
+            <a
+              href="https://aurhea.com.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tracking-[0.32em] text-[color:var(--forest-deep)]/70 transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
+            >
+              AURHEA
+            </a>
+          </p>
         </div>
       </div>
     </footer>
