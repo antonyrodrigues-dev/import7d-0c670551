@@ -56,22 +56,22 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
             role="dialog"
             aria-modal="true"
             aria-label={`Detalhes — ${product.name}`}
-            className="fixed inset-x-0 bottom-0 z-50 h-[85dvh] overflow-hidden bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl"
+            className="fixed inset-x-0 bottom-0 z-50 flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl md:h-[90dvh] md:max-h-[90dvh]"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 220, damping: 32, mass: 0.9 }}
           >
-            <div className="flex h-full flex-col overflow-y-auto md:grid md:grid-cols-2 md:overflow-hidden">
+            <div className="relative flex min-h-0 flex-1 flex-col md:grid md:grid-cols-2 md:overflow-hidden">
               <button
                 onClick={() => onOpenChange(false)}
                 aria-label="Fechar"
-                className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center bg-[color:var(--cream)]/95 text-[color:var(--forest-deep)] shadow"
+                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center bg-[color:var(--cream)]/95 text-[color:var(--forest-deep)] shadow"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
 
-              <div className="aspect-[3/4] w-full bg-[color:var(--cream-deep)] md:aspect-auto md:h-full">
+              <div className="aspect-[3/4] w-full shrink-0 bg-[color:var(--cream-deep)] md:aspect-auto md:h-full md:min-h-0">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -81,7 +81,9 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 />
               </div>
 
-              <div className="relative flex flex-1 flex-col gap-6 p-6 pb-24 md:overflow-y-auto md:p-12 md:pb-32">
+              <div className="relative flex min-h-0 flex-1 flex-col md:overflow-hidden">
+                <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6 md:px-12 md:pt-12">
+                  <div className="flex flex-col gap-6">
                 <div>
                   <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
                     {product.category}
@@ -145,8 +147,11 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     </button>
                   </div>
                 </div>
+                  </div>
+                </div>
 
-                <button
+                <div className="shrink-0 border-t border-[color:var(--border)]/60 bg-[color:var(--cream)] px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:px-12 md:py-6">
+                  <button
                   onClick={() => {
                     if (addingRef.current) return;
                     addingRef.current = true;
@@ -161,10 +166,11 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     onOpenChange(false);
                   }}
                   data-testid="product-add"
-                  className="sticky bottom-0 -mx-6 -mb-6 mt-auto inline-flex h-14 items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] shadow-[0_-12px_24px_-16px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98] md:-mx-12 md:-mb-12"
+                  className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98]"
                 >
                   Adicionar à reserva
-                </button>
+                  </button>
+                </div>
               </div>
             </div>
           </motion.aside>
