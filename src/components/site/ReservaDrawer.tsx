@@ -566,6 +566,8 @@ function StepEntrega({
   setDelivery,
   address,
   setAddress,
+  pickup,
+  setPickup,
   errors,
   cepLoading,
   setCepLoading,
@@ -574,6 +576,8 @@ function StepEntrega({
   setDelivery: (d: DeliveryMethod) => void;
   address: Address;
   setAddress: (a: Address) => void;
+  pickup: OrderPickup | null;
+  setPickup: (p: OrderPickup | null) => void;
   errors: Record<string, string>;
   cepLoading: boolean;
   setCepLoading: (v: boolean) => void;
@@ -592,6 +596,9 @@ function StepEntrega({
       });
     }
   };
+
+  const pickupDays: PickupDay[] = useMemo(() => getUpcomingPickupSlots(), []);
+  const selectedDay = pickup ? pickupDays.find((d) => d.date === pickup.date) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -695,17 +702,89 @@ function StepEntrega({
           </p>
         </div>
       ) : (
-        <div className="border border-[color:var(--border)] p-4 text-sm text-[color:var(--forest-deep)]">
-          <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-            Retirada
-          </p>
-          <p className="mt-2 font-display text-lg">Rua Luiz Veronesi, 464</p>
-          <p className="text-[color:var(--muted-foreground)]">
-            Cinquentenário · Caxias do Sul · RS
-          </p>
-          <p className="mt-3 text-[11px] text-[color:var(--muted-foreground)]">
-            Combinaremos o melhor horário via WhatsApp.
-          </p>
+        <div className="flex flex-col gap-4">
+          <div className="border border-[color:var(--border)] p-4 text-sm text-[color:var(--forest-deep)]">
+            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+              Retirada
+            </p>
+            <p className="mt-2 font-display text-lg">Rua Luiz Veronesi, 464</p>
+            <p className="text-[color:var(--muted-foreground)]">
+              Cinquentenário · Caxias do Sul · RS
+            </p>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+              Dia da retirada
+            </p>
+            {pickupDays.length === 0 ? (
+              <p className="text-[11px] text-[color:var(--muted-foreground)]">
+                Sem horários disponíveis nos próximos dias.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Dia da retirada">
+                {pickupDays.map((d) => {
+                  const active = pickup?.date === d.date;
+                  return (
+                    <button
+                      key={d.date}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      data-testid={`pickup-day-${d.date}`}
+                      onClick={() =>
+                        setPickup({
+                          date: d.date,
+                          time: pickup?.date === d.date && pickup.time ? pickup.time : d.slots[0],
+                        })
+                      }
+                      className={`border px-3 py-2 text-[11px] tracking-luxe uppercase transition-colors ${
+                        active
+                          ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                          : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {selectedDay && (
+            <div>
+              <p className="mb-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                Horário
+              </p>
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Horário da retirada">
+                {selectedDay.slots.map((s) => {
+                  const active = pickup?.time === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      data-testid={`pickup-slot-${s}`}
+                      onClick={() => setPickup({ date: selectedDay.date, time: s })}
+                      className={`border px-3 py-2 font-sans text-sm tabular-nums transition-colors ${
+                        active
+                          ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                          : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {errors.pickup && (
+            <p className="text-[11px] text-[color:var(--destructive)]">{errors.pickup}</p>
+          )}
         </div>
       )}
     </div>
