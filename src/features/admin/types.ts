@@ -6,4 +6,4 @@
  * (`@/features/admin/types`); novos módulos devem importar diretamente do
  * arquivo de domínio (ex.: `./types/order`).
  */
-export * from "./types";
+export * from "./types/index";
