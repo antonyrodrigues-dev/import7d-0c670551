@@ -37,6 +37,14 @@ export interface OrderPayment {
   valorParcela?: number;
 }
 
+/** Registro imutável do histórico de status de um pedido. */
+export interface OrderHistoryEntry {
+  status: OrderStatus;
+  at: IsoDateTime;
+  by?: string;
+  note?: string;
+}
+
 /**
  * Contrato canônico de pedido — consumido por Dashboard, Pedidos, Clientes,
  * Notificações e Financeiro. Alterar aqui propaga por todo o painel.
@@ -56,6 +64,8 @@ export interface AdminOrder {
   observacoes?: string;
   criadoEm: IsoDateTime;
   atualizadoEm: IsoDateTime;
+  responsavel?: string;
+  historico: OrderHistoryEntry[];
 }
 
 // Alias mantido por compatibilidade com componentes existentes.
