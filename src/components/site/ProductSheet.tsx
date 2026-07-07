@@ -29,12 +29,35 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Robust scroll lock — preserves scroll position and works on iOS Safari
+    // (where overflow:hidden on body alone still allows touch scroll).
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onOpenChange(false);
     document.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.left = prev.left;
+      body.style.right = prev.right;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      window.scrollTo(0, scrollY);
       document.removeEventListener("keydown", onKey);
     };
   }, [open, onOpenChange]);
@@ -56,13 +79,13 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
             role="dialog"
             aria-modal="true"
             aria-label={`Detalhes — ${product.name}`}
-            className="fixed inset-x-0 bottom-0 z-50 flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl md:h-[90dvh] md:max-h-[90dvh]"
+            className="fixed inset-x-0 bottom-0 z-50 flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[color:var(--cream)] text-[color:var(--ink)] shadow-2xl lg:h-[90dvh] lg:max-h-[90dvh]"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 220, damping: 32, mass: 0.9 }}
           >
-            <div className="relative flex min-h-0 flex-1 flex-col md:grid md:grid-cols-2 md:overflow-hidden">
+            <div className="relative flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-2 lg:overflow-hidden">
               <button
                 onClick={() => onOpenChange(false)}
                 aria-label="Fechar"
@@ -71,7 +94,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
 
-              <div className="aspect-[3/4] w-full shrink-0 bg-[color:var(--cream-deep)] md:aspect-auto md:h-full md:min-h-0">
+              <div className="h-[38dvh] w-full shrink-0 bg-[color:var(--cream-deep)] sm:h-[42dvh] lg:h-full lg:min-h-0">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -81,8 +104,8 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 />
               </div>
 
-              <div className="relative flex min-h-0 flex-1 flex-col md:overflow-hidden">
-                <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6 md:px-12 md:pt-12">
+              <div className="relative flex min-h-0 flex-1 flex-col lg:overflow-hidden">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-6 lg:px-12 lg:pt-12">
                   <div className="flex flex-col gap-6">
                 <div>
                   <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -150,7 +173,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                   </div>
                 </div>
 
-                <div className="shrink-0 border-t border-[color:var(--border)]/60 bg-[color:var(--cream)] px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:px-12 md:py-6">
+                <div className="shrink-0 border-t border-[color:var(--border)]/60 bg-[color:var(--cream)] px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:px-12 lg:py-6">
                   <button
                   onClick={() => {
                     if (addingRef.current) return;
