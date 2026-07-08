@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Lock, ShieldCheck, Users } from "lucide-react";
-import {
-  PageHeader,
-  EmptyState,
-  ErrorState,
-  Skeleton,
-} from "@/features/admin/components/PageHeader";
+import { PageHeader, ErrorState, Skeleton } from "@/features/admin/components/PageHeader";
+import { EmptyState } from "@/features/admin/components/AdminUI";
 import { EMPLOYEE_ROLES } from "@/features/admin/constants";
 import { useEmployees, usePermissions } from "@/features/admin/hooks";
 import type { Employee, EmployeeRole } from "@/features/admin/types";
