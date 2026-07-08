@@ -20,8 +20,10 @@ import { buildOrder, markOrderSent, type OrderPickup } from "@/lib/order";
 import {
   getUpcomingPickupSlots,
   formatPickupSlot,
+  resolvePickupConfigFromSettings,
   type PickupDay,
 } from "@/lib/pickup";
+import { useSettingsStore } from "@/features/admin/stores/settings";
 import { validateStep, validateOrder } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
