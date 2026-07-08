@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
+import { PageHeader } from "@/features/admin/components/PageHeader";
+import { EmptyState } from "@/features/admin/components/AdminUI";
+import { BellOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAdminNotifications } from "@/features/admin/hooks";
 
 export const Route = createFileRoute("/_authenticated/admin/notificacoes")({
@@ -17,26 +20,26 @@ function NotificacoesPage() {
       <PageHeader
         eyebrow="Painel"
         title="Notificações"
-        description="Sistema interno. Integrações realtime (WhatsApp, Telegram) chegam nos próximos sprints."
+        description="Alertas operacionais do painel administrativo."
         actions={
-          <div className="flex gap-2">
-            <button
-              onClick={markAllRead}
-              className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase transition-colors hover:border-[color:var(--forest-deep)]"
-            >
-              Marcar tudo como lido
-            </button>
-            <button
-              onClick={clear}
-              className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase transition-colors hover:border-[color:var(--destructive)]"
-            >
-              Limpar
-            </button>
-          </div>
+          notifications.length > 0 ? (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={markAllRead}>
+                Marcar tudo como lido
+              </Button>
+              <Button variant="outline" size="sm" onClick={clear}>
+                Limpar
+              </Button>
+            </div>
+          ) : null
         }
       />
       {notifications.length === 0 ? (
-        <EmptyState title="Sem notificações" description="Você está em dia." />
+        <EmptyState
+          icon={<BellOff className="h-5 w-5" />}
+          title="Sem notificações"
+          description="Novos alertas do painel aparecem aqui automaticamente."
+        />
       ) : (
         <ul className="flex flex-col gap-3">
           {notifications.map((n) => (

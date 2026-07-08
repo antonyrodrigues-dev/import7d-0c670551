@@ -6,15 +6,5 @@ import type { AdminNotification } from "../types";
  * consumidores.
  */
 export function loadInitialNotifications(): AdminNotification[] {
-  return [
-    {
-      id: "welcome",
-      kind: "aviso",
-      title: "Painel administrativo pronto",
-      body: "A base do módulo Admin foi consolidada. Integrações realtime chegam nos próximos sprints.",
-      priority: "baixa",
-      createdAt: new Date().toISOString(),
-      read: false,
-    },
-  ];
+  return [];
 }
