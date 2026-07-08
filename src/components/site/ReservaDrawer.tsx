@@ -606,7 +606,11 @@ function StepEntrega({
     }
   };
 
-  const pickupDays: PickupDay[] = useMemo(() => getUpcomingPickupSlots(), []);
+  const adminSettings = useSettingsStore((s) => s.settings);
+  const pickupDays: PickupDay[] = useMemo(
+    () => getUpcomingPickupSlots(new Date(), resolvePickupConfigFromSettings(adminSettings)),
+    [adminSettings],
+  );
   const selectedDay = pickup ? pickupDays.find((d) => d.date === pickup.date) : null;
 
   return (
