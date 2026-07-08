@@ -82,7 +82,7 @@ export async function transitionOrderStatus(
         .replace(useOrdersStore.getState().orders.map((o) => (o.id === id ? updated : o)));
 
       if (status === "separado" || status === "finalizado") {
-        registerConsumption(updated);
+        await registerConsumption(updated);
       }
 
       notify({

@@ -10,6 +10,7 @@ import type {
   AdminOrder,
   Employee,
   EmployeeRole,
+  InventoryItem,
   OrderStatus,
 } from "../types";
 
@@ -17,6 +18,30 @@ export interface AdminIdentity {
   userId: string | null;
   roles: EmployeeRole[];
 }
+
+/** Payload aceito por `createProduct` / `updateProduct`. */
+export interface ProductWritePayload {
+  sku: string;
+  slug: string;
+  nome: string;
+  marca: string;
+  categoria: string;
+  cor?: string | null;
+  colecao?: string | null;
+  descricao?: string | null;
+  imagens: string[];
+  preco: number;
+  ativo: boolean;
+  destaque: boolean;
+  variacoes: { tamanho: string; quantidade: number }[];
+}
+
+export type MovementKindDB =
+  | "entrada"
+  | "saida"
+  | "ajuste"
+  | "reposicao"
+  | "consumo_pedido";
 
 export interface AdminDataSource {
   // Identidade / autorização
@@ -28,4 +53,19 @@ export interface AdminDataSource {
 
   // Funcionários
   listEmployees(): Promise<Employee[]>;
+
+  // Produtos / Estoque
+  listInventory(): Promise<InventoryItem[]>;
+  createProduct(p: ProductWritePayload): Promise<string>;
+  updateProduct(id: string, p: ProductWritePayload): Promise<void>;
+  archiveProduct(id: string): Promise<void>;
+  restoreProduct(id: string): Promise<void>;
+  deleteProduct(id: string): Promise<void>;
+  setVariationStock(
+    productId: string,
+    tamanho: string,
+    quantidade: number,
+    kind: MovementKindDB,
+    observacao?: string,
+  ): Promise<void>;
 }
