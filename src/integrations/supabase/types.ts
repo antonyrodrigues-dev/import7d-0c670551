@@ -50,6 +50,145 @@ export type Database = {
         }
         Relationships: []
       }
+      produto_movimentacoes: {
+        Row: {
+          criado_em: string
+          id: string
+          observacao: string | null
+          origem: string | null
+          pedido_id: string | null
+          por_usuario: string | null
+          produto_id: string
+          quantidade: number
+          tamanho: string
+          tipo: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          origem?: string | null
+          pedido_id?: string | null
+          por_usuario?: string | null
+          produto_id: string
+          quantidade: number
+          tamanho: string
+          tipo: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          origem?: string | null
+          pedido_id?: string | null
+          por_usuario?: string | null
+          produto_id?: string
+          quantidade?: number
+          tamanho?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_movimentacoes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produto_variacoes: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          id: string
+          produto_id: string
+          quantidade: number
+          tamanho: string
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          produto_id: string
+          quantidade?: number
+          tamanho: string
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          produto_id?: string
+          quantidade?: number
+          tamanho?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_variacoes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          arquivado_em: string | null
+          ativo: boolean
+          atualizado_em: string
+          categoria: string
+          colecao: string | null
+          cor: string | null
+          criado_em: string
+          descricao: string | null
+          destaque: boolean
+          id: string
+          imagens: Json
+          marca: string
+          nome: string
+          preco: number
+          sku: string
+          slug: string
+        }
+        Insert: {
+          arquivado_em?: string | null
+          ativo?: boolean
+          atualizado_em?: string
+          categoria: string
+          colecao?: string | null
+          cor?: string | null
+          criado_em?: string
+          descricao?: string | null
+          destaque?: boolean
+          id?: string
+          imagens?: Json
+          marca: string
+          nome: string
+          preco: number
+          sku: string
+          slug: string
+        }
+        Update: {
+          arquivado_em?: string | null
+          ativo?: boolean
+          atualizado_em?: string
+          categoria?: string
+          colecao?: string | null
+          cor?: string | null
+          criado_em?: string
+          descricao?: string | null
+          destaque?: boolean
+          id?: string
+          imagens?: Json
+          marca?: string
+          nome?: string
+          preco?: number
+          sku?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
