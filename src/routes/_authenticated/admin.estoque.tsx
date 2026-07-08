@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { PackagePlus, PackageSearch } from "lucide-react";
+import { toast } from "sonner";
 import { formatBRL } from "@/data/products";
-import { PageHeader, EmptyState, Skeleton } from "@/features/admin/components/PageHeader";
+import { PageHeader, Skeleton } from "@/features/admin/components/PageHeader";
+import { EmptyState } from "@/features/admin/components/AdminUI";
+import { Button } from "@/components/ui/button";
 import { LOW_STOCK_THRESHOLD } from "@/features/admin/constants";
 import { useInventory } from "@/features/admin/hooks";
 import type { InventoryItem } from "@/features/admin/types";
@@ -62,7 +66,19 @@ function EstoquePage() {
 
   return (
     <>
-      <PageHeader eyebrow="Painel" title="Estoque" description="Cadastro, quantidade e destaque dos produtos." />
+      <PageHeader
+        eyebrow="Painel"
+        title="Estoque"
+        description="Cadastro, quantidade e destaque dos produtos."
+        actions={
+          <Button
+            onClick={() => toast.info("Cadastro de produto disponível em breve no painel.")}
+          >
+            <PackagePlus className="h-4 w-4" aria-hidden="true" />
+            Novo produto
+          </Button>
+        }
+      />
 
       <section aria-label="Filtros" className="grid grid-cols-1 gap-3 md:grid-cols-4">
         <input
@@ -110,7 +126,31 @@ function EstoquePage() {
       {state === "loading" && items.length === 0 ? (
         <Skeleton className="h-64 w-full" />
       ) : visiveis.length === 0 ? (
-        <EmptyState title="Nenhum produto encontrado" description="Ajuste os filtros ou cadastre novos produtos." />
+        <EmptyState
+          icon={<PackageSearch className="h-5 w-5" />}
+          title={
+            items.length === 0
+              ? "Nenhum produto cadastrado"
+              : "Nenhum produto neste filtro"
+          }
+          description={
+            items.length === 0
+              ? "Cadastre o primeiro produto para começar o gerenciamento do estoque."
+              : "Ajuste os filtros para localizar o produto desejado."
+          }
+          action={
+            items.length === 0 ? (
+              <Button
+                onClick={() =>
+                  toast.info("Cadastro de produto disponível em breve no painel.")
+                }
+              >
+                <PackagePlus className="h-4 w-4" aria-hidden="true" />
+                Novo produto
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <div className="overflow-x-auto border border-[color:var(--border)]">
           <table className="min-w-full border-collapse text-sm">
@@ -124,7 +164,6 @@ function EstoquePage() {
                 <th className="px-4 py-3 text-right">Qtd</th>
                 <th className="px-4 py-3 text-right">Preço</th>
                 <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -160,22 +199,12 @@ function EstoquePage() {
                       {i.featured ? " · Destaque" : ""}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2 text-[10px] tracking-luxe uppercase">
-                      <button disabled className="opacity-40 cursor-not-allowed">Editar</button>
-                      <button disabled className="opacity-40 cursor-not-allowed">Duplicar</button>
-                      <button disabled className="opacity-40 cursor-not-allowed">Excluir</button>
-                    </div>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-        CRUD completo integra o próximo sprint. Estrutura pronta para receber a persistência.
-      </p>
     </>
   );
 }
