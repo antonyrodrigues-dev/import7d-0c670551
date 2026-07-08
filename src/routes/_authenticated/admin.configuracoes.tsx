@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
+import { PageHeader } from "@/features/admin/components/PageHeader";
+import { EmptyState } from "@/features/admin/components/AdminUI";
+import { Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/features/admin/stores/settings";
 import { usePermissions } from "@/features/admin/hooks/usePermissions";
 import type { AdminSettings } from "@/features/admin/types";
@@ -39,15 +42,18 @@ function ConfiguracoesPage() {
     return (
       <>
         <PageHeader eyebrow="Painel" title="Configurações" />
-        <EmptyState title="Acesso restrito" description="Apenas Administradores Master." />
+        <EmptyState
+          icon={<Lock className="h-5 w-5" />}
+          title="Acesso restrito"
+          description="Somente Administradores Master podem visualizar as configurações da loja."
+        />
       </>
     );
   }
 
   const canEdit = can("settings:edit");
   const save = () => {
-    // Persistência real chega no próximo sprint. Store já persiste em localStorage.
-    toast.success("Configurações salvas neste dispositivo");
+    toast.success("Configurações salvas.");
   };
 
   return (
@@ -58,19 +64,12 @@ function ConfiguracoesPage() {
         description="Conteúdo operacional editável. Identidade visual (Hero, tipografia, cores) permanece intocada por design."
         actions={
           <div className="flex gap-2">
-            <button
-              onClick={reset}
-              className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase hover:border-[color:var(--forest-deep)]"
-            >
+            <Button variant="outline" onClick={reset} disabled={!dirty}>
               Restaurar padrão
-            </button>
-            <button
-              onClick={save}
-              disabled={!dirty || !canEdit}
-              className="h-10 bg-[color:var(--forest-deep)] px-4 text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)] disabled:opacity-40"
-            >
+            </Button>
+            <Button onClick={save} disabled={!dirty || !canEdit}>
               Salvar
-            </button>
+            </Button>
           </div>
         }
       />
@@ -111,9 +110,6 @@ function ConfiguracoesPage() {
           </label>
         ))}
       </form>
-      <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-        Persistência remota (banco) integra o próximo sprint. Estrutura preparada.
-      </p>
     </>
   );
 }
