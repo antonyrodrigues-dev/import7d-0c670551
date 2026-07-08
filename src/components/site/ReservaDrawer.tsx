@@ -20,8 +20,10 @@ import { buildOrder, markOrderSent, type OrderPickup } from "@/lib/order";
 import {
   getUpcomingPickupSlots,
   formatPickupSlot,
+  resolvePickupConfigFromSettings,
   type PickupDay,
 } from "@/lib/pickup";
+import { useSettingsStore } from "@/features/admin/stores/settings";
 import { validateStep, validateOrder } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
@@ -604,7 +606,11 @@ function StepEntrega({
     }
   };
 
-  const pickupDays: PickupDay[] = useMemo(() => getUpcomingPickupSlots(), []);
+  const adminSettings = useSettingsStore((s) => s.settings);
+  const pickupDays: PickupDay[] = useMemo(
+    () => getUpcomingPickupSlots(new Date(), resolvePickupConfigFromSettings(adminSettings)),
+    [adminSettings],
+  );
   const selectedDay = pickup ? pickupDays.find((d) => d.date === pickup.date) : null;
 
   return (

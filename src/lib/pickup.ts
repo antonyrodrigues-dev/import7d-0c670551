@@ -23,6 +23,33 @@ export interface PickupHoursConfig {
   horizonDays: number;
 }
 
+import type { AdminSettings } from "@/features/admin/types";
+
+/**
+ * Constrói a `PickupHoursConfig` a partir das configurações administrativas.
+ * Filtra dias sem slots e dias em que a loja está fechada — nunca oferece
+ * um horário de retirada fora do funcionamento.
+ */
+export function resolvePickupConfigFromSettings(
+  settings: AdminSettings,
+  overrides: { minLeadHours?: number; horizonDays?: number } = {},
+): PickupHoursConfig {
+  const openWeekdays = new Set(
+    settings.businessHours.filter((h) => h.open).map((h) => h.weekday),
+  );
+  const days: PickupDayConfig[] = settings.pickupSlots
+    .filter((d) => openWeekdays.has(d.weekday) && d.slots.length > 0)
+    .map((d) => ({
+      weekday: d.weekday as Weekday,
+      slots: [...d.slots].sort(),
+    }));
+  return {
+    days,
+    minLeadHours: overrides.minLeadHours ?? DEFAULT_PICKUP_HOURS.minLeadHours,
+    horizonDays: overrides.horizonDays ?? DEFAULT_PICKUP_HOURS.horizonDays,
+  };
+}
+
 // Padrão: seg–sex 09/10/11/14/15/16/17h · sáb 10/11/14/15h.
 const WEEKDAY_SLOTS: string[] = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 const SATURDAY_SLOTS: string[] = ["10:00", "11:00", "14:00", "15:00"];
