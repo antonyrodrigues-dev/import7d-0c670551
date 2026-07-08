@@ -1,5 +1,28 @@
-/** Estados assíncronos compartilhados por todas as stores do admin. */
-export type AsyncState = "idle" | "loading" | "ready" | "error";
+/**
+ * Estados assíncronos compartilhados por TODAS as stores do admin.
+ * Nenhum módulo pode definir estados próprios diferentes desta união.
+ *
+ * - `idle`     — ainda não iniciou
+ * - `loading`  — carregando dados
+ * - `saving`   — persistindo mutação
+ * - `success`  — última operação concluída
+ * - `ready`    — dados carregados e prontos para leitura
+ * - `empty`    — sem registros
+ * - `error`    — falha na última operação
+ * - `offline`  — sem conexão
+ */
+export type AdminAsyncState =
+  | "idle"
+  | "loading"
+  | "saving"
+  | "success"
+  | "ready"
+  | "empty"
+  | "error"
+  | "offline";
+
+/** @deprecated Use `AdminAsyncState`. Mantido apenas por compatibilidade. */
+export type AsyncState = AdminAsyncState;
 
 export type AdminNavKey =
   | "dashboard"
