@@ -16,16 +16,7 @@ export interface StoreSettings {
   cep: string;
   cidade: string;
   estado: string;
-  horarioFuncionamento: string;
-}
-
-export interface HeroSettings {
-  textoHero: string;
-  textoManifesto: string;
-  videoHeroUrl: string;
-  bannerHeroUrl: string;
-  logoUrl: string;
-  itensDestaque: string[];
+  businessHours: BusinessDayHours[];
 }
 
 export interface ContactSettings {
@@ -47,7 +38,7 @@ export interface DeliverySettings {
 }
 
 export interface PickupSettings {
-  horarioRetirada: string;
+  slots: PickupDaySlots[];
   antecedenciaMinimaHoras: number;
   horizonteDias: number;
 }
@@ -71,7 +62,6 @@ export interface SystemSettings {
 export interface AdminSettingsGrouped {
   empresa: CompanySettings;
   loja: StoreSettings;
-  hero: HeroSettings;
   contato: ContactSettings;
   redes: SocialSettings;
   entrega: DeliverySettings;
@@ -81,27 +71,50 @@ export interface AdminSettingsGrouped {
   sistema: SystemSettings;
 }
 
+/** 0=Domingo … 6=Sábado. */
+export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+/** Horário de funcionamento de UM dia da semana. */
+export interface BusinessDayHours {
+  weekday: Weekday;
+  /** `false` = loja fechada nesse dia (from/to ignorados). */
+  open: boolean;
+  /** `HH:mm` (24h) */
+  from: string;
+  /** `HH:mm` (24h) */
+  to: string;
+}
+
+/** Janelas de retirada de UM dia da semana. */
+export interface PickupDaySlots {
+  weekday: Weekday;
+  /** `HH:mm` ordenados. Vazio = sem retirada nesse dia. */
+  slots: string[];
+}
+
 /**
- * Visão flat consumida pela UI atual de Configurações. Um selector converte
- * a estrutura agrupada nessa forma achatada — a UI evolui em ritmo próprio
- * sem quebrar a nova tipagem por domínio.
+ * Visão flat consumida pela UI de Configurações e pelo Checkout. Conteúdo
+ * institucional (Hero, Manifesto, Logo, Vídeo, Banner) NÃO pertence aqui —
+ * é frontend imutável.
  */
 export interface AdminSettings {
+  /** Somente dígitos, com DDI 55 garantido. */
   whatsapp: string;
+  telefone: string;
+  email: string;
+  /** `@handle` normalizado. */
   instagram: string;
   facebook: string;
   endereco: string;
+  /** Somente dígitos. */
   cep: string;
   cidade: string;
-  horarioFuncionamento: string;
-  horarioRetirada: string;
+  /** Sempre com 7 posições (Dom→Sáb). */
+  businessHours: BusinessDayHours[];
+  /** Sempre com 7 posições (Dom→Sáb). */
+  pickupSlots: PickupDaySlots[];
+  /** 1..12 */
   parcelamentoMax: number;
-  textoHero: string;
-  textoManifesto: string;
-  telefone: string;
-  email: string;
-  logoUrl: string;
-  videoHeroUrl: string;
-  bannerHeroUrl: string;
-  itensDestaque: string[];
+  /** Valor mínimo por parcela em BRL. */
+  parcelaMinima: number;
 }
