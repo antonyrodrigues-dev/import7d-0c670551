@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { memo, useMemo, useState } from "react";
+import { Check, XCircle } from "lucide-react";
 import { formatBRL } from "@/data/products";
 import {
   PageHeader,
@@ -7,8 +8,10 @@ import {
   ErrorState,
   Skeleton,
 } from "@/features/admin/components/PageHeader";
+import { Button } from "@/components/ui/button";
 import { ORDER_STATUSES } from "@/features/admin/constants";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
+import { nextStatuses } from "@/features/admin/lib/statusMachine";
 import type {
   AdminOrder,
   DeliveryMethod,
@@ -197,11 +200,132 @@ interface OrderCardProps {
   onStatus: (id: string, status: OrderStatus) => Promise<void>;
 }
 
+/**
+ * Ordem canônica de estágios exibidos na Timeline (o pedido pode "pular"
+ * estágios — a máquina de estados permite; a UI ainda mostra a régua completa
+ * para dar contexto operacional).
+ */
+const TIMELINE_STAGES: OrderStatus[] = [
+  "novo",
+  "separado",
+  "aguardando_retirada",
+  "enviado",
+  "finalizado",
+];
+
+function statusLabel(s: OrderStatus): string {
+  return ORDER_STATUSES.find((x) => x.key === s)?.label ?? s;
+}
+
+function OrderTimeline({ order }: { order: AdminOrder }) {
+  if (order.status === "cancelado") {
+    return (
+      <div className="mt-4 flex items-center gap-2 border border-red-300 bg-red-50 px-3 py-2 text-[11px] tracking-luxe uppercase text-red-700">
+        <XCircle className="h-4 w-4" /> Pedido cancelado
+      </div>
+    );
+  }
+  const stages = order.status === "reservado" ? ["novo", "reservado", ...TIMELINE_STAGES.slice(2)] : TIMELINE_STAGES;
+  const currentIdx = Math.max(0, stages.indexOf(order.status));
+  return (
+    <ol className="mt-4 flex items-center gap-1 overflow-x-auto" aria-label="Linha do tempo do pedido">
+      {stages.map((s, i) => {
+        const done = i < currentIdx;
+        const current = i === currentIdx;
+        return (
+          <li key={s} className="flex items-center gap-1 whitespace-nowrap">
+            <div
+              className={`flex h-6 w-6 items-center justify-center rounded-full border text-[10px] ${
+                done
+                  ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                  : current
+                    ? "border-[color:var(--gold)] bg-[color:var(--gold)] text-white"
+                    : "border-[color:var(--border)] bg-white text-[color:var(--muted-foreground)]"
+              }`}
+              aria-current={current ? "step" : undefined}
+            >
+              {done ? <Check className="h-3 w-3" /> : i + 1}
+            </div>
+            <span
+              className={`text-[10px] tracking-luxe uppercase ${
+                current
+                  ? "text-[color:var(--forest-deep)] font-semibold"
+                  : done
+                    ? "text-[color:var(--muted-foreground)]"
+                    : "text-[color:var(--muted-foreground)]"
+              }`}
+            >
+              {statusLabel(s as OrderStatus)}
+            </span>
+            {i < stages.length - 1 && (
+              <div
+                className={`mx-1 h-px w-6 ${
+                  done ? "bg-[color:var(--forest-deep)]" : "bg-[color:var(--border)]"
+                }`}
+                aria-hidden="true"
+              />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function StatusActions({
+  order,
+  canEdit,
+  onStatus,
+}: {
+  order: AdminOrder;
+  canEdit: boolean;
+  onStatus: (id: string, status: OrderStatus) => Promise<void>;
+}) {
+  const next = nextStatuses(order.status);
+  if (!canEdit) {
+    return (
+      <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        Somente Administrador Master ou Vendedor pode alterar o status.
+      </p>
+    );
+  }
+  if (next.length === 0) {
+    return (
+      <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        Este pedido não possui próximas etapas.
+      </p>
+    );
+  }
+  const primaries = next.filter((s) => s !== "cancelado");
+  const canCancel = next.includes("cancelado");
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      {primaries.map((s) => (
+        <Button key={s} size="sm" onClick={() => void onStatus(order.id, s)}>
+          Avançar para {statusLabel(s)}
+        </Button>
+      ))}
+      {canCancel && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-red-600 hover:text-red-700"
+          onClick={() => {
+            if (confirm(`Cancelar o pedido ${order.numero}?`)) void onStatus(order.id, "cancelado");
+          }}
+        >
+          Cancelar pedido
+        </Button>
+      )}
+    </div>
+  );
+}
+
 const OrderCard = memo(function OrderCard({ order, canEdit, onStatus }: OrderCardProps) {
   const p = order;
   return (
     <li className="border border-[color:var(--border)] bg-[color:var(--cream)] p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
         <div className="min-w-0">
           <p className="font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">
             {p.numero}
@@ -219,21 +343,14 @@ const OrderCard = memo(function OrderCard({ order, canEdit, onStatus }: OrderCar
         </div>
         <div className="text-right">
           <p className="font-display text-2xl tabular-nums">{formatBRL(p.valorTotal)}</p>
-          <select
-            aria-label="Status do pedido"
-            value={p.status}
-            disabled={!canEdit}
-            onChange={(e) => void onStatus(p.id, e.target.value as OrderStatus)}
-            className="mt-2 h-10 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] disabled:opacity-50"
-          >
-            {ORDER_STATUSES.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          <p className="mt-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            Status: <span className="text-[color:var(--forest-deep)]">{statusLabel(p.status)}</span>
+          </p>
         </div>
       </div>
+
+      <OrderTimeline order={p} />
+      <StatusActions order={p} canEdit={canEdit} onStatus={onStatus} />
 
       <ul className="mt-4 divide-y divide-[color:var(--border)] border-t border-[color:var(--border)]">
         {p.itens.map((it, idx) => (
