@@ -1,9 +1,20 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X, LogOut, Search, Bell, User } from "lucide-react";
+import { Menu, X, LogOut, Bell, ChevronDown, KeyRound, UserRound } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_NAV } from "../constants";
 import { usePermissions, useAdminNotifications } from "../hooks";
+import { InitialsAvatar } from "../components/AdminUI";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EMPLOYEE_ROLES } from "../constants";
 
 /**
  * Shell administrativo — sidebar fixa em desktop, drawer em mobile.
@@ -14,14 +25,31 @@ import { usePermissions, useAdminNotifications } from "../hooks";
 export function AdminShell() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { roles, reset: resetPerms } = usePermissions();
+  const { roles, reset: resetPerms, userId } = usePermissions();
   const { notifications } = useAdminNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userName, setUserName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const unread = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      const u = data.user;
+      if (!u) return;
+      const meta = (u.user_metadata ?? {}) as { full_name?: string; name?: string };
+      setUserName(meta.full_name ?? meta.name ?? "");
+      setUserEmail(u.email ?? "");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const active = useMemo(() => {
     // Longest matching path wins so "/admin" doesn't shadow "/admin/pedidos".
@@ -31,10 +59,20 @@ export function AdminShell() {
   }, [pathname]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Não foi possível encerrar a sessão. Tente novamente.");
+      return;
+    }
     resetPerms();
+    toast.success("Sessão encerrada.");
     navigate({ to: "/auth", replace: true });
   };
+
+  const displayName = userName || userEmail || "Sessão";
+  const roleLabel =
+    EMPLOYEE_ROLES.find((r) => roles.includes(r.key))?.label ??
+    (roles[0] ?? "Sem cargo");
 
   return (
     <div className="flex min-h-dvh bg-[color:var(--cream)] text-[color:var(--forest-deep)]">
@@ -79,7 +117,7 @@ export function AdminShell() {
             <button
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu"
-              className="flex h-10 w-10 items-center justify-center md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] md:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -96,51 +134,82 @@ export function AdminShell() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            <div className="relative hidden sm:block">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--muted-foreground)]"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                placeholder="Pesquisar…"
-                aria-label="Pesquisar no painel"
-                className="h-10 w-56 border border-[color:var(--border)] bg-[color:var(--cream)] pl-9 pr-3 text-sm text-[color:var(--forest-deep)] focus:border-[color:var(--forest-deep)] focus:outline-none"
-              />
-            </div>
             <Link
               to="/admin/notificacoes"
               aria-label={`Notificações (${unread} não lidas)`}
-              className="relative flex h-10 w-10 items-center justify-center"
+              className="relative flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-[color:var(--cream-deep)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
             >
               <Bell className="h-5 w-5" aria-hidden="true" />
               {unread > 0 && (
                 <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--gold)] px-1 text-[9px] font-bold text-[color:var(--forest-deep)]">
-                  {unread}
+                  {unread > 99 ? "99+" : unread}
                 </span>
               )}
             </Link>
-            <div className="flex items-center gap-2 border-l border-[color:var(--border)] pl-2">
-              <div
-                aria-hidden="true"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
-              >
-                <User className="h-4 w-4" />
-              </div>
-              <div className="hidden md:block">
-                <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                  {roles.length ? roles.join(" · ") : "Sessão"}
-                </p>
-              </div>
-              <button
-                onClick={signOut}
-                aria-label="Sair"
-                className="ml-1 flex h-10 items-center gap-2 border border-[color:var(--border)] px-3 text-[10px] tracking-luxe uppercase transition-colors hover:border-[color:var(--forest-deep)]"
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Sair</span>
-              </button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`Menu do usuário — ${displayName}`}
+                  className="flex h-10 items-center gap-2 border border-[color:var(--border)] bg-[color:var(--cream)] pl-1 pr-2 transition-colors hover:border-[color:var(--forest-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+                >
+                  <InitialsAvatar name={displayName} size={32} />
+                  <div className="hidden text-left md:block">
+                    <p className="max-w-[160px] truncate text-[11px] font-semibold leading-tight text-[color:var(--forest-deep)]">
+                      {displayName}
+                    </p>
+                    <p className="text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                      {roleLabel}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    className="h-4 w-4 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="truncate text-sm font-semibold">{displayName}</span>
+                  {userEmail && userEmail !== displayName && (
+                    <span className="truncate text-xs font-normal text-[color:var(--muted-foreground)]">
+                      {userEmail}
+                    </span>
+                  )}
+                  <span className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+                    {roleLabel}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/admin/perfil" className="flex items-center gap-2">
+                    <UserRound className="h-4 w-4" aria-hidden="true" />
+                    Meu perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/admin/perfil"
+                    search={{ tab: "senha" }}
+                    className="flex items-center gap-2"
+                  >
+                    <KeyRound className="h-4 w-4" aria-hidden="true" />
+                    Alterar senha
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    void signOut();
+                  }}
+                  className="text-[color:var(--destructive)] focus:text-[color:var(--destructive)]"
+                >
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -173,7 +242,7 @@ function SidebarBody() {
                 <Link
                   to={item.path}
                   activeOptions={{ exact: item.path === "/admin" }}
-                  className={`flex h-11 items-center border-l-2 px-4 text-[11px] tracking-luxe uppercase transition-colors ${
+                  className={`flex h-11 items-center border-l-2 px-4 text-[11px] tracking-luxe uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--ring)] ${
                     isActive
                       ? "border-[color:var(--gold)] bg-[color:var(--cream)] text-[color:var(--forest-deep)]"
                       : "border-transparent text-[color:var(--muted-foreground)] hover:border-[color:var(--gold)] hover:text-[color:var(--forest-deep)]"
@@ -186,9 +255,6 @@ function SidebarBody() {
           })}
         </ul>
       </nav>
-      <p className="px-6 py-4 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-        v1 · MVP
-      </p>
     </div>
   );
 }
