@@ -5,7 +5,8 @@
  */
 
 import { PRODUCTS } from "@/data/products";
-import type { InventoryItem, StockEntry } from "../types";
+import type { AdminOrder, InventoryItem, StockEntry, MovementKind } from "../types";
+import { useInventoryStore } from "../stores/inventory";
 
 function inferBrand(name: string): string {
   const parts = name.split(" ");
@@ -44,4 +45,39 @@ export async function listInventory(): Promise<InventoryItem[]> {
       atualizadoEm: NOW,
     };
   });
+}
+
+/**
+ * Ponto de entrada canônico para toda movimentação de estoque.
+ * Nenhuma tela deve alterar quantidade diretamente — sempre via `registerMovement`.
+ */
+export function registerMovement(
+  kind: MovementKind,
+  slug: string,
+  size: string,
+  qty: number,
+): void {
+  const store = useInventoryStore.getState();
+  switch (kind) {
+    case "entrada":
+      store.entrada(slug, size, qty);
+      return;
+    case "saida":
+      store.saida(slug, size, qty);
+      return;
+    case "ajuste":
+      store.ajuste(slug, size, qty);
+      return;
+    case "reposicao":
+      store.reposicao(slug, size, qty);
+      return;
+  }
+}
+
+/**
+ * Aplica consumo derivado de um pedido. Idempotente por pedido.
+ * Uso: chamado pelo `orders.service` quando o pedido entra em separado/finalizado.
+ */
+export function registerConsumption(order: AdminOrder): void {
+  useInventoryStore.getState().applyOrderConsumption(order);
 }

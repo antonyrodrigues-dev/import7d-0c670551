@@ -30,6 +30,9 @@ export interface StockEntry {
   quantity: number;
 }
 
+/** Tipos canônicos de movimentação de estoque. */
+export type MovementKind = "entrada" | "saida" | "ajuste" | "reposicao";
+
 /** Visão consolidada Produto × Variação × Estoque para a tabela de estoque. */
 export interface InventoryItem {
   id: string;
