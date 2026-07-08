@@ -35,16 +35,19 @@ export type AdminEvent = keyof AdminEventMap;
 export type AdminEventHandler<E extends AdminEvent> = (payload: AdminEventMap[E]) => void;
 export type Unsubscribe = () => void;
 
-const listeners: {
-  [E in AdminEvent]?: Set<AdminEventHandler<E>>;
-} = {};
+type AnyHandler = (payload: unknown) => void;
+const listeners = new Map<AdminEvent, Set<AnyHandler>>();
 
 export function subscribe<E extends AdminEvent>(
   event: E,
   handler: AdminEventHandler<E>,
 ): Unsubscribe {
-  const set = (listeners[event] ??= new Set()) as Set<AdminEventHandler<E>>;
-  set.add(handler);
+  let set = listeners.get(event);
+  if (!set) {
+    set = new Set();
+    listeners.set(event, set);
+  }
+  set.add(handler as AnyHandler);
   return () => unsubscribe(event, handler);
 }
 
@@ -52,11 +55,11 @@ export function unsubscribe<E extends AdminEvent>(
   event: E,
   handler: AdminEventHandler<E>,
 ): void {
-  (listeners[event] as Set<AdminEventHandler<E>> | undefined)?.delete(handler);
+  listeners.get(event)?.delete(handler as AnyHandler);
 }
 
 export function emit<E extends AdminEvent>(event: E, payload: AdminEventMap[E]): void {
-  const set = listeners[event] as Set<AdminEventHandler<E>> | undefined;
+  const set = listeners.get(event);
   if (!set) return;
   for (const handler of set) {
     try {
@@ -71,14 +74,11 @@ export function emit<E extends AdminEvent>(event: E, payload: AdminEventMap[E]):
 
 /** Uso apenas em testes / auditoria. */
 export function _clearAllListeners(): void {
-  for (const key of Object.keys(listeners) as AdminEvent[]) {
-    listeners[key] = undefined;
-  }
+  listeners.clear();
 }
 
 export function _listenerCount(): number {
-  return (Object.keys(listeners) as AdminEvent[]).reduce(
-    (a, k) => a + (listeners[k]?.size ?? 0),
-    0,
-  );
+  let total = 0;
+  for (const set of listeners.values()) total += set.size;
+  return total;
 }
