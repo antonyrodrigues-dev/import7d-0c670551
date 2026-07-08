@@ -19,6 +19,11 @@ export const useSettingsStore = create<SettingsStore>()(
         set((s) => ({ settings: { ...s.settings, ...partial }, dirty: true })),
       reset: () => set({ settings: loadDefaultSettings(), dirty: false }),
     }),
-    { name: "7d-admin-settings" },
+    {
+      // v2 — nova forma estruturada (businessHours/pickupSlots + campos sanitizados).
+      name: "7d-admin-settings",
+      version: 2,
+      migrate: () => ({ settings: loadDefaultSettings(), dirty: false }),
+    },
   ),
 );
