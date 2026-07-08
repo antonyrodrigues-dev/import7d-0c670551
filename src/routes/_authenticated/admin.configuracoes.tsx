@@ -4,7 +4,7 @@ import { PageHeader } from "@/features/admin/components/PageHeader";
 import { EmptyState } from "@/features/admin/components/AdminUI";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSettingsStore } from "@/features/admin/stores/settings";
+import { useAdminSettings } from "@/features/admin/hooks";
 import { usePermissions } from "@/features/admin/hooks/usePermissions";
 import type { AdminSettings } from "@/features/admin/types";
 
@@ -35,7 +35,7 @@ const FIELDS: { key: keyof AdminSettings; label: string; type?: "textarea" | "nu
 ];
 
 function ConfiguracoesPage() {
-  const { settings, dirty, patch, reset } = useSettingsStore();
+  const { settings, dirty, patch, reset } = useAdminSettings();
   const { can } = usePermissions();
 
   if (!can("settings:view")) {
