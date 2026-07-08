@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EMPLOYEE_ROLES } from "../constants";
+import { auditAdminArchitecture } from "../lib/audit";
 
 /**
  * Shell administrativo — sidebar fixa em desktop, drawer em mobile.
@@ -35,6 +36,11 @@ export function AdminShell() {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    // Smoke test da arquitetura no boot do painel.
+    auditAdminArchitecture();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
