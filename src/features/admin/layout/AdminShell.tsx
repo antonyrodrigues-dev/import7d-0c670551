@@ -82,8 +82,8 @@ export function AdminShell() {
 
   return (
     <div className="flex min-h-dvh bg-[color:var(--cream)] text-[color:var(--forest-deep)]">
-      {/* Sidebar desktop */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-[color:var(--border)] md:bg-[color:var(--cream-deep)]/40">
+      {/* Sidebar desktop (>=1024px). Tablet/Mobile usam drawer. */}
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-[color:var(--border)] lg:bg-[color:var(--cream-deep)]/40">
         <SidebarBody />
       </aside>
 
@@ -91,7 +91,7 @@ export function AdminShell() {
       {mobileOpen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-[color:var(--forest-deep)]/40 md:hidden"
+            className="fixed inset-0 z-40 bg-[color:var(--forest-deep)]/40 lg:hidden"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
@@ -99,7 +99,7 @@ export function AdminShell() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu administrativo"
-            className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[color:var(--cream)] shadow-2xl md:hidden"
+            className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[color:var(--cream)] shadow-2xl lg:hidden"
           >
             <div className="flex items-center justify-between border-b border-[color:var(--border)] px-5 py-4">
               <p className="font-display text-lg">Painel</p>
@@ -118,12 +118,12 @@ export function AdminShell() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-[color:var(--border)] bg-[color:var(--cream)] px-4 md:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-[color:var(--border)] bg-[color:var(--cream)] px-4 md:px-6 lg:px-8">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu"
-              className="flex h-10 w-10 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] lg:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -219,7 +219,7 @@ export function AdminShell() {
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-8 md:px-8">
+        <main className="flex-1 px-4 py-6 md:px-6 md:py-8 lg:px-8">
           <div className="mx-auto flex max-w-[1280px] flex-col gap-8">
             <Outlet />
           </div>

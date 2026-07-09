@@ -4,6 +4,7 @@ import { formatBRL } from "@/data/products";
 import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
 import { useOrders, useCustomers } from "@/features/admin/hooks";
 import type { AdminCustomer } from "@/features/admin/types";
+import { formatPhoneBR, digitsOnly, capitalizeName } from "@/lib/masks";
 
 const PAGE_SIZE = 20;
 
@@ -22,11 +23,12 @@ function ClientesPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const qDigits = digitsOnly(query);
     const base = q
       ? customers.filter(
           (c) =>
             c.nome.toLowerCase().includes(q) ||
-            c.telefone.includes(q) ||
+            (qDigits.length > 0 && digitsOnly(c.telefone).includes(qDigits)) ||
             c.cidade.toLowerCase().includes(q),
         )
       : customers;
@@ -137,8 +139,8 @@ interface CustomerRowProps {
 const CustomerRow = memo(function CustomerRow({ customer: c, onOpen }: CustomerRowProps) {
   return (
     <tr className="border-t border-[color:var(--border)]">
-      <td className="px-4 py-3 font-display text-base">{c.nome}</td>
-      <td className="px-4 py-3 tabular-nums">{c.telefone}</td>
+      <td className="px-4 py-3 font-display text-base">{capitalizeName(c.nome)}</td>
+      <td className="px-4 py-3 tabular-nums">{formatPhoneBR(c.telefone) || "—"}</td>
       <td className="px-4 py-3">{c.cidade}</td>
       <td className="px-4 py-3 text-right tabular-nums">{c.pedidos}</td>
       <td className="px-4 py-3">
@@ -184,10 +186,10 @@ function CustomerDetail({
           <div className="min-w-0">
             <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Cliente</p>
             <h2 className="font-display text-3xl text-[color:var(--forest-deep)]">
-              {customer.nome}
+              {capitalizeName(customer.nome)}
             </h2>
             <p className="mt-1 text-[11px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-              {customer.telefone} · {customer.cidade}
+              {(formatPhoneBR(customer.telefone) || "—")} · {customer.cidade}
             </p>
           </div>
           <button
