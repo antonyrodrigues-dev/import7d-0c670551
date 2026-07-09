@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Boxes,
   CheckCircle2,
@@ -22,6 +22,9 @@ import {
   useDashboard,
 } from "@/features/admin/hooks";
 import { useReserva } from "@/store/reserva";
+import { useOrdersStore } from "@/features/admin/stores/orders";
+import { useInventoryStore } from "@/features/admin/stores/inventory";
+import type { OrderStatus } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
@@ -40,6 +43,19 @@ function DashboardPage() {
 
   const reservaItems = useReserva((s) => s.items);
   const loading = ordersState === "loading" || !m;
+  const navigate = useNavigate();
+  const setOrderFilter = useOrdersStore((s) => s.setFilter);
+  const setStockFilter = useInventoryStore((s) => s.setFilterStatus);
+
+  const goOrders = (filter: OrderStatus | "todos") => {
+    setOrderFilter(filter);
+    void navigate({ to: "/admin/pedidos" });
+  };
+  const goStock = (filter?: "ativos" | "inativos" | "todos") => {
+    if (filter) setStockFilter(filter);
+    void navigate({ to: "/admin/estoque" });
+  };
+  const goClients = () => void navigate({ to: "/admin/clientes" });
 
   return (
     <>
@@ -58,6 +74,8 @@ function DashboardPage() {
           icon={<ShoppingBag className="h-5 w-5" />}
           hint="Pedidos criados no dia atual"
           loading={loading}
+          onClick={() => goOrders("todos")}
+          ariaLabel="Ver pedidos"
         />
         <StatCard
           label="Pedidos pendentes"
@@ -65,6 +83,8 @@ function DashboardPage() {
           icon={<Clock className="h-5 w-5" />}
           hint="Aguardando separação, retirada ou envio"
           loading={loading}
+          onClick={() => goOrders("novo")}
+          ariaLabel="Ver pedidos pendentes"
         />
         <StatCard
           label="Pedidos finalizados"
@@ -72,6 +92,8 @@ function DashboardPage() {
           icon={<CheckCircle2 className="h-5 w-5" />}
           hint="Concluídos com sucesso"
           loading={loading}
+          onClick={() => goOrders("finalizado")}
+          ariaLabel="Ver pedidos finalizados"
         />
         <StatCard
           label="Clientes"
@@ -79,6 +101,8 @@ function DashboardPage() {
           icon={<Users className="h-5 w-5" />}
           hint="Base derivada dos pedidos"
           loading={loading}
+          onClick={goClients}
+          ariaLabel="Ver clientes"
         />
         <StatCard
           label="Produtos"
@@ -86,6 +110,8 @@ function DashboardPage() {
           icon={<Boxes className="h-5 w-5" />}
           hint="Itens cadastrados no catálogo"
           loading={loading}
+          onClick={() => goStock("todos")}
+          ariaLabel="Ver estoque"
         />
         <StatCard
           label="Estoque baixo"
@@ -97,6 +123,8 @@ function DashboardPage() {
               : { direction: "flat", label: "Nenhum alerta" }
           }
           loading={loading}
+          onClick={() => goStock("ativos")}
+          ariaLabel="Ver itens com estoque baixo"
         />
         <StatCard
           label="Reserva em andamento"
@@ -110,6 +138,8 @@ function DashboardPage() {
           icon={<TrendingUp className="h-5 w-5" />}
           hint="Valor médio por pedido concluído"
           loading={loading}
+          onClick={() => goOrders("finalizado")}
+          ariaLabel="Ver pedidos finalizados"
         />
         <StatCard
           label="Faturamento do dia"
@@ -117,6 +147,8 @@ function DashboardPage() {
           icon={<DollarSign className="h-5 w-5" />}
           hint="Pedidos concluídos hoje"
           loading={loading}
+          onClick={() => goOrders("finalizado")}
+          ariaLabel="Ver pedidos finalizados"
         />
         <StatCard
           label="Faturamento do mês"
@@ -124,6 +156,8 @@ function DashboardPage() {
           icon={<Wallet className="h-5 w-5" />}
           hint="Acumulado no mês corrente"
           loading={loading}
+          onClick={() => goOrders("finalizado")}
+          ariaLabel="Ver pedidos finalizados"
         />
         <StatCard
           label="Tempo médio"
