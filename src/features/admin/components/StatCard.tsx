@@ -5,6 +5,8 @@ import { Skeleton } from "./PageHeader";
 /**
  * Card padrão para métricas do painel. Fonte única — nenhuma página cria
  * variantes próprias. Estrutura: ícone · rótulo · valor · tendência · descrição.
+ * Quando `onClick` é fornecido, o card passa a ser um `button` navegável
+ * (drill-down a partir do dashboard).
  */
 export function StatCard({
   label,
@@ -13,6 +15,8 @@ export function StatCard({
   icon,
   loading,
   trend,
+  onClick,
+  ariaLabel,
 }: {
   label: string;
   value: ReactNode;
@@ -23,6 +27,8 @@ export function StatCard({
     direction: "up" | "down" | "flat";
     label: string;
   };
+  onClick?: () => void;
+  ariaLabel?: string;
 }) {
   const TrendIcon =
     trend?.direction === "up" ? ArrowUp : trend?.direction === "down" ? ArrowDown : Minus;
@@ -32,8 +38,8 @@ export function StatCard({
       : trend?.direction === "down"
         ? "text-[color:var(--destructive)]"
         : "text-[color:var(--muted-foreground)]";
-  return (
-    <div className="flex h-full flex-col gap-3 border border-[color:var(--border)] bg-[color:var(--cream)] p-5 transition-colors">
+  const body = (
+    <>
       <div className="flex items-center justify-between">
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
           {label}
@@ -56,6 +62,21 @@ export function StatCard({
           {hint}
         </p>
       )}
-    </div>
+    </>
   );
+  const base =
+    "flex h-full flex-col gap-3 border border-[color:var(--border)] bg-[color:var(--cream)] p-5 text-left transition-colors";
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel ?? label}
+        className={`${base} hover:border-[color:var(--forest-deep)] hover:bg-[color:var(--cream-deep)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]`}
+      >
+        {body}
+      </button>
+    );
+  }
+  return <div className={base}>{body}</div>;
 }
