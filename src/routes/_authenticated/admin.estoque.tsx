@@ -17,6 +17,16 @@ import { PageHeader, Skeleton } from "@/features/admin/components/PageHeader";
 import { EmptyState } from "@/features/admin/components/AdminUI";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -79,6 +89,26 @@ function EstoquePage() {
   const [drawer, setDrawer] = useState<
     { mode: "create" } | { mode: "edit"; item: InventoryItem } | null
   >(null);
+  const [confirm, setConfirm] = useState<
+    | { kind: "archive" | "restore" | "delete"; item: InventoryItem }
+    | null
+  >(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
+
+  const runConfirm = async () => {
+    if (!confirm) return;
+    setConfirmBusy(true);
+    try {
+      if (confirm.kind === "delete") await remove(confirm.item.id);
+      else if (confirm.kind === "archive") await archive(confirm.item.id);
+      else await restore(confirm.item.id);
+      setConfirm(null);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setConfirmBusy(false);
+    }
+  };
 
   const brands = useMemo(() => Array.from(new Set(items.map((i) => i.brand))), [items]);
   const categories = useMemo(
@@ -247,12 +277,9 @@ function EstoquePage() {
                       canDelete={isAdmin}
                       onEdit={() => setDrawer({ mode: "edit", item: i })}
                       onDuplicate={() => duplicate(i)}
-                      onArchive={() => archive(i.id)}
-                      onRestore={() => restore(i.id)}
-                      onDelete={async () => {
-                        if (!confirm(`Excluir "${i.name}" definitivamente?`)) return;
-                        await remove(i.id);
-                      }}
+                      onArchive={() => setConfirm({ kind: "archive", item: i })}
+                      onRestore={() => setConfirm({ kind: "restore", item: i })}
+                      onDelete={() => setConfirm({ kind: "delete", item: i })}
                     />
                   </td>
                 </tr>
