@@ -8,7 +8,8 @@
 import type { OrderStatus } from "../types";
 
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  novo: ["separado", "reservado", "cancelado"],
+  novo: ["pagamento_confirmado", "separado", "reservado", "cancelado"],
+  pagamento_confirmado: ["separado", "reservado", "cancelado"],
   separado: ["reservado", "aguardando_retirada", "enviado", "finalizado", "cancelado"],
   reservado: ["separado", "aguardando_retirada", "enviado", "finalizado", "cancelado"],
   aguardando_retirada: ["finalizado", "cancelado"],
