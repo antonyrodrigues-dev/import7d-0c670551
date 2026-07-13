@@ -166,7 +166,7 @@ export const lovableCloudDataSource: AdminDataSource = {
       if (!seen.has(id)) {
         seen.set(id, {
           id,
-          nome: id.slice(0, 8),
+          nome: "",
           login: id.slice(0, 8),
           email: undefined,
           role,
@@ -178,6 +178,30 @@ export const lovableCloudDataSource: AdminDataSource = {
       } else if (role === "admin") {
         seen.get(id)!.role = "admin";
       }
+    }
+    // Enriquecer com dados do profiles (respeita RLS — admin vê todos).
+    const ids = Array.from(seen.keys());
+    if (ids.length > 0) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, nome, telefone, status, ultimo_acesso")
+        .in("user_id", ids);
+      for (const p of profs ?? []) {
+        const emp = seen.get(String(p.user_id));
+        if (!emp) continue;
+        if (p.nome) emp.nome = String(p.nome);
+        if (p.telefone) emp.login = String(p.telefone);
+        if (p.status === "inativo") {
+          emp.status = "inativo";
+          emp.ativo = false;
+        }
+        if (p.ultimo_acesso) emp.ultimoAcesso = String(p.ultimo_acesso);
+      }
+    }
+    // Fallback do nome para os primeiros 8 chars do id quando o perfil ainda
+    // não foi preenchido, garantindo linha legível na tabela.
+    for (const emp of seen.values()) {
+      if (!emp.nome) emp.nome = emp.id.slice(0, 8);
     }
     return Array.from(seen.values());
   },
