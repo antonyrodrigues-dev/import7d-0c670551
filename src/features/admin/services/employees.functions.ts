@@ -18,6 +18,11 @@ const emailSchema = z.string().trim().toLowerCase().email().max(255);
 const roleSchema = z.enum(["admin", "vendedor"]);
 const uuidSchema = z.string().uuid();
 
+/** UI role → DB app_role (o banco chama "atendente" o que a UI chama "vendedor"). */
+function toDbRole(r: "admin" | "vendedor"): "admin" | "atendente" {
+  return r === "admin" ? "admin" : "atendente";
+}
+
 async function ensureAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
   userId: string;
@@ -65,7 +70,7 @@ export const addEmployeeByEmail = createServerFn({ method: "POST" })
 
     const { error: roleErr } = await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: userId, role: data.role }, { onConflict: "user_id,role" });
+      .upsert({ user_id: userId, role: toDbRole(data.role) }, { onConflict: "user_id,role" });
     if (roleErr) throw new Error(roleErr.message);
 
     const { error: profErr } = await supabaseAdmin
@@ -118,11 +123,11 @@ export const changeEmployeeRole = createServerFn({ method: "POST" })
       .from("user_roles")
       .delete()
       .eq("user_id", data.userId)
-      .neq("role", data.role);
+      .neq("role", toDbRole(data.role));
     if (delErr) throw new Error(delErr.message);
     const { error: upErr } = await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: data.userId, role: data.role }, { onConflict: "user_id,role" });
+      .upsert({ user_id: data.userId, role: toDbRole(data.role) }, { onConflict: "user_id,role" });
     if (upErr) throw new Error(upErr.message);
     return { ok: true };
   });
