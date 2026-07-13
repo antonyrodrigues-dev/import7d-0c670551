@@ -24,7 +24,29 @@ import {
 import { useReserva } from "@/store/reserva";
 import { useOrdersStore } from "@/features/admin/stores/orders";
 import { useInventoryStore } from "@/features/admin/stores/inventory";
-import type { OrderStatus } from "@/features/admin/types";
+import type { OrderStatus, TrendInfo } from "@/features/admin/types";
+
+function toStatTrend(t: TrendInfo | undefined) {
+  if (!t) return undefined;
+  const sign = t.deltaPct > 0 ? "+" : t.deltaPct < 0 ? "" : "";
+  const label =
+    t.direction === "flat"
+      ? `Estável vs. ${t.comparedTo}`
+      : `${sign}${t.deltaPct.toFixed(1)}% vs. ${t.comparedTo}`;
+  return { direction: t.direction, label };
+}
+
+function formatUpdatedAt(iso: string | undefined): string {
+  if (!iso) return "";
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return "";
+  }
+}
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
@@ -64,6 +86,11 @@ function DashboardPage() {
         title="Dashboard"
         description="Visão consolidada dos pedidos, estoque e reservas em andamento."
       />
+      {m?.atualizadoEm && (
+        <p className="mb-4 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Última atualização · {formatUpdatedAt(m.atualizadoEm)}
+        </p>
+      )}
       <section
         aria-label="Indicadores"
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -73,6 +100,7 @@ function DashboardPage() {
           value={m?.pedidosHoje ?? 0}
           icon={<ShoppingBag className="h-5 w-5" />}
           hint="Pedidos criados no dia atual"
+          trend={toStatTrend(m?.pedidosHojeTrend)}
           loading={loading}
           onClick={() => goOrders("todos")}
           ariaLabel="Ver pedidos"
@@ -137,6 +165,7 @@ function DashboardPage() {
           value={formatBRL(m?.ticketMedio ?? 0)}
           icon={<TrendingUp className="h-5 w-5" />}
           hint="Valor médio por pedido concluído"
+          trend={toStatTrend(m?.ticketMedioTrend)}
           loading={loading}
           onClick={() => goOrders("finalizado")}
           ariaLabel="Ver pedidos finalizados"
@@ -146,6 +175,7 @@ function DashboardPage() {
           value={formatBRL(m?.faturamentoDia ?? 0)}
           icon={<DollarSign className="h-5 w-5" />}
           hint="Pedidos concluídos hoje"
+          trend={toStatTrend(m?.faturamentoDiaTrend)}
           loading={loading}
           onClick={() => goOrders("finalizado")}
           ariaLabel="Ver pedidos finalizados"
@@ -155,6 +185,7 @@ function DashboardPage() {
           value={formatBRL(m?.faturamentoMes ?? 0)}
           icon={<Wallet className="h-5 w-5" />}
           hint="Acumulado no mês corrente"
+          trend={toStatTrend(m?.faturamentoMesTrend)}
           loading={loading}
           onClick={() => goOrders("finalizado")}
           ariaLabel="Ver pedidos finalizados"
