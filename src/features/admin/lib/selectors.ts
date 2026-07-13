@@ -15,6 +15,7 @@ import type { AdminNotification, AdminOrder, InventoryItem, OrderStatus } from "
 
 const PENDING_STATUSES: OrderStatus[] = [
   "novo",
+  "pagamento_confirmado",
   "separado",
   "reservado",
   "aguardando_retirada",
