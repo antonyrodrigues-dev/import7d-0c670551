@@ -19,6 +19,7 @@ export const ADMIN_NAV: { key: AdminNavKey; label: string; path: string }[] = [
 
 export const ORDER_STATUSES: { key: OrderStatus; label: string }[] = [
   { key: "novo", label: "Novo" },
+  { key: "pagamento_confirmado", label: "Pagamento confirmado" },
   { key: "separado", label: "Separado" },
   { key: "reservado", label: "Reservado" },
   { key: "aguardando_retirada", label: "Aguardando retirada" },

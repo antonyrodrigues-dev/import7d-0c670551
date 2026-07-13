@@ -17,6 +17,16 @@ import { PageHeader, Skeleton } from "@/features/admin/components/PageHeader";
 import { EmptyState } from "@/features/admin/components/AdminUI";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -79,6 +89,26 @@ function EstoquePage() {
   const [drawer, setDrawer] = useState<
     { mode: "create" } | { mode: "edit"; item: InventoryItem } | null
   >(null);
+  const [confirm, setConfirm] = useState<
+    | { kind: "archive" | "restore" | "delete"; item: InventoryItem }
+    | null
+  >(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
+
+  const runConfirm = async () => {
+    if (!confirm) return;
+    setConfirmBusy(true);
+    try {
+      if (confirm.kind === "delete") await remove(confirm.item.id);
+      else if (confirm.kind === "archive") await archive(confirm.item.id);
+      else await restore(confirm.item.id);
+      setConfirm(null);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setConfirmBusy(false);
+    }
+  };
 
   const brands = useMemo(() => Array.from(new Set(items.map((i) => i.brand))), [items]);
   const categories = useMemo(
@@ -247,12 +277,9 @@ function EstoquePage() {
                       canDelete={isAdmin}
                       onEdit={() => setDrawer({ mode: "edit", item: i })}
                       onDuplicate={() => duplicate(i)}
-                      onArchive={() => archive(i.id)}
-                      onRestore={() => restore(i.id)}
-                      onDelete={async () => {
-                        if (!confirm(`Excluir "${i.name}" definitivamente?`)) return;
-                        await remove(i.id);
-                      }}
+                      onArchive={() => setConfirm({ kind: "archive", item: i })}
+                      onRestore={() => setConfirm({ kind: "restore", item: i })}
+                      onDelete={() => setConfirm({ kind: "delete", item: i })}
                     />
                   </td>
                 </tr>
@@ -273,6 +300,37 @@ function EstoquePage() {
           }}
         />
       )}
+
+      <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirm?.kind === "delete"
+                ? `Excluir "${confirm.item.name}" definitivamente?`
+                : confirm?.kind === "archive"
+                  ? `Arquivar "${confirm.item.name}"?`
+                  : `Reativar "${confirm?.item.name}"?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm?.kind === "delete"
+                ? "A exclusão remove o produto e todas as variações. Esta ação não pode ser desfeita."
+                : confirm?.kind === "archive"
+                  ? "O produto deixa de aparecer no catálogo público até ser reativado."
+                  : "O produto volta a ser exibido no catálogo."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirmBusy}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={confirmBusy}
+              onClick={runConfirm}
+              className={confirm?.kind === "delete" ? "bg-red-600 hover:bg-red-700" : undefined}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -647,6 +705,21 @@ function ProductFormDrawer({
                   <Plus className="h-4 w-4 mr-1" /> Adicionar
                 </Button>
               </div>
+              {imageInput.trim().startsWith("http") && (
+                <div className="mt-2 flex items-center gap-3 border border-dashed border-[color:var(--border)] p-2">
+                  <img
+                    src={imageInput.trim()}
+                    alt="Prévia"
+                    className="h-20 w-16 border border-[color:var(--border)] object-cover"
+                    onError={(ev) => {
+                      (ev.currentTarget as HTMLImageElement).style.opacity = "0.2";
+                    }}
+                  />
+                  <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                    Prévia · confirme antes de adicionar
+                  </span>
+                </div>
+              )}
             </fieldset>
 
             <fieldset className="md:col-span-2">

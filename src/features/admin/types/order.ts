@@ -2,6 +2,7 @@ import type { IsoDateTime } from "./common";
 
 export type OrderStatus =
   | "novo"
+  | "pagamento_confirmado"
   | "separado"
   | "reservado"
   | "aguardando_retirada"
