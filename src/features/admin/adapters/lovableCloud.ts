@@ -37,6 +37,7 @@ interface PedidoRow {
 function mapStatus(raw: string): OrderStatus {
   const known: OrderStatus[] = [
     "novo",
+    "pagamento_confirmado",
     "separado",
     "reservado",
     "aguardando_retirada",
@@ -46,6 +47,7 @@ function mapStatus(raw: string): OrderStatus {
   ];
   if ((known as string[]).includes(raw)) return raw as OrderStatus;
   if (raw === "pendente") return "novo";
+  if (raw === "pago") return "pagamento_confirmado";
   if (raw === "confirmado") return "finalizado";
   return "novo";
 }
