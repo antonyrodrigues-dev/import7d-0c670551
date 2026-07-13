@@ -207,6 +207,7 @@ interface OrderCardProps {
  */
 const TIMELINE_STAGES: OrderStatus[] = [
   "novo",
+  "pagamento_confirmado",
   "separado",
   "aguardando_retirada",
   "enviado",
@@ -225,7 +226,10 @@ function OrderTimeline({ order }: { order: AdminOrder }) {
       </div>
     );
   }
-  const stages = order.status === "reservado" ? ["novo", "reservado", ...TIMELINE_STAGES.slice(2)] : TIMELINE_STAGES;
+  const stages =
+    order.status === "reservado"
+      ? ["novo", "pagamento_confirmado", "reservado", ...TIMELINE_STAGES.slice(3)]
+      : TIMELINE_STAGES;
   const currentIdx = Math.max(0, stages.indexOf(order.status));
   return (
     <ol className="mt-4 flex items-center gap-1 overflow-x-auto" aria-label="Linha do tempo do pedido">
