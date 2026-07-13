@@ -300,6 +300,37 @@ function EstoquePage() {
           }}
         />
       )}
+
+      <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirm?.kind === "delete"
+                ? `Excluir "${confirm.item.name}" definitivamente?`
+                : confirm?.kind === "archive"
+                  ? `Arquivar "${confirm.item.name}"?`
+                  : `Reativar "${confirm?.item.name}"?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm?.kind === "delete"
+                ? "A exclusão remove o produto e todas as variações. Esta ação não pode ser desfeita."
+                : confirm?.kind === "archive"
+                  ? "O produto deixa de aparecer no catálogo público até ser reativado."
+                  : "O produto volta a ser exibido no catálogo."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirmBusy}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={confirmBusy}
+              onClick={runConfirm}
+              className={confirm?.kind === "delete" ? "bg-red-600 hover:bg-red-700" : undefined}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
