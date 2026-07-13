@@ -503,63 +503,6 @@ function AddEmployeeDialog({
 }
 
 // (Tabela desmembrada acima; corpo anterior removido.)
-function LegacyRows_OBSOLETE() {
-  return null;
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _unused = LegacyRows_OBSOLETE;
-function _unusedTableShim() {
-  return (
-    <table>
-      <tbody>
-        <tr>
-            <th className="px-4 py-3 text-left">Nome</th>
-            <th className="px-4 py-3 text-left">Contato</th>
-            <th className="px-4 py-3 text-left">Papel</th>
-            <th className="px-4 py-3 text-left">Status</th>
-            <th className="px-4 py-3 text-left">Último acesso</th>
-            <th className="px-4 py-3 text-left">Cadastrado em</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map((e) => (
-            <tr key={e.id} className="border-t border-[color:var(--border)] align-top">
-              <td className="px-4 py-3">
-                <p className="font-medium text-[color:var(--forest-deep)]">{e.nome}</p>
-                <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                  {e.login}
-                </p>
-              </td>
-              <td className="px-4 py-3 text-sm text-[color:var(--muted-foreground)]">
-                {e.email ?? "—"}
-              </td>
-              <td className="px-4 py-3 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]">
-                {ROLE_SUMMARY[e.role]?.label ?? e.role}
-              </td>
-              <td className="px-4 py-3">
-                <span
-                  className={`inline-flex items-center gap-1 border px-2 py-0.5 text-[10px] tracking-luxe uppercase ${
-                    e.status === "ativo"
-                      ? "border-emerald-600/40 bg-emerald-50 text-emerald-700"
-                      : "border-[color:var(--border)] bg-[color:var(--cream)] text-[color:var(--muted-foreground)]"
-                  }`}
-                >
-                  {e.status === "ativo" ? "Ativo" : "Inativo"}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-xs tabular-nums text-[color:var(--muted-foreground)]">
-                {e.ultimoAcesso ? formatDate(e.ultimoAcesso) : "—"}
-              </td>
-              <td className="px-4 py-3 text-xs tabular-nums text-[color:var(--muted-foreground)]">
-                {formatDate(e.criadoEm)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
 
 function formatDate(iso: string): string {
   try {
