@@ -705,6 +705,21 @@ function ProductFormDrawer({
                   <Plus className="h-4 w-4 mr-1" /> Adicionar
                 </Button>
               </div>
+              {imageInput.trim().startsWith("http") && (
+                <div className="mt-2 flex items-center gap-3 border border-dashed border-[color:var(--border)] p-2">
+                  <img
+                    src={imageInput.trim()}
+                    alt="Prévia"
+                    className="h-20 w-16 border border-[color:var(--border)] object-cover"
+                    onError={(ev) => {
+                      (ev.currentTarget as HTMLImageElement).style.opacity = "0.2";
+                    }}
+                  />
+                  <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                    Prévia · confirme antes de adicionar
+                  </span>
+                </div>
+              )}
             </fieldset>
 
             <fieldset className="md:col-span-2">
