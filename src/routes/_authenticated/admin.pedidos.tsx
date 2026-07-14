@@ -218,7 +218,7 @@ function statusLabel(s: OrderStatus): string {
   return ORDER_STATUSES.find((x) => x.key === s)?.label ?? s;
 }
 
-function OrderTimeline({ order }: { order: AdminOrder }) {
+const OrderTimeline = memo(function OrderTimeline({ order }: { order: AdminOrder }) {
   if (order.status === "cancelado") {
     return (
       <div className="mt-4 flex items-center gap-2 border border-red-300 bg-red-50 px-3 py-2 text-[11px] tracking-luxe uppercase text-red-700">
@@ -274,7 +274,7 @@ function OrderTimeline({ order }: { order: AdminOrder }) {
       })}
     </ol>
   );
-}
+});
 
 function StatusActions({
   order,

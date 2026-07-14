@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { Skeleton } from "./PageHeader";
 
@@ -7,8 +7,12 @@ import { Skeleton } from "./PageHeader";
  * variantes próprias. Estrutura: ícone · rótulo · valor · tendência · descrição.
  * Quando `onClick` é fornecido, o card passa a ser um `button` navegável
  * (drill-down a partir do dashboard).
+ *
+ * `memo` — dashboard renderiza 11 cards; sem memo cada re-render do container
+ * dispara todos. Props são primitivos/nodes estáveis, então a igualdade shallow
+ * padrão do memo é suficiente.
  */
-export function StatCard({
+function StatCardImpl({
   label,
   value,
   hint,
@@ -80,3 +84,5 @@ export function StatCard({
   }
   return <div className={base}>{body}</div>;
 }
+
+export const StatCard = memo(StatCardImpl);
