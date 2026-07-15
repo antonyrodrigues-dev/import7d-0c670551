@@ -104,7 +104,7 @@ const INPUT_CLASS =
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ConfiguracoesPage() {
-  const { settings, dirty, patch, reset } = useAdminSettings();
+  const { settings, dirty, patch, reset, commit } = useAdminSettings();
   const { can } = usePermissions();
 
   if (!can("settings:view")) {
@@ -131,6 +131,7 @@ function ConfiguracoesPage() {
       toast.error("Corrija os campos destacados antes de salvar.");
       return;
     }
+    commit();
     toast.success("Configurações salvas.");
   };
 
