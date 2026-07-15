@@ -11,13 +11,13 @@ interface InventoryStore {
   query: string;
   filterBrand: string | "todas";
   filterCategory: string | "todas";
-  filterStatus: "todos" | "ativos" | "inativos";
+  filterStatus: "todos" | "ativos" | "inativos" | "baixo";
   /** Pedidos cujo consumo já foi aplicado (idempotência local). */
   consumedOrderIds: Record<string, true>;
   setQuery: (q: string) => void;
   setFilterBrand: (b: string | "todas") => void;
   setFilterCategory: (c: string | "todas") => void;
-  setFilterStatus: (s: "todos" | "ativos" | "inativos") => void;
+  setFilterStatus: (s: "todos" | "ativos" | "inativos" | "baixo") => void;
   refresh: () => Promise<void>;
   markConsumed: (orderId: string) => void;
   /** Substitui a coleção. Uso restrito ao serviço. */

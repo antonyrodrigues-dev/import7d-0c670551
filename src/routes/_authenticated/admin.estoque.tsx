@@ -124,6 +124,8 @@ function EstoquePage() {
     if (filterCategory !== "todas" && i.category !== filterCategory) return false;
     if (filterStatus === "ativos" && !i.active) return false;
     if (filterStatus === "inativos" && i.active) return false;
+    if (filterStatus === "baixo" && !(i.active && i.quantity <= LOW_STOCK_THRESHOLD))
+      return false;
     return true;
   });
 
@@ -181,12 +183,15 @@ function EstoquePage() {
         </select>
         <select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value as "todos" | "ativos" | "inativos")}
+          onChange={(e) =>
+            setFilterStatus(e.target.value as "todos" | "ativos" | "inativos" | "baixo")
+          }
           className="h-11 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm text-[color:var(--forest-deep)]"
           aria-label="Filtrar por status"
         >
           <option value="todos">Todos</option>
           <option value="ativos">Ativos</option>
+          <option value="baixo">Estoque baixo</option>
           <option value="inativos">Inativos/Arquivados</option>
         </select>
       </section>

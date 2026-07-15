@@ -198,6 +198,7 @@ export function ReservaDrawer() {
       try {
         await Promise.race([
           supabase.from("pedidos").insert({
+            numero_pedido: order.numero,
             itens: JSON.parse(
               JSON.stringify({
                 produtos: order.itens,
@@ -214,7 +215,6 @@ export function ReservaDrawer() {
                   valor_por_parcela:
                     order.pagamento.parcelamento?.perInstallment ?? order.totais.total,
                 },
-                numero_local: order.numero,
                 criado_em: order.criadoEm,
               }),
             ),

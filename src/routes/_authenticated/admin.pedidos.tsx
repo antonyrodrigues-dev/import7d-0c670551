@@ -17,6 +17,17 @@ import type {
   DeliveryMethod,
   OrderStatus,
 } from "@/features/admin/types";
+import type { OrdersFilter } from "@/features/admin/stores/orders";
+
+/** Pipeline "em andamento" — espelha `PENDING_STATUSES` de `lib/selectors`. */
+const PENDING_ORDER_STATUSES: OrderStatus[] = [
+  "novo",
+  "pagamento_confirmado",
+  "separado",
+  "reservado",
+  "aguardando_retirada",
+  "enviado",
+];
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   head: () => ({
@@ -60,7 +71,9 @@ function PedidosPage() {
     const q = query.trim().toLowerCase();
     const min = Number(valorMin) || 0;
     return orders.filter((o) => {
-      if (filter !== "todos" && o.status !== filter) return false;
+      if (filter === "pendentes") {
+        if (!PENDING_ORDER_STATUSES.includes(o.status)) return false;
+      } else if (filter !== "todos" && o.status !== filter) return false;
       if (!withinPeriod(o.criadoEm, period)) return false;
       if (entrega !== "todos" && o.entrega !== entrega) return false;
       if (pagamento !== "todos" && o.pagamento.metodo !== pagamento) return false;
@@ -144,10 +157,14 @@ function PedidosPage() {
       </section>
 
       <nav className="flex flex-wrap gap-2" aria-label="Filtro de status">
-        {[{ key: "todos" as const, label: "Todos" }, ...ORDER_STATUSES].map((s) => (
+        {[
+          { key: "todos" as const, label: "Todos" },
+          { key: "pendentes" as const, label: "Pendentes" },
+          ...ORDER_STATUSES,
+        ].map((s) => (
           <button
             key={s.key}
-            onClick={() => setFilter(s.key as OrderStatus | "todos")}
+            onClick={() => setFilter(s.key as OrdersFilter)}
             className={`h-10 border px-4 text-[11px] tracking-luxe uppercase transition-colors ${
               filter === s.key
                 ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"

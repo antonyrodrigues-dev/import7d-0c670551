@@ -25,6 +25,7 @@ import { useReserva } from "@/store/reserva";
 import { useOrdersStore } from "@/features/admin/stores/orders";
 import { useInventoryStore } from "@/features/admin/stores/inventory";
 import type { OrderStatus, TrendInfo } from "@/features/admin/types";
+import type { OrdersFilter } from "@/features/admin/stores/orders";
 
 function toStatTrend(t: TrendInfo | undefined) {
   if (!t) return undefined;
@@ -69,11 +70,11 @@ function DashboardPage() {
   const setOrderFilter = useOrdersStore((s) => s.setFilter);
   const setStockFilter = useInventoryStore((s) => s.setFilterStatus);
 
-  const goOrders = (filter: OrderStatus | "todos") => {
+  const goOrders = (filter: OrdersFilter) => {
     setOrderFilter(filter);
     void navigate({ to: "/admin/pedidos" });
   };
-  const goStock = (filter?: "ativos" | "inativos" | "todos") => {
+  const goStock = (filter?: "ativos" | "inativos" | "todos" | "baixo") => {
     if (filter) setStockFilter(filter);
     void navigate({ to: "/admin/estoque" });
   };
@@ -111,7 +112,7 @@ function DashboardPage() {
           icon={<Clock className="h-5 w-5" />}
           hint="Aguardando separação, retirada ou envio"
           loading={loading}
-          onClick={() => goOrders("novo")}
+          onClick={() => goOrders("pendentes")}
           ariaLabel="Ver pedidos pendentes"
         />
         <StatCard
@@ -151,7 +152,7 @@ function DashboardPage() {
               : { direction: "flat", label: "Nenhum alerta" }
           }
           loading={loading}
-          onClick={() => goStock("ativos")}
+          onClick={() => goStock("baixo")}
           ariaLabel="Ver itens com estoque baixo"
         />
         <StatCard
