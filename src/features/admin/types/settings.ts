@@ -1,75 +1,8 @@
 /**
- * Configurações agrupadas por domínio operacional. O painel edita apenas
- * conteúdo — identidade visual permanece imutável.
+ * Tipos de configuração operacional da loja. O painel edita APENAS conteúdo
+ * operacional — identidade visual (Hero, Manifesto, tipografia, cores)
+ * permanece imutável e nunca é exposta neste domínio.
  */
-
-export interface CompanySettings {
-  razaoSocial: string;
-  nomeFantasia: string;
-  cnpj: string;
-  email: string;
-  telefone: string;
-}
-
-export interface StoreSettings {
-  endereco: string;
-  cep: string;
-  cidade: string;
-  estado: string;
-  businessHours: BusinessDayHours[];
-}
-
-export interface ContactSettings {
-  whatsapp: string;
-  telefone: string;
-  email: string;
-}
-
-export interface SocialSettings {
-  instagram: string;
-  facebook: string;
-  tiktok?: string;
-}
-
-export interface DeliverySettings {
-  ativa: boolean;
-  raio: string;
-  observacoes: string;
-}
-
-export interface PickupSettings {
-  slots: PickupDaySlots[];
-  antecedenciaMinimaHoras: number;
-  horizonteDias: number;
-}
-
-export interface InstallmentsSettings {
-  parcelamentoMax: number;
-  parcelaMinima: number;
-  chavePix: string;
-}
-
-export interface NotificationsSettings {
-  emailAlertas: boolean;
-  telegramChatId: string;
-}
-
-export interface SystemSettings {
-  versao: string;
-  ambiente: "producao" | "homologacao";
-}
-
-export interface AdminSettingsGrouped {
-  empresa: CompanySettings;
-  loja: StoreSettings;
-  contato: ContactSettings;
-  redes: SocialSettings;
-  entrega: DeliverySettings;
-  retirada: PickupSettings;
-  parcelamento: InstallmentsSettings;
-  notificacoes: NotificationsSettings;
-  sistema: SystemSettings;
-}
 
 /** 0=Domingo … 6=Sábado. */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;

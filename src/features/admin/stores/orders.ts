@@ -5,13 +5,20 @@ import type { AdminOrder, AsyncState, OrderStatus } from "../types";
 import { listOrders } from "../services/orders.service";
 import { logEvent } from "./logs";
 
+/**
+ * Filtro da UI de pedidos. `"pendentes"` cobre o pipeline completo em
+ * andamento (novo → pagamento_confirmado → separado → reservado →
+ * aguardando_retirada → enviado) — usado pelo drill-down do dashboard.
+ */
+export type OrdersFilter = OrderStatus | "todos" | "pendentes";
+
 interface OrdersStore {
   state: AsyncState;
   error: string | null;
   orders: AdminOrder[];
   /** UI — persistido. */
-  filter: OrderStatus | "todos";
-  setFilter: (f: OrderStatus | "todos") => void;
+  filter: OrdersFilter;
+  setFilter: (f: OrdersFilter) => void;
   refresh: () => Promise<void>;
   /** Substitui a coleção completa. Uso restrito ao `orders.service`. */
   replace: (orders: AdminOrder[]) => void;
