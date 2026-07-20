@@ -241,7 +241,7 @@ export function ReservaDrawer() {
               }),
             ),
             valor_total: order.totais.total,
-            status: "pendente",
+            status: "novo",
             canal: "whatsapp",
           }),
           new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
