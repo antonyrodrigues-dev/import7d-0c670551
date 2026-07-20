@@ -56,8 +56,7 @@ export const ROLE_PERMISSIONS: Record<EmployeeRole, Permission[]> = {
 export const LOW_STOCK_THRESHOLD = 3;
 
 /** Permissão exigida para exibir cada item do menu administrativo. */
-import type { AdminNavKey as _NavKey, Permission as _Permission } from "./types";
-export const ADMIN_NAV_PERMISSION: Record<_NavKey, _Permission> = {
+export const ADMIN_NAV_PERMISSION: Record<AdminNavKey, Permission> = {
   dashboard: "orders:view",
   pedidos: "orders:view",
   estoque: "inventory:view",
