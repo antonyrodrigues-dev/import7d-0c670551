@@ -42,9 +42,10 @@ import {
   type PaymentMethod,
 } from "@/lib/checkout";
 import {
-  DEFAULT_INSTALLMENTS_CONFIG,
   getInstallmentOption,
   getInstallmentOptions,
+  resolveInstallmentsConfig,
+  type InstallmentConfig,
 } from "@/lib/installments";
 
 type Step = CheckoutStep;
@@ -87,9 +88,30 @@ export function ReservaDrawer() {
   const submittingRef = useRef(false);
 
   const baseTotal = subtotal + (freight.cost ?? 0);
+  const adminSettings = useSettingsStore((s) => s.settings);
+  const installmentsConfig = useMemo(
+    () =>
+      resolveInstallmentsConfig(
+        adminSettings.parcelamentoMax,
+        adminSettings.parcelaMinima,
+        baseTotal,
+      ),
+    [adminSettings.parcelamentoMax, adminSettings.parcelaMinima, baseTotal],
+  );
+
+  // Se a configuração cortar o máximo abaixo do parcelamento selecionado, ajusta.
+  useEffect(() => {
+    if (payment === "credito" && installments > installmentsConfig.maxInstallments) {
+      setInstallments(installmentsConfig.maxInstallments);
+    }
+  }, [payment, installments, installmentsConfig.maxInstallments, setInstallments]);
+
   const installmentInfo = useMemo(
-    () => (payment === "credito" ? getInstallmentOption(baseTotal, installments) : null),
-    [payment, baseTotal, installments],
+    () =>
+      payment === "credito"
+        ? getInstallmentOption(baseTotal, installments, installmentsConfig)
+        : null,
+    [payment, baseTotal, installments, installmentsConfig],
   );
   const total = installmentInfo ? installmentInfo.total : baseTotal;
 
