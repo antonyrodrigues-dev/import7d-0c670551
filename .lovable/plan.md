@@ -1,40 +1,151 @@
-## Objetivo
+# Onda 2 — Consolidação Final do MVP (Gate de Qualidade de Engenharia)
 
-Registrar o **Blueprint Oficial do MVP v1.0** como fonte única da verdade em `mem://`, para que toda decisão futura (sprints, refactors, painel admin) obedeça automaticamente às regras — sem alterar código nesta etapa.
+O plano deixa de ser sequência de implementação e passa a funcionar como **gate de qualidade**. Nenhum bloco fecha enquanto existir bug, regressão, inconsistência, problema de UX, segurança, performance ou acessibilidade. Só permanece pendente o que estiver **explicitamente planejado para Sprint 8+**.
 
-## O que será criado
+---
 
-1. **`mem://index.md`** — índice do projeto com uma seção **Core** contendo as regras universais (aplicadas a cada ação) e referências aos arquivos detalhados.
+## Critério Absoluto de Aprovação (aplicado a cada bloco)
 
-2. **`mem://blueprint/visao.md`** (feature) — Visão do produto, objetivos do MVP e arquitetura de módulos (Cliente × Admin).
+Um bloco só é considerado concluído quando **nenhuma** das situações abaixo existir:
 
-3. **`mem://blueprint/arquitetura.md`** (feature) — Fonte única da verdade, estado global compartilhado, fluxos de atualização automática (produto → catálogo → estoque → dashboard → financeiro).
+- Bug funcional
+- Fluxo quebrado
+- Integração inconsistente
+- Dados divergentes entre módulos
+- Responsividade incorreta
+- Problema de UX (padding, alinhamento, tipografia, hierarquia visual, estados, loading, animações, feedback visual, skeletons, transições)
+- Vulnerabilidade de segurança
+- Erro de performance perceptível
+- Erro de acessibilidade crítico
+- Código que gere regressão conhecida
 
-4. **`mem://blueprint/principios.md`** (preference) — Princípios de código: separação interface/lógica/dados, responsabilidade única, tipagem forte, sem duplicação de estado/componentes/lógica.
+---
 
-5. **`mem://blueprint/identidade-visual.md`** (constraint) — Itens **imutáveis**: Hero, vídeo, tipografia, estrutura, animações, microinterações, UX, Design System, cores, identidade editorial. Painel admin edita apenas conteúdo operacional.
+## Bloco 1 — Banco de Dados + Auditoria DB
 
-6. **`mem://blueprint/regras-absolutas.md`** (constraint) — Regras que nunca podem ser quebradas: estoque/preço negativo, pedido vazio/sem cliente, apagar histórico de pedidos/estoque/logs, estados duplicados, inconsistência entre módulos, quebra de layout.
+**Migração (aguarda aprovação)**
+- `pedidos`: `UPDATE` status legados → canônicos; `CHECK (status IN 8 estados)`; policy anon insert `status='novo'`; `CHECK (valor_total > 0)`; `UNIQUE(numero_pedido)`.
+- `produtos`: `CHECK (preco > 0)`, `UNIQUE(sku)`, `UNIQUE(slug)`.
+- `produto_variacoes`: `CHECK (quantidade >= 0)`, `UNIQUE(produto_id, tamanho)`.
+- Índices: `pedidos(status)`, `pedidos(criado_em)`, `produto_variacoes(produto_id)`, `produto_movimentacoes(produto_id, criado_em)`.
 
-7. **`mem://blueprint/qualidade.md`** (preference) — Metas de desempenho (60 FPS, lazy loading, code splitting, memoização), responsividade (Desktop/Notebook/Tablet/Mobile sem overflow ou quebra) e segurança (nenhum secret no front).
+**Auditoria DB:** `supabase--linter` limpo, `supabase--slow_queries` top-10 revisadas, FKs íntegras, tabelas órfãs inventariadas.
 
-### Core do índice (sempre em contexto)
+---
 
-Resumos curtos, aplicados em toda ação:
-- Duas áreas independentes: Cliente (pública) × Admin (gestão). Nunca vazar dado admin no cliente.
-- Fonte única da verdade; nada duplicado (estado, componentes, lógica).
-- Identidade visual aprovada é imutável (Hero, vídeo, tipografia, cores, animações, DS).
-- Painel admin altera apenas conteúdo operacional (produtos, preços, fotos, contatos, horários).
-- Nunca: estoque/preço negativo, pedido vazio ou sem cliente, apagar histórico ou logs, quebrar layout responsivo.
-- Segurança: zero secrets/keys/tokens no front.
-- Performance: 60 FPS, lazy loading, code splitting, baixo re-render.
+## Bloco 2 — Máquina de Estados (Pedidos)
 
-## O que NÃO será feito agora
+`primaryNextStatus`/`sideTransitions`; adapter→store; guard de concorrência; idempotência persistida; `audit.record` + `logger` + `emit` em toda transição; CTA primário sólido / laterais outline.
 
-- Nenhuma alteração de código, rota, componente ou schema.
-- Nenhuma auditoria/refactor da área do cliente.
-- Nenhum início de sprint do painel admin (fica para a próxima aprovação sua).
+---
 
-## Próximo passo sugerido (após esta aprovação)
+## Bloco 3 — Integração + Auditoria de Integridade dos Dados
 
-Escolher entre: (a) auditar o código atual contra o Blueprint e listar divergências, ou (b) iniciar o planejamento do painel admin já ancorado nestas memórias.
+- Cada transição validada em Estoque, Dashboard, Notificações e Logs.
+- `restoreConsumption` obrigatório no `cancelado` após consumo.
+- **Auditoria de Integridade (nova):**
+  - Alterar produto → refletir em pedido em aberto.
+  - Ajustar estoque manual → refletir em dashboard e listagem.
+  - Cancelar pedido → restaurar estoque exatamente.
+  - Criar cliente via reserva → aparecer em Clientes.
+  - Nenhuma métrica derivada de fonte duplicada.
+
+---
+
+## Bloco 4 — Configurações Runtime + Auditoria Financeira
+
+- Todo `AdminSettings` consumido em runtime: horários, WhatsApp, PIX, frete, parcelamento, textos legais, SEO.
+- **Auditoria Financeira (nova):**
+  - Subtotal × frete × parcelamento no Checkout.
+  - `installments.ts` respeitando `parcelamentoMax` e `parcelaMinima`.
+  - Dashboard financeiro (faturamento, ticket médio) reconciliando com soma real de pedidos finalizados.
+  - Sem centavos perdidos por arredondamento.
+  - Relatórios (se existentes) coerentes com o dashboard.
+
+---
+
+## Bloco 5 — Funcionários & Permissões
+
+`ROLE_PERMISSIONS` como fonte única; `can(...)` auditado por rota; self-demote de admin bloqueado; server fn revalida `has_role(admin)`.
+
+---
+
+## Bloco 6 — Cliente / Checkout / Reserva
+
+Máscaras, `numero_pedido` idêntico entre reserva/admin/WhatsApp, settings em runtime, validação de horários e janelas de retirada.
+
+---
+
+## Bloco 7 — Auditoria Integral
+
+### 7.1 Funcional (Admin + Cliente)
+Cada tela, cada botão, cada campo, cada fluxo — com evidência registrada.
+
+### 7.2 Segurança
+Sem secrets no front, inventário de storage, XSS, CSRF (bearer em mutations), CORS, RLS, uploads. Rate limit registrado como Sprint 8+ se ausente.
+
+### 7.3 Visual / UX
+Padding, alinhamento, tipografia, hierarquia visual, grid, contraste WCAG AA via tokens, estados (hover/focus-visible/loading/empty/error/success), skeletons, transições, animações, microinterações e feedback visual — verificados nas telas afetadas.
+
+### 7.4 Responsividade
+Playwright em 4 viewports base (1440 / 1280 / 820 / 390) + landscape/portrait, 7 rotas admin + 6 rotas cliente. Zero overflow, zero sobreposição, zero corte de texto.
+
+### 7.5 Performance
+60 FPS no scroll, CLS <0.1, LCP em `/`, bundle size registrado, network sem waterfall crítico.
+
+### 7.6 Acessibilidade
+Foco visível, roles semânticos, alt text, aria-label em ícones, ordem de tabulação lógica, contraste AA.
+
+### 7.7 Auditoria de Código (nova)
+`rg` por: código morto, componentes/hooks/serviços/tipos não utilizados, imports órfãos, imports circulares, `try/catch` vazios, promises sem await, listeners sem cleanup, `console.*` residual, `TODO`/`FIXME`. Remoções aplicadas ou explicitamente justificadas.
+
+---
+
+## Bloco 8 — Matriz Final de Cobertura do MVP (entregável obrigatório)
+
+Ao fim da Onda 2, gero esta tabela preenchida com evidência real:
+
+| Módulo | Status | Cobertura | Bugs encontrados | Bugs corrigidos | Pendências reais | Pronto p/ produção |
+|---|---|---|---|---|---|---|
+| Login/Auth | | | | | | |
+| Dashboard | | | | | | |
+| Estoque | | | | | | |
+| Pedidos | | | | | | |
+| Clientes | | | | | | |
+| Funcionários | | | | | | |
+| Configurações | | | | | | |
+| Checkout | | | | | | |
+| Reserva | | | | | | |
+| WhatsApp | | | | | | |
+| Landing/Cliente | | | | | | |
+| Segurança | | | | | | |
+| Banco | | | | | | |
+| Performance | | | | | | |
+| Integridade dos dados | | | | | | |
+| Financeiro | | | | | | |
+| Código (dead code) | | | | | | |
+
+### Entregáveis do relatório final
+1. Matriz preenchida.
+2. Checklist item a item do 7.1–7.7 com evidência (arquivo, rota, screenshot ou log).
+3. Bugs corrigidos, por bloco.
+4. Bugs conhecidos **não bloqueantes** com justificativa (não podem ser correções pendentes).
+5. Pendências — **apenas features Sprint 8+**.
+6. % de conclusão do MVP.
+7. **Decisão técnica final: PRONTO ou NÃO PRONTO para Sprint 8.**
+
+---
+
+## Regra por bloco
+
+`tsgo --noEmit` limpo + `bun run build` sem warnings críticos + evidência prática registrada + nota de regressão zero.
+
+## Fora do escopo (registrado)
+
+Trigger DB de auto-consumo · refatorar arquivos grandes · React.memo/lazy agressivo · enum PG de status · rate limiting real · features novas (favoritos, cupons, push) → Sprint 8/9/10.
+
+## Ordem de execução
+
+**1 (migração, aguarda aprovação) → 2 → 3 → 4 → 5 → 6 → 7 → 8 (matriz final + decisão PRONTO/NÃO PRONTO).**
+
+Confirma este plano final com o gate absoluto, as três auditorias adicionais (Integridade, Financeira, Código) e a Matriz Final de Cobertura para eu iniciar pelo **Bloco 1 (migração)**?
