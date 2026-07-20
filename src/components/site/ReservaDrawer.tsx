@@ -457,6 +457,7 @@ export function ReservaDrawer() {
                   installments={installments}
                   setInstallments={setInstallments}
                   baseTotal={baseTotal}
+                  config={installmentsConfig}
                 />
               ) : (
                 <StepRevisao
@@ -471,6 +472,7 @@ export function ReservaDrawer() {
                   subtotal={subtotal}
                   baseTotal={baseTotal}
                   total={total}
+                  config={installmentsConfig}
                 />
               )}
             </div>
@@ -902,15 +904,17 @@ function StepPagamento({
   installments,
   setInstallments,
   baseTotal,
+  config,
 }: {
   payment: PaymentMethod;
   setPayment: (p: PaymentMethod) => void;
   installments: number;
   setInstallments: (n: number) => void;
   baseTotal: number;
+  config: InstallmentConfig;
 }) {
   const options: PaymentMethod[] = ["pix", "debito", "credito", "dinheiro"];
-  const installmentOptions = getInstallmentOptions(baseTotal);
+  const installmentOptions = getInstallmentOptions(baseTotal, config);
   return (
     <div className="grid grid-cols-1 gap-3">
       {options.map((p) => {
@@ -936,7 +940,7 @@ function StepPagamento({
               className="flex flex-col gap-2 border border-[color:var(--border)] p-3"
             >
               <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Parcelamento (até {DEFAULT_INSTALLMENTS_CONFIG.maxInstallments}x)
+                Parcelamento (até {config.maxInstallments}x)
               </p>
               {installmentOptions.map((opt) => {
                 const active = installments === opt.count;
@@ -986,6 +990,7 @@ function StepRevisao({
   subtotal,
   baseTotal,
   total,
+  config,
 }: {
   items: { slug: string; name: string; size: string; quantity: number; price: number }[];
   delivery: DeliveryMethod;
@@ -998,9 +1003,10 @@ function StepRevisao({
   subtotal: number;
   baseTotal: number;
   total: number;
+  config: InstallmentConfig;
 }) {
   const installmentInfo =
-    payment === "credito" ? getInstallmentOption(baseTotal, installments) : null;
+    payment === "credito" ? getInstallmentOption(baseTotal, installments, config) : null;
   return (
     <div className="flex flex-col gap-6 text-sm text-[color:var(--forest-deep)]">
       <section>
