@@ -7,6 +7,7 @@ import { adminDataSource } from "../adapters";
 import type { AdminOrder, OrderStatus } from "../types";
 import { useOrdersStore } from "../stores/orders";
 import { registerConsumption, restoreConsumption } from "./inventory.service";
+import { useInventoryStore } from "../stores/inventory";
 import { notify } from "./notifications.service";
 import { validateStatusTransition } from "../lib/validators";
 import { ORDER_STATUSES } from "../constants";
@@ -82,11 +83,18 @@ export async function transitionOrderStatus(
         await updateOrderStatus(id, status);
 
         // 2) Propaga estoque.
+        let stockTouched = false;
         if (status === "separado" || status === "finalizado") {
           await registerConsumption(order);
+          stockTouched = true;
         } else if (status === "cancelado") {
           // Restaura consumo se já havia sido aplicado (ex.: separado → cancelado).
           await restoreConsumption(order);
+          stockTouched = true;
+        }
+        // Refresca a store de estoque para que Dashboard/Listagem enxerguem o delta.
+        if (stockTouched) {
+          void useInventoryStore.getState().refresh();
         }
 
         // 3) Atualiza a store (fonte da UI) após confirmação do adapter.
