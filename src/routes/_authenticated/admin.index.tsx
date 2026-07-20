@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/features/admin/components/PageHeader";
 import { StatCard } from "@/features/admin/components/StatCard";
+import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { formatBRL } from "@/data/products";
 import {
   useOrders,
@@ -81,7 +82,7 @@ function DashboardPage() {
   const goClients = () => void navigate({ to: "/admin/clientes" });
 
   return (
-    <>
+    <PermissionGate perm="orders:view" title="Dashboard">
       <PageHeader
         eyebrow="Painel"
         title="Dashboard"
@@ -199,6 +200,6 @@ function DashboardPage() {
           loading={loading}
         />
       </section>
-    </>
+    </PermissionGate>
   );
 }

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/features/admin/components/PageHeader";
 import { EmptyState } from "@/features/admin/components/AdminUI";
+import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminNotifications } from "@/features/admin/hooks";
@@ -16,7 +17,7 @@ function NotificacoesPage() {
   const { notifications, markAllRead, markRead, clear } = useAdminNotifications();
 
   return (
-    <>
+    <PermissionGate perm="notifications:view" title="Notificações">
       <PageHeader
         eyebrow="Painel"
         title="Notificações"
@@ -71,6 +72,6 @@ function NotificacoesPage() {
           ))}
         </ul>
       )}
-    </>
+    </PermissionGate>
   );
 }

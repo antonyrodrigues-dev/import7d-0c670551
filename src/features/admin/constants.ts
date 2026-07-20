@@ -55,4 +55,13 @@ export const ROLE_PERMISSIONS: Record<EmployeeRole, Permission[]> = {
 /** Threshold para acionar alerta "estoque baixo". */
 export const LOW_STOCK_THRESHOLD = 3;
 
-export const ADMIN_LOW_STOCK_LABEL = "Estoque baixo";
+/** Permissão exigida para exibir cada item do menu administrativo. */
+export const ADMIN_NAV_PERMISSION: Record<AdminNavKey, Permission> = {
+  dashboard: "orders:view",
+  pedidos: "orders:view",
+  estoque: "inventory:view",
+  clientes: "customers:view",
+  funcionarios: "employees:view",
+  notificacoes: "notifications:view",
+  configuracoes: "settings:view",
+};

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { memo, useMemo, useState } from "react";
 import { formatBRL } from "@/data/products";
 import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
+import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { useOrders, useCustomers } from "@/features/admin/hooks";
 import type { AdminCustomer } from "@/features/admin/types";
 import { formatPhoneBR, digitsOnly, capitalizeName } from "@/lib/masks";
@@ -45,7 +46,7 @@ function ClientesPage() {
   const detalhe = detailId ? customers.find((c) => c.id === detailId) ?? null : null;
 
   return (
-    <>
+    <PermissionGate perm="customers:view" title="Clientes">
       <PageHeader
         eyebrow="Painel"
         title="Clientes"
@@ -127,7 +128,7 @@ function ClientesPage() {
       )}
 
       {detalhe && <CustomerDetail customer={detalhe} onClose={() => setDetailId(null)} />}
-    </>
+    </PermissionGate>
   );
 }
 

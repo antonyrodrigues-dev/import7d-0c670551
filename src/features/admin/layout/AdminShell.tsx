@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Menu, X, LogOut, Bell, ChevronDown, KeyRound, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ADMIN_NAV } from "../constants";
+import { ADMIN_NAV, ADMIN_NAV_PERMISSION } from "../constants";
 import { usePermissions, useAdminNotifications } from "../hooks";
 import { InitialsAvatar } from "../components/AdminUI";
 import {
@@ -26,12 +26,13 @@ import { auditAdminArchitecture } from "../lib/audit";
 export function AdminShell() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { roles, reset: resetPerms, userId } = usePermissions();
+  const { roles, reset: resetPerms, userId, can } = usePermissions();
   const { notifications } = useAdminNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   const unread = notifications.filter((n) => !n.read).length;
+  const canSeeNotifications = can("notifications:view");
 
   useEffect(() => {
     setMobileOpen(false);
@@ -57,12 +58,17 @@ export function AdminShell() {
     };
   }, [userId]);
 
+  const visibleNav = useMemo(
+    () => ADMIN_NAV.filter((item) => can(ADMIN_NAV_PERMISSION[item.key])),
+    [can],
+  );
+
   const active = useMemo(() => {
     // Longest matching path wins so "/admin" doesn't shadow "/admin/pedidos".
-    return ADMIN_NAV
+    return visibleNav
       .filter((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
       .sort((a, b) => b.path.length - a.path.length)[0];
-  }, [pathname]);
+  }, [pathname, visibleNav]);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -84,7 +90,7 @@ export function AdminShell() {
     <div className="flex min-h-dvh bg-[color:var(--cream)] text-[color:var(--forest-deep)]">
       {/* Sidebar desktop (>=1024px). Tablet/Mobile usam drawer. */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-[color:var(--border)] lg:bg-[color:var(--cream-deep)]/40">
-        <SidebarBody />
+        <SidebarBody items={visibleNav} />
       </aside>
 
       {/* Drawer mobile */}
@@ -111,7 +117,7 @@ export function AdminShell() {
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <SidebarBody />
+            <SidebarBody items={visibleNav} />
           </aside>
         </>
       )}
@@ -140,18 +146,20 @@ export function AdminShell() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              to="/admin/notificacoes"
-              aria-label={`Notificações (${unread} não lidas)`}
-              className="relative flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-[color:var(--cream-deep)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
-            >
-              <Bell className="h-5 w-5" aria-hidden="true" />
-              {unread > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--gold)] px-1 text-[9px] font-bold text-[color:var(--forest-deep)]">
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
-            </Link>
+            {canSeeNotifications && (
+              <Link
+                to="/admin/notificacoes"
+                aria-label={`Notificações (${unread} não lidas)`}
+                className="relative flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-[color:var(--cream-deep)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+              >
+                <Bell className="h-5 w-5" aria-hidden="true" />
+                {unread > 0 && (
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--gold)] px-1 text-[9px] font-bold text-[color:var(--forest-deep)]">
+                    {unread > 99 ? "99+" : unread}
+                  </span>
+                )}
+              </Link>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -229,7 +237,7 @@ export function AdminShell() {
   );
 }
 
-function SidebarBody() {
+function SidebarBody({ items }: { items: typeof ADMIN_NAV }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="flex flex-1 flex-col">
@@ -239,7 +247,7 @@ function SidebarBody() {
       </div>
       <nav aria-label="Navegação administrativa" className="flex-1 overflow-y-auto p-3">
         <ul className="flex flex-col gap-1">
-          {ADMIN_NAV.map((item) => {
+          {items.map((item) => {
             const isActive =
               pathname === item.path ||
               (item.path !== "/admin" && pathname.startsWith(`${item.path}/`));
