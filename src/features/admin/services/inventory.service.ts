@@ -159,3 +159,35 @@ export async function registerConsumption(order: AdminOrder): Promise<void> {
     }
   }
 }
+
+/**
+ * Restaura o estoque consumido por um pedido (aplicado no cancelamento após
+ * o consumo já ter sido feito). Idempotente: se o pedido não foi consumido,
+ * nada acontece.
+ */
+export async function restoreConsumption(order: AdminOrder): Promise<void> {
+  const store = useInventoryStore.getState();
+  if (!store.consumedOrderIds[order.id]) return;
+  store.unmarkConsumed(order.id);
+  for (const it of order.itens) {
+    const item = store.items.find((i) => i.slug === it.slug);
+    if (!item) continue;
+    const current = item.stockBySize.find((s) => s.size === it.size)?.quantity ?? 0;
+    const next = current + (it.quantity ?? 0);
+    try {
+      await adminDataSource.setVariationStock(
+        item.id,
+        it.size,
+        next,
+        "ajuste",
+        `Estorno do pedido ${order.numero}`,
+      );
+      logger.info(`Estoque restaurado (pedido ${order.numero}): ${it.slug} ${it.size} +${it.quantity}`, {
+        kind: "stock.adjust",
+        productId: item.id,
+      });
+    } catch (e) {
+      handleAdminError(e, "inventory.service.restore");
+    }
+  }
+}

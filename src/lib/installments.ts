@@ -27,6 +27,30 @@ export const DEFAULT_INSTALLMENTS_CONFIG: InstallmentConfig = {
   surchargePerInstallment: [0, 0, 0],
 };
 
+/**
+ * Deriva a configuração de parcelamento a partir das configurações
+ * administrativas (fonte única). Respeita:
+ *  - `parcelamentoMax` (1..12): limite máximo de parcelas.
+ *  - `parcelaMinima`: se informado, corta o número de parcelas para que
+ *    o valor por parcela nunca fique abaixo desse limite.
+ */
+export function resolveInstallmentsConfig(
+  parcelamentoMax: number,
+  parcelaMinima: number,
+  baseTotal: number,
+): InstallmentConfig {
+  const max = Math.max(1, Math.min(12, Math.floor(parcelamentoMax || 1)));
+  let effective = max;
+  if (parcelaMinima > 0 && baseTotal > 0) {
+    const byMin = Math.max(1, Math.floor(baseTotal / parcelaMinima));
+    effective = Math.min(max, byMin);
+  }
+  return {
+    maxInstallments: effective,
+    surchargePerInstallment: Array(effective).fill(0),
+  };
+}
+
 export interface InstallmentOption {
   /** Número de parcelas (1..maxInstallments). */
   count: number;

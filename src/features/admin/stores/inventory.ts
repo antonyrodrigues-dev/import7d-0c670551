@@ -20,6 +20,7 @@ interface InventoryStore {
   setFilterStatus: (s: "todos" | "ativos" | "inativos" | "baixo") => void;
   refresh: () => Promise<void>;
   markConsumed: (orderId: string) => void;
+  unmarkConsumed: (orderId: string) => void;
   /** Substitui a coleção. Uso restrito ao serviço. */
   replace: (items: InventoryItem[]) => void;
 }
@@ -52,6 +53,12 @@ export const useInventoryStore = create<InventoryStore>()(
       },
       markConsumed: (orderId) =>
         set((s) => ({ consumedOrderIds: { ...s.consumedOrderIds, [orderId]: true } })),
+      unmarkConsumed: (orderId) =>
+        set((s) => {
+          const next = { ...s.consumedOrderIds };
+          delete next[orderId];
+          return { consumedOrderIds: next };
+        }),
       replace: (items) => set({ items }),
     }),
     {
