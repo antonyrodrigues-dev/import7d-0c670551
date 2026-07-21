@@ -117,7 +117,27 @@ export const changeEmployeeRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await ensureAdmin(context);
+    // Auto-proteção: um admin não pode rebaixar a si mesmo — evita ficar sem admin
+    // por engano e espelha as guardas de setEmployeeStatus/removeEmployee (FIN-06).
+    if (data.userId === context.userId && toDbRole(data.role) !== "admin") {
+      throw new Error("Você não pode rebaixar o próprio acesso de Administrador.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Se estamos tirando a role admin de alguém, garantir que sobra pelo menos
+    // um outro admin ativo — impede o cenário "último admin rebaixado" (FIN-06).
+    if (toDbRole(data.role) !== "admin") {
+      const { data: admins, error: countErr } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (countErr) throw new Error(countErr.message);
+      const outros = (admins ?? []).filter((r) => r.user_id !== data.userId);
+      if (outros.length === 0) {
+        throw new Error(
+          "Operação bloqueada: este é o último Administrador. Promova outro usuário antes de rebaixá-lo.",
+        );
+      }
+    }
     // Estratégia: manter uma única role por usuário. Remove as demais e insere a nova.
     const { error: delErr } = await supabaseAdmin
       .from("user_roles")
