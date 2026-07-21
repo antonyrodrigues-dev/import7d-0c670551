@@ -269,44 +269,19 @@ export const lovableCloudDataSource: AdminDataSource = {
     kind: MovementKindDB,
     observacao?: string,
   ): Promise<void> {
-    // Lê valor atual para calcular o delta e registrar a movimentação.
-    const { data: existing, error: readErr } = await supabase
-      .from("produto_variacoes")
-      .select("id, quantidade")
-      .eq("produto_id", productId)
-      .eq("tamanho", tamanho)
-      .maybeSingle();
-    if (readErr) throw readErr;
-
+    // Ajuste atômico via RPC no banco: bloqueia a linha, valida, registra
+    // movimentação de auditoria numa única transação. Nenhum cálculo de
+    // delta acontece no cliente (fim da corrida entre abas).
     const nextQty = Math.max(0, Math.floor(quantidade));
-    const currentQty = existing?.quantidade ?? 0;
-    const delta = nextQty - currentQty;
-
-    if (existing) {
-      const { error } = await supabase
-        .from("produto_variacoes")
-        .update({ quantidade: nextQty })
-        .eq("id", existing.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase
-        .from("produto_variacoes")
-        .insert({ produto_id: productId, tamanho, quantidade: nextQty });
-      if (error) throw error;
-    }
-
-    if (delta !== 0) {
-      const { data: userData } = await supabase.auth.getUser();
-      const { error } = await supabase.from("produto_movimentacoes").insert({
-        produto_id: productId,
-        tamanho,
-        tipo: kind,
-        quantidade: delta,
-        por_usuario: userData.user?.id ?? null,
-        observacao: observacao ?? null,
-      });
-      if (error) throw error;
-    }
+    const { error } = await supabase.rpc("ajustar_estoque", {
+      p_produto_id: productId,
+      p_tamanho: tamanho,
+      p_tipo: kind,
+      p_qty: nextQty,
+      p_observacao: observacao ?? null,
+      p_pedido_id: null,
+    });
+    if (error) throw error;
   },
 };
 
