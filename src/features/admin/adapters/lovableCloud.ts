@@ -32,6 +32,13 @@ interface PedidoRow {
   canal: string | null;
   criado_em: string;
   atualizado_em: string;
+  pedido_status_historico?: {
+    de: string | null;
+    para: string;
+    criado_em: string;
+    observacao: string | null;
+    por_usuario: string | null;
+  }[] | null;
 }
 
 function mapStatus(raw: string): OrderStatus {
@@ -108,12 +115,15 @@ function mapRow(row: PedidoRow): AdminOrder {
     observacoes: parsed.observacoes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
-    historico: [
-      { status: "novo", at: row.criado_em, note: "Pedido criado" },
-      ...(status !== "novo"
-        ? [{ status, at: row.atualizado_em, note: "Status atual" } as const]
-        : []),
-    ],
+    historico: (row.pedido_status_historico ?? [])
+      .slice()
+      .sort((a, b) => a.criado_em.localeCompare(b.criado_em))
+      .map((h) => ({
+        status: mapStatus(h.para),
+        at: h.criado_em,
+        by: h.por_usuario ?? undefined,
+        note: h.observacao ?? undefined,
+      })),
   };
 }
 
@@ -141,7 +151,9 @@ export const lovableCloudDataSource: AdminDataSource = {
   async listOrders(): Promise<AdminOrder[]> {
     const { data, error } = await supabase
       .from("pedidos")
-      .select("id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em")
+      .select(
+        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
+      )
       .order("criado_em", { ascending: false });
     if (error) throw error;
     return (data ?? []).map((r) => mapRow(r as PedidoRow));
