@@ -215,39 +215,52 @@ export function ReservaDrawer() {
       installments,
     });
 
-    // Best-effort log to backend — falhas não bloqueiam o WhatsApp.
+    // Persistência do pedido no backend via RPC `criar_pedido`.
+    // O servidor recalcula o total a partir do catálogo (o cliente NÃO
+    // pode forjar valor) e devolve o número oficial gerado pela sequence.
+    // Falha continua não bloqueando o WhatsApp — o pedido é registrado
+    // best-effort, mas quando dá certo o número passa a ser o do banco.
     void (async () => {
       try {
-        await Promise.race([
-          supabase.from("pedidos").insert({
-            numero_pedido: order.numero,
-            itens: JSON.parse(
-              JSON.stringify({
-                produtos: order.itens,
-                cliente: order.cliente,
-                entrega: {
-                  metodo: order.entrega.metodo,
-                  endereco: order.entrega.endereco ?? null,
-                  frete: order.entrega.frete,
-                  retirada: order.entrega.retirada ?? null,
-                },
-                pagamento: {
-                  metodo: order.pagamento.metodo,
-                  parcelas: order.pagamento.parcelas,
-                  valor_por_parcela:
-                    order.pagamento.parcelamento?.perInstallment ?? order.totais.total,
-                },
-                criado_em: order.criadoEm,
-              }),
-            ),
-            valor_total: order.totais.total,
-            status: "novo",
-            canal: "whatsapp",
-          }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
+        const itensPayload = order.itens.map((it) => ({
+          slug: it.slug,
+          name: it.name,
+          size: it.size,
+          quantity: it.quantity,
+          image: it.image,
+        }));
+        const entregaPayload = {
+          metodo: order.entrega.metodo,
+          endereco: order.entrega.endereco ?? null,
+          frete: order.entrega.frete,
+          retirada: order.entrega.retirada ?? null,
+        };
+        const pagamentoPayload = {
+          metodo: order.pagamento.metodo,
+          parcelas: order.pagamento.parcelas,
+          valor_por_parcela:
+            order.pagamento.parcelamento?.perInstallment ?? order.totais.total,
+        };
+        const rpc = supabase.rpc("criar_pedido", {
+          p_itens: itensPayload as never,
+          p_cliente: order.cliente as never,
+          p_entrega: entregaPayload as never,
+          p_pagamento: pagamentoPayload as never,
+          p_observacoes: undefined,
+          p_canal: "whatsapp",
+        });
+        const result = await Promise.race([
+          rpc,
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 8000),
+          ),
         ]);
+        const row = Array.isArray(result.data) ? result.data[0] : null;
+        if (row?.numero_pedido) {
+          order = { ...order, numero: row.numero_pedido };
+        }
       } catch {
-        /* silencioso — número é local, não bloqueia o cliente */
+        /* silencioso — número local segue válido para o WhatsApp */
       }
     })();
 

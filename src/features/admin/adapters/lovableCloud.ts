@@ -32,6 +32,13 @@ interface PedidoRow {
   canal: string | null;
   criado_em: string;
   atualizado_em: string;
+  pedido_status_historico?: {
+    de: string | null;
+    para: string;
+    criado_em: string;
+    observacao: string | null;
+    por_usuario: string | null;
+  }[] | null;
 }
 
 function mapStatus(raw: string): OrderStatus {
@@ -108,12 +115,15 @@ function mapRow(row: PedidoRow): AdminOrder {
     observacoes: parsed.observacoes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
-    historico: [
-      { status: "novo", at: row.criado_em, note: "Pedido criado" },
-      ...(status !== "novo"
-        ? [{ status, at: row.atualizado_em, note: "Status atual" } as const]
-        : []),
-    ],
+    historico: (row.pedido_status_historico ?? [])
+      .slice()
+      .sort((a, b) => a.criado_em.localeCompare(b.criado_em))
+      .map((h) => ({
+        status: mapStatus(h.para),
+        at: h.criado_em,
+        by: h.por_usuario ?? undefined,
+        note: h.observacao ?? undefined,
+      })),
   };
 }
 
@@ -141,7 +151,9 @@ export const lovableCloudDataSource: AdminDataSource = {
   async listOrders(): Promise<AdminOrder[]> {
     const { data, error } = await supabase
       .from("pedidos")
-      .select("id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em")
+      .select(
+        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
+      )
       .order("criado_em", { ascending: false });
     if (error) throw error;
     return (data ?? []).map((r) => mapRow(r as PedidoRow));
@@ -269,44 +281,19 @@ export const lovableCloudDataSource: AdminDataSource = {
     kind: MovementKindDB,
     observacao?: string,
   ): Promise<void> {
-    // Lê valor atual para calcular o delta e registrar a movimentação.
-    const { data: existing, error: readErr } = await supabase
-      .from("produto_variacoes")
-      .select("id, quantidade")
-      .eq("produto_id", productId)
-      .eq("tamanho", tamanho)
-      .maybeSingle();
-    if (readErr) throw readErr;
-
+    // Ajuste atômico via RPC no banco: bloqueia a linha, valida, registra
+    // movimentação de auditoria numa única transação. Nenhum cálculo de
+    // delta acontece no cliente (fim da corrida entre abas).
     const nextQty = Math.max(0, Math.floor(quantidade));
-    const currentQty = existing?.quantidade ?? 0;
-    const delta = nextQty - currentQty;
-
-    if (existing) {
-      const { error } = await supabase
-        .from("produto_variacoes")
-        .update({ quantidade: nextQty })
-        .eq("id", existing.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase
-        .from("produto_variacoes")
-        .insert({ produto_id: productId, tamanho, quantidade: nextQty });
-      if (error) throw error;
-    }
-
-    if (delta !== 0) {
-      const { data: userData } = await supabase.auth.getUser();
-      const { error } = await supabase.from("produto_movimentacoes").insert({
-        produto_id: productId,
-        tamanho,
-        tipo: kind,
-        quantidade: delta,
-        por_usuario: userData.user?.id ?? null,
-        observacao: observacao ?? null,
-      });
-      if (error) throw error;
-    }
+    const { error } = await supabase.rpc("ajustar_estoque", {
+      p_produto_id: productId,
+      p_tamanho: tamanho,
+      p_tipo: kind,
+      p_qty: nextQty,
+      p_observacao: observacao,
+      p_pedido_id: undefined,
+    });
+    if (error) throw error;
   },
 };
 
@@ -414,18 +401,24 @@ async function syncVariations(
   for (const d of desired) {
     const current = existingBySize.get(d.tamanho);
     const qty = Math.max(0, Math.floor(d.quantidade));
-    if (current) {
-      if (current.quantidade !== qty) {
-        const { error } = await supabase
-          .from("produto_variacoes")
-          .update({ quantidade: qty })
-          .eq("id", current.id);
-        if (error) throw error;
-      }
-    } else {
+    if (!current) {
+      // Cria a variação com estoque zero — quantidade > 0 vai via RPC abaixo,
+      // que registra a movimentação de auditoria.
       const { error } = await supabase
         .from("produto_variacoes")
-        .insert({ produto_id: productId, tamanho: d.tamanho, quantidade: qty });
+        .insert({ produto_id: productId, tamanho: d.tamanho, quantidade: 0 });
+      if (error) throw error;
+    }
+    // Ajusta o estoque via RPC (idempotente: se já está no valor desejado,
+    // o delta é zero e nada é gravado em movimentações).
+    if (!current || current.quantidade !== qty) {
+      const { error } = await supabase.rpc("ajustar_estoque", {
+        p_produto_id: productId,
+        p_tamanho: d.tamanho,
+        p_tipo: "ajuste",
+        p_qty: qty,
+        p_observacao: "Ajuste via edição de produto",
+      });
       if (error) throw error;
     }
   }

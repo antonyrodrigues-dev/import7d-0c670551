@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      pedido_status_historico: {
+        Row: {
+          criado_em: string
+          de: string | null
+          id: string
+          observacao: string | null
+          para: string
+          pedido_id: string
+          por_usuario: string | null
+        }
+        Insert: {
+          criado_em?: string
+          de?: string | null
+          id?: string
+          observacao?: string | null
+          para: string
+          pedido_id: string
+          por_usuario?: string | null
+        }
+        Update: {
+          criado_em?: string
+          de?: string | null
+          id?: string
+          observacao?: string | null
+          para?: string
+          pedido_id?: string
+          por_usuario?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_status_historico_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_transicoes: {
+        Row: {
+          de: string
+          para: string
+        }
+        Insert: {
+          de: string
+          para: string
+        }
+        Update: {
+          de?: string
+          para?: string
+        }
+        Relationships: []
+      }
       pedidos: {
         Row: {
           atendente_nome: string | null
@@ -245,6 +298,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ajustar_estoque: {
+        Args: {
+          p_observacao?: string
+          p_pedido_id?: string
+          p_produto_id: string
+          p_qty: number
+          p_tamanho: string
+          p_tipo: string
+        }
+        Returns: number
+      }
+      criar_pedido: {
+        Args: {
+          p_canal?: string
+          p_cliente: Json
+          p_entrega: Json
+          p_itens: Json
+          p_observacoes?: string
+          p_pagamento: Json
+        }
+        Returns: {
+          id: string
+          numero_pedido: string
+          valor_total: number
+        }[]
+      }
       gerar_numero_pedido: { Args: never; Returns: string }
       has_role: {
         Args: {
