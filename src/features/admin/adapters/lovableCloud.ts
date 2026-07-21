@@ -389,18 +389,24 @@ async function syncVariations(
   for (const d of desired) {
     const current = existingBySize.get(d.tamanho);
     const qty = Math.max(0, Math.floor(d.quantidade));
-    if (current) {
-      if (current.quantidade !== qty) {
-        const { error } = await supabase
-          .from("produto_variacoes")
-          .update({ quantidade: qty })
-          .eq("id", current.id);
-        if (error) throw error;
-      }
-    } else {
+    if (!current) {
+      // Cria a variação com estoque zero — quantidade > 0 vai via RPC abaixo,
+      // que registra a movimentação de auditoria.
       const { error } = await supabase
         .from("produto_variacoes")
-        .insert({ produto_id: productId, tamanho: d.tamanho, quantidade: qty });
+        .insert({ produto_id: productId, tamanho: d.tamanho, quantidade: 0 });
+      if (error) throw error;
+    }
+    // Ajusta o estoque via RPC (idempotente: se já está no valor desejado,
+    // o delta é zero e nada é gravado em movimentações).
+    if (!current || current.quantidade !== qty) {
+      const { error } = await supabase.rpc("ajustar_estoque", {
+        p_produto_id: productId,
+        p_tamanho: d.tamanho,
+        p_tipo: "ajuste",
+        p_qty: qty,
+        p_observacao: "Ajuste via edição de produto",
+      });
       if (error) throw error;
     }
   }
