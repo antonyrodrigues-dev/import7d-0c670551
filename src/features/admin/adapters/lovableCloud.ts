@@ -278,8 +278,8 @@ export const lovableCloudDataSource: AdminDataSource = {
       p_tamanho: tamanho,
       p_tipo: kind,
       p_qty: nextQty,
-      p_observacao: observacao ?? null,
-      p_pedido_id: null,
+      p_observacao: observacao,
+      p_pedido_id: undefined,
     });
     if (error) throw error;
   },
