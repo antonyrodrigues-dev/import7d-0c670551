@@ -104,29 +104,14 @@ export async function registerMovement(
   observacao?: string,
 ): Promise<void> {
   try {
-    // Traduz a "intenção" em quantidade absoluta:
-    // - ajuste: qty é o novo valor absoluto
-    // - entrada/reposicao: soma qty ao atual
-    // - saida: subtrai qty
-    const item = useInventoryStore.getState().items.find((i) => i.id === productId);
-    if (!item) throw new Error("Produto inexistente.");
-    const current = item.stockBySize.find((s) => s.size === size)?.quantity ?? 0;
-    let next: number;
-    switch (kind) {
-      case "ajuste":
-        next = qty;
-        break;
-      case "entrada":
-      case "reposicao":
-        next = current + qty;
-        break;
-      case "saida":
-        next = current - qty;
-        break;
-    }
-    if (next < 0) throw new Error("Estoque não pode ficar negativo.");
+    // Contrato da RPC `ajustar_estoque`:
+    //   - ajuste                              → p_qty = valor ABSOLUTO final
+    //   - entrada | reposicao | saida | consumo_pedido → p_qty = DELTA (magnitude positiva)
+    // O banco aplica a soma/subtração atomicamente e valida invariantes.
+    // Nenhum cálculo de delta acontece aqui — evita corrida entre abas.
+    if (qty < 0) throw new Error("Quantidade não pode ser negativa.");
     const dbKind: MovementKindDB = kind;
-    await adminDataSource.setVariationStock(productId, size, next, dbKind, observacao);
+    await adminDataSource.setVariationStock(productId, size, qty, dbKind, observacao);
   } catch (e) {
     throw handleAdminError(e, "inventory.service.registerMovement");
   }
@@ -144,13 +129,13 @@ export async function registerConsumption(order: AdminOrder): Promise<void> {
   for (const it of order.itens) {
     const item = store.items.find((i) => i.slug === it.slug);
     if (!item) continue;
-    const current = item.stockBySize.find((s) => s.size === it.size)?.quantity ?? 0;
-    const next = Math.max(0, current - (it.quantity ?? 0));
+    const qty = it.quantity ?? 0;
+    if (qty <= 0) continue;
     try {
       await adminDataSource.setVariationStock(
         item.id,
         it.size,
-        next,
+        qty, // DELTA — RPC subtrai atomicamente com kind consumo_pedido
         "consumo_pedido",
         `Pedido ${order.numero}`,
       );
@@ -172,14 +157,14 @@ export async function restoreConsumption(order: AdminOrder): Promise<void> {
   for (const it of order.itens) {
     const item = store.items.find((i) => i.slug === it.slug);
     if (!item) continue;
-    const current = item.stockBySize.find((s) => s.size === it.size)?.quantity ?? 0;
-    const next = current + (it.quantity ?? 0);
+    const qty = it.quantity ?? 0;
+    if (qty <= 0) continue;
     try {
       await adminDataSource.setVariationStock(
         item.id,
         it.size,
-        next,
-        "ajuste",
+        qty, // DELTA — kind entrada devolve a quantidade consumida atomicamente
+        "entrada",
         `Estorno do pedido ${order.numero}`,
       );
       logger.info(`Estoque restaurado (pedido ${order.numero}): ${it.slug} ${it.size} +${it.quantity}`, {
