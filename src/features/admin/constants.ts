@@ -10,6 +10,7 @@ import type { AdminNavKey, EmployeeRole, OrderStatus, Permission } from "./types
 export const ADMIN_NAV: { key: AdminNavKey; label: string; path: string }[] = [
   { key: "dashboard", label: "Dashboard", path: "/admin" },
   { key: "pedidos", label: "Pedidos", path: "/admin/pedidos" },
+  { key: "financeiro", label: "Financeiro", path: "/admin/financeiro" },
   { key: "estoque", label: "Estoque", path: "/admin/estoque" },
   { key: "clientes", label: "Clientes", path: "/admin/clientes" },
   { key: "funcionarios", label: "Funcionários", path: "/admin/funcionarios" },
@@ -48,6 +49,7 @@ export const ROLE_PERMISSIONS: Record<EmployeeRole, Permission[]> = {
     "settings:edit",
     "notifications:view",
     "notifications:edit",
+    "finance:view",
   ],
   vendedor: ["orders:view", "orders:edit", "inventory:view", "customers:view"],
 };
@@ -59,6 +61,7 @@ export const LOW_STOCK_THRESHOLD = 3;
 export const ADMIN_NAV_PERMISSION: Record<AdminNavKey, Permission> = {
   dashboard: "orders:view",
   pedidos: "orders:view",
+  financeiro: "finance:view",
   estoque: "inventory:view",
   clientes: "customers:view",
   funcionarios: "employees:view",
