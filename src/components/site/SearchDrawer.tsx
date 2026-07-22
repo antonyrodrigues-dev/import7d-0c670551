@@ -2,10 +2,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useReserva } from "@/store/reserva";
-import { PRODUCTS, formatBRL } from "@/data/products";
+import { formatBRL, useCatalog } from "@/features/catalog";
 
 export function SearchDrawer() {
   const { searchOpen, setSearchOpen } = useReserva();
+  const { products } = useCatalog();
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -25,11 +26,11 @@ export function SearchDrawer() {
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return PRODUCTS;
-    return PRODUCTS.filter((p) =>
+    if (!term) return products;
+    return products.filter((p) =>
       [p.name, p.category, p.description].some((f) => f.toLowerCase().includes(term)),
     );
-  }, [q]);
+  }, [q, products]);
 
   return (
     <AnimatePresence>
