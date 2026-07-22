@@ -15,7 +15,7 @@ import {
 import { PageHeader } from "@/features/admin/components/PageHeader";
 import { StatCard } from "@/features/admin/components/StatCard";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
-import { formatBRL } from "@/data/products";
+import { formatBRL } from "@/features/catalog";
 import {
   useOrders,
   useInventory,
