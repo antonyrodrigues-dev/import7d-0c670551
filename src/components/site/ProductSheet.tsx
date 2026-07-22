@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { X, Minus, Plus } from "lucide-react";
-import { formatBRL, type Product } from "@/data/products";
+import { formatBRL, type PublicProduct } from "@/features/catalog";
 import { useReserva } from "@/store/reserva";
 import { track } from "@/lib/analytics";
 
 interface Props {
-  product: Product;
+  product: PublicProduct;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
