@@ -1,13 +1,14 @@
 import { memo, useState } from "react";
-import { PRODUCTS, formatBRL, type Product } from "@/data/products";
+import { formatBRL, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
+import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
 
 const Card = memo(function Card({
   p,
   onOpen,
   index,
 }: {
-  p: Product;
+  p: PublicProduct;
   onOpen: (slug: string) => void;
   index: number;
 }) {
@@ -80,12 +81,19 @@ const Card = memo(function Card({
 });
 
 export function FullGrid() {
+  const { products, state } = useCatalog();
   const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const activeProduct = openSlug ? (PRODUCTS.find((p) => p.slug === openSlug) ?? null) : null;
+  const activeProduct = openSlug ? (products.find((p) => p.slug === openSlug) ?? null) : null;
+  if (state === "loading" && products.length === 0) {
+    return <LoadingState label="Carregando acervo…" />;
+  }
+  if (state === "ready" && products.length === 0) {
+    return <EmptyState title="Sem peças disponíveis" description="Volte em breve para conferir novidades." />;
+  }
   return (
     <>
       <div className="grid gap-12 sm:grid-cols-2 md:gap-10 lg:grid-cols-3">
-        {PRODUCTS.map((p, i) => (
+        {products.map((p, i) => (
           <Card key={p.slug} p={p} onOpen={setOpenSlug} index={i} />
         ))}
       </div>
