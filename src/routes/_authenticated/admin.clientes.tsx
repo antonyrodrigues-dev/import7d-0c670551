@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { memo, useMemo, useState } from "react";
-import { formatBRL } from "@/data/products";
+import { formatBRL } from "@/features/catalog";
 import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { useOrders, useCustomers } from "@/features/admin/hooks";

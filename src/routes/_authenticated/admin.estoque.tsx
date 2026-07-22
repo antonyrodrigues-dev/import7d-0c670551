@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatBRL } from "@/data/products";
+import { formatBRL } from "@/features/catalog";
 import { PageHeader, Skeleton } from "@/features/admin/components/PageHeader";
 import { EmptyState } from "@/features/admin/components/AdminUI";
 import { Button } from "@/components/ui/button";

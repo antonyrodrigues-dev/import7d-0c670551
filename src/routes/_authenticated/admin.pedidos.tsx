@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { memo, useMemo, useState } from "react";
 import { Check, XCircle } from "lucide-react";
-import { formatBRL } from "@/data/products";
+import { formatBRL } from "@/features/catalog";
 import {
   PageHeader,
   EmptyState,

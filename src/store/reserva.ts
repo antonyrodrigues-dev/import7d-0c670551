@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { PRODUCTS, type Product } from "@/data/products";
+import type { PublicProduct } from "@/features/catalog";
+import { useCatalogStore } from "@/features/catalog";
 
 const MAX_QTY = 10;
 const clampQty = (n: number) => Math.max(1, Math.min(MAX_QTY, Math.floor(n) || 1));
@@ -18,7 +19,7 @@ interface ReservaState {
   items: ReservaItem[];
   open: boolean;
   searchOpen: boolean;
-  addItem: (p: Product, size: string, qty: number) => void;
+  addItem: (p: PublicProduct, size: string, qty: number) => void;
   removeItem: (slug: string, size: string) => void;
   updateQty: (slug: string, size: string, qty: number) => void;
   clear: () => void;
@@ -71,20 +72,34 @@ export const useReserva = create<ReservaState>()(
       merge: (persisted, current) => {
         const p = (persisted as Partial<ReservaState> | undefined) ?? {};
         const raw = Array.isArray(p.items) ? (p.items as ReservaItem[]) : [];
+        // Sanitiza contra o catálogo real quando já carregado; se ainda não
+        // estiver disponível (primeira renderização), preserva o snapshot e
+        // deixa a próxima interação corrigir divergências.
+        const catalog = useCatalogStore.getState().products;
         const items: ReservaItem[] = [];
         for (const it of raw) {
           if (!it || typeof it !== "object") continue;
-          const product = PRODUCTS.find((pp) => pp.slug === it.slug);
-          if (!product) continue;
-          if (!product.sizes.includes(it.size)) continue;
-          items.push({
-            slug: product.slug,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            size: it.size,
-            quantity: clampQty(Number(it.quantity) || 1),
-          });
+          const product = catalog.length ? catalog.find((pp) => pp.slug === it.slug) : null;
+          if (product) {
+            if (!product.sizes.includes(it.size)) continue;
+            items.push({
+              slug: product.slug,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              size: it.size,
+              quantity: clampQty(Number(it.quantity) || 1),
+            });
+          } else {
+            items.push({
+              slug: String(it.slug ?? ""),
+              name: String(it.name ?? ""),
+              price: Number(it.price) || 0,
+              image: String(it.image ?? ""),
+              size: String(it.size ?? ""),
+              quantity: clampQty(Number(it.quantity) || 1),
+            });
+          }
         }
         return { ...current, items };
       },

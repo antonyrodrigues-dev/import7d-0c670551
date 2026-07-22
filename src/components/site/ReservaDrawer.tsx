@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { useCheckout, type CheckoutStep } from "@/store/checkout";
-import { formatBRL } from "@/data/products";
+import { formatBRL } from "@/features/catalog";
 import { buildReservaMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { buildOrder, markOrderSent, type OrderPickup } from "@/lib/order";
 import {
