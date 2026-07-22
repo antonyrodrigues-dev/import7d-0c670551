@@ -2,9 +2,8 @@
  * Contrato canônico do catálogo público — consumido pelo site (Header,
  * FeaturedCarousel, ProductCard, ProductSheet, SearchDrawer, ReservaDrawer).
  *
- * Mantém a MESMA forma do antigo `src/data/products.ts` para que a migração
- * dos componentes seja um drop-in: bastará trocar `import { PRODUCTS } from
- * "@/data/products"` por `useCatalog()` sem alterar JSX.
+ * Única fonte de verdade do site: tudo é lido via `useCatalog()` a partir da
+ * tabela `produtos` no backend.
  */
 export interface PublicProduct {
   slug: string;
