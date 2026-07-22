@@ -15,6 +15,8 @@ interface PermissionsState {
   ready: boolean;
   roles: EmployeeRole[];
   userId: string | null;
+  displayName: string | null;
+  email: string | null;
   hydrate: () => Promise<void>;
   clear: () => void;
 }
@@ -23,15 +25,24 @@ const useStore = create<PermissionsState>((set) => ({
   ready: false,
   roles: [],
   userId: null,
+  displayName: null,
+  email: null,
   hydrate: async () => {
     try {
       const identity = await adminDataSource.currentIdentity();
-      set({ ready: true, roles: identity.roles, userId: identity.userId });
+      set({
+        ready: true,
+        roles: identity.roles,
+        userId: identity.userId,
+        displayName: identity.displayName ?? null,
+        email: identity.email ?? null,
+      });
     } catch {
-      set({ ready: true, roles: [], userId: null });
+      set({ ready: true, roles: [], userId: null, displayName: null, email: null });
     }
   },
-  clear: () => set({ ready: false, roles: [], userId: null }),
+  clear: () =>
+    set({ ready: false, roles: [], userId: null, displayName: null, email: null }),
 }));
 
 export function usePermissions() {
@@ -47,6 +58,8 @@ export function usePermissions() {
   return {
     ready: state.ready,
     userId: state.userId,
+    displayName: state.displayName,
+    email: state.email,
     roles: state.roles,
     isAdmin: state.roles.includes("admin"),
     isVendedor: state.roles.includes("vendedor") && !state.roles.includes("admin"),

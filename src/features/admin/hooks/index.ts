@@ -6,3 +6,4 @@ export { useCustomers } from "./data/useCustomers";
 export { useDashboard } from "./data/useDashboard";
 export { useAdminNotifications } from "./data/useAdminNotifications";
 export { useAdminSettings } from "./data/useAdminSettings";
+export { useFinance } from "./data/useFinance";

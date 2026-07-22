@@ -145,7 +145,13 @@ export const lovableCloudDataSource: AdminDataSource = {
     const roles = (data ?? [])
       .map((r) => mapDbRole(String(r.role)))
       .filter((r): r is EmployeeRole => Boolean(r));
-    return { userId: user.id, roles };
+    const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string };
+    return {
+      userId: user.id,
+      roles,
+      displayName: meta.full_name ?? meta.name ?? user.email ?? undefined,
+      email: user.email ?? undefined,
+    };
   },
 
   async listOrders(): Promise<AdminOrder[]> {

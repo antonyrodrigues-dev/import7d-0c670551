@@ -17,6 +17,9 @@ import type {
 export interface AdminIdentity {
   userId: string | null;
   roles: EmployeeRole[];
+  /** Nome exibido (metadata `full_name`/`name`) — usado em auditoria/ranking. */
+  displayName?: string;
+  email?: string;
 }
 
 /** Payload aceito por `createProduct` / `updateProduct`. */

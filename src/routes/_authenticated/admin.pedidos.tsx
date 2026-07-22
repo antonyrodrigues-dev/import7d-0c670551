@@ -54,7 +54,8 @@ function withinPeriod(iso: string, period: PeriodFilter): boolean {
 
 function PedidosPage() {
   const { orders, state, filter, error, setFilter, refresh, setStatus } = useOrders();
-  const { can } = usePermissions();
+  const { can, displayName, email } = usePermissions();
+  const responsavel = (displayName ?? email ?? "").trim() || undefined;
 
   const [query, setQuery] = useState("");
   const [period, setPeriod] = useState<PeriodFilter>("todos");
@@ -202,7 +203,7 @@ function PedidosPage() {
               key={p.id}
               order={p}
               canEdit={can("orders:edit")}
-              onStatus={setStatus}
+              onStatus={(id, next) => setStatus(id, next, responsavel)}
             />
           ))}
         </ul>
