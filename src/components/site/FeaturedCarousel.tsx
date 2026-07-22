@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { PRODUCTS, formatBRL, type Product } from "@/data/products";
+import { formatBRL, featuredOf, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
 
-function Slide({ p, onOpen }: { p: Product; onOpen: (slug: string) => void }) {
+function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void }) {
   return (
     <button
       type="button"
@@ -64,7 +64,8 @@ function Slide({ p, onOpen }: { p: Product; onOpen: (slug: string) => void }) {
 }
 
 export function FeaturedCarousel() {
-  const featured = useMemo(() => PRODUCTS.filter((p) => p.featured), []);
+  const { products } = useCatalog();
+  const featured = useMemo(() => featuredOf(products), [products]);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [canPrev, setCanPrev] = useState(false);
