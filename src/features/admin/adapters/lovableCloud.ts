@@ -172,7 +172,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { error } = await supabase.rpc("transicionar_pedido", {
       p_pedido_id: id,
       p_novo_status: status,
-      p_responsavel: responsavel ?? null,
+      p_responsavel: responsavel ?? undefined,
     });
     if (error) throw error;
   },
