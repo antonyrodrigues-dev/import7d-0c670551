@@ -8,8 +8,7 @@
 
 import { adminDataSource } from "../adapters";
 import type { ProductWritePayload, MovementKindDB } from "../adapters/types";
-import type { AdminOrder, InventoryItem, MovementKind } from "../types";
-import { useInventoryStore } from "../stores/inventory";
+import type { InventoryItem, MovementKind } from "../types";
 import { handleAdminError } from "../lib/errors";
 import { logger } from "../lib/logger";
 
@@ -116,63 +115,7 @@ export async function registerMovement(
     throw handleAdminError(e, "inventory.service.registerMovement");
   }
 }
-
-/**
- * Aplica consumo derivado de um pedido. Idempotente por pedido em memória
- * (evita duplicar chamada se transitionOrderStatus for reprocessado).
- * O consumo real no banco é registrado como `consumo_pedido`.
- */
-export async function registerConsumption(order: AdminOrder): Promise<void> {
-  const store = useInventoryStore.getState();
-  if (store.consumedOrderIds[order.id]) return;
-  store.markConsumed(order.id);
-  for (const it of order.itens) {
-    const item = store.items.find((i) => i.slug === it.slug);
-    if (!item) continue;
-    const qty = it.quantity ?? 0;
-    if (qty <= 0) continue;
-    try {
-      await adminDataSource.setVariationStock(
-        item.id,
-        it.size,
-        qty, // DELTA — RPC subtrai atomicamente com kind consumo_pedido
-        "consumo_pedido",
-        `Pedido ${order.numero}`,
-      );
-    } catch (e) {
-      handleAdminError(e, "inventory.service.consume");
-    }
-  }
-}
-
-/**
- * Restaura o estoque consumido por um pedido (aplicado no cancelamento após
- * o consumo já ter sido feito). Idempotente: se o pedido não foi consumido,
- * nada acontece.
- */
-export async function restoreConsumption(order: AdminOrder): Promise<void> {
-  const store = useInventoryStore.getState();
-  if (!store.consumedOrderIds[order.id]) return;
-  store.unmarkConsumed(order.id);
-  for (const it of order.itens) {
-    const item = store.items.find((i) => i.slug === it.slug);
-    if (!item) continue;
-    const qty = it.quantity ?? 0;
-    if (qty <= 0) continue;
-    try {
-      await adminDataSource.setVariationStock(
-        item.id,
-        it.size,
-        qty, // DELTA — kind entrada devolve a quantidade consumida atomicamente
-        "entrada",
-        `Estorno do pedido ${order.numero}`,
-      );
-      logger.info(`Estoque restaurado (pedido ${order.numero}): ${it.slug} ${it.size} +${it.quantity}`, {
-        kind: "stock.adjust",
-        productId: item.id,
-      });
-    } catch (e) {
-      handleAdminError(e, "inventory.service.restore");
-    }
-  }
-}
+// registerConsumption/restoreConsumption foram removidos (Sprint 4 · Onda 1).
+// O consumo de estoque por pedido virou atômico no banco, dentro da RPC
+// `transicionar_pedido`, guiado por `pedidos.consumo_aplicado`. LocalStorage
+// não é mais autoridade de negócio.

@@ -28,6 +28,17 @@ export const emptyAddress: Address = {
 
 export const emptyCustomer: Customer = { nome: "", telefone: "", cpf: "", observacoes: "" };
 
+/**
+ * Pedido criado no banco aguardando envio via WhatsApp. Persistido para que
+ * o retorno ao site (após abrir WA em outra aba) mostre o CTA correto.
+ */
+export interface PendingOrder {
+  id: string;
+  numero: string;
+  url: string;
+  criadoEm: string;
+}
+
 interface CheckoutState {
   step: CheckoutStep;
   delivery: DeliveryMethod;
@@ -36,6 +47,10 @@ interface CheckoutState {
   payment: PaymentMethod;
   installments: number;
   pickup: OrderPickup | null;
+  /** Chave gerada uma única vez por tentativa — impede pedido duplicado no clique duplo. */
+  idempotencyKey: string | null;
+  /** Pedido registrado no banco aguardando envio pelo WhatsApp. */
+  pendingOrder: PendingOrder | null;
 
   setStep: (s: CheckoutStep) => void;
   setDelivery: (d: DeliveryMethod) => void;
@@ -44,6 +59,9 @@ interface CheckoutState {
   setPayment: (p: PaymentMethod) => void;
   setInstallments: (n: number) => void;
   setPickup: (p: OrderPickup | null) => void;
+  ensureIdempotencyKey: () => string;
+  clearIdempotencyKey: () => void;
+  setPendingOrder: (p: PendingOrder | null) => void;
   reset: () => void;
 }
 
@@ -55,11 +73,19 @@ const initial = {
   payment: "pix" as PaymentMethod,
   installments: 1,
   pickup: null as OrderPickup | null,
+  idempotencyKey: null as string | null,
+  pendingOrder: null as PendingOrder | null,
 };
+
+function makeKey(): string {
+  const g = globalThis.crypto as Crypto | undefined;
+  if (g?.randomUUID) return g.randomUUID();
+  return `key_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export const useCheckout = create<CheckoutState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initial,
       setStep: (step) => set({ step }),
       setDelivery: (delivery) => set({ delivery }),
@@ -69,6 +95,15 @@ export const useCheckout = create<CheckoutState>()(
         set((s) => ({ payment, installments: payment === "credito" ? s.installments : 1 })),
       setInstallments: (installments) => set({ installments }),
       setPickup: (pickup) => set({ pickup }),
+      ensureIdempotencyKey: () => {
+        const cur = get().idempotencyKey;
+        if (cur) return cur;
+        const key = makeKey();
+        set({ idempotencyKey: key });
+        return key;
+      },
+      clearIdempotencyKey: () => set({ idempotencyKey: null }),
+      setPendingOrder: (pendingOrder) => set({ pendingOrder }),
       reset: () => set({ ...initial }),
     }),
     {
@@ -81,6 +116,8 @@ export const useCheckout = create<CheckoutState>()(
         payment: s.payment,
         installments: s.installments,
         pickup: s.pickup,
+        idempotencyKey: s.idempotencyKey,
+        pendingOrder: s.pendingOrder,
       }),
       // Sanitiza pickup expirado; nunca ressuscita um horário inválido.
       merge: (persisted, current) => {

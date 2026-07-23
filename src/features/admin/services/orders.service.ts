@@ -6,7 +6,6 @@
 import { adminDataSource } from "../adapters";
 import type { AdminOrder, OrderStatus } from "../types";
 import { useOrdersStore } from "../stores/orders";
-import { registerConsumption, restoreConsumption } from "./inventory.service";
 import { useInventoryStore } from "../stores/inventory";
 import { notify } from "./notifications.service";
 import { validateStatusTransition } from "../lib/validators";
@@ -29,14 +28,13 @@ export function listOrders(): Promise<AdminOrder[]> {
   });
 }
 
-/** Persistência bruta. Uso interno; consumidores usam `transitionOrderStatus`. */
-export function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
-  return adminDataSource.updateOrderStatus(id, status);
-}
-
 /**
- * Ponto de entrada canônico para qualquer mudança de status.
- * Orquestra validação → store → propagação (estoque, notificações, log) → adapter.
+ * Ponto de entrada canônico para mudança de status.
+ *
+ * Delega a transição para a RPC atômica `transicionar_pedido` no banco —
+ * que valida a máquina de estados, aplica consumo/estorno de estoque
+ * (idempotente via `pedidos.consumo_aplicado`) e grava histórico numa
+ * ÚNICA transação PostgreSQL. Se algo falha, nada persiste.
  */
 export async function transitionOrderStatus(
   id: string,
@@ -79,21 +77,17 @@ export async function transitionOrderStatus(
     await runAdminTransaction(
       { name: "order.status", origin: "orders.service.transition" },
       async () => {
-        // 1) Persistência primeiro — se falhar, o rollback natural mantém a store intacta.
-        await updateOrderStatus(id, status);
+        // 1) RPC única — status + estoque + histórico dentro de UMA transação.
+        //    A regra de consumo/estorno vive no banco (fonte única):
+        //    - consome apenas na PRIMEIRA entrada em separado/reservado
+        //    - estorna apenas se `consumo_aplicado = true` e o pedido é cancelado
+        //    - finalização NUNCA consome novamente
+        await adminDataSource.transitionOrder(id, status, by);
 
-        // 2) Propaga estoque.
-        let stockTouched = false;
-        if (status === "separado" || status === "finalizado") {
-          await registerConsumption(order);
-          stockTouched = true;
-        } else if (status === "cancelado") {
-          // Restaura consumo se já havia sido aplicado (ex.: separado → cancelado).
-          await restoreConsumption(order);
-          stockTouched = true;
-        }
-        // Refresca a store de estoque para que Dashboard/Listagem enxerguem o delta.
-        if (stockTouched) {
+        // Refresh do estoque quando a transição pode ter mexido em variações.
+        const touchesStock =
+          status === "separado" || status === "reservado" || status === "cancelado";
+        if (touchesStock) {
           void useInventoryStore.getState().refresh();
         }
 
