@@ -72,8 +72,11 @@ export type Database = {
           atendente_nome: string | null
           atualizado_em: string
           canal: string
+          consumo_aplicado: boolean
           criado_em: string
+          frete_status: string
           id: string
+          idempotency_key: string | null
           itens: Json
           numero_pedido: string
           status: string
@@ -83,8 +86,11 @@ export type Database = {
           atendente_nome?: string | null
           atualizado_em?: string
           canal?: string
+          consumo_aplicado?: boolean
           criado_em?: string
+          frete_status?: string
           id?: string
+          idempotency_key?: string | null
           itens: Json
           numero_pedido?: string
           status?: string
@@ -94,8 +100,11 @@ export type Database = {
           atendente_nome?: string | null
           atualizado_em?: string
           canal?: string
+          consumo_aplicado?: boolean
           criado_em?: string
+          frete_status?: string
           id?: string
+          idempotency_key?: string | null
           itens?: Json
           numero_pedido?: string
           status?: string
@@ -314,6 +323,7 @@ export type Database = {
           p_canal?: string
           p_cliente: Json
           p_entrega: Json
+          p_idempotency_key?: string
           p_itens: Json
           p_observacoes?: string
           p_pagamento: Json
@@ -331,6 +341,33 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      transicionar_pedido: {
+        Args: {
+          p_novo_status: string
+          p_pedido_id: string
+          p_responsavel?: string
+        }
+        Returns: {
+          atendente_nome: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          status: string
+          valor_total: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
