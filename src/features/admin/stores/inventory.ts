@@ -12,15 +12,11 @@ interface InventoryStore {
   filterBrand: string | "todas";
   filterCategory: string | "todas";
   filterStatus: "todos" | "ativos" | "inativos" | "baixo";
-  /** Pedidos cujo consumo já foi aplicado (idempotência local). */
-  consumedOrderIds: Record<string, true>;
   setQuery: (q: string) => void;
   setFilterBrand: (b: string | "todas") => void;
   setFilterCategory: (c: string | "todas") => void;
   setFilterStatus: (s: "todos" | "ativos" | "inativos" | "baixo") => void;
   refresh: () => Promise<void>;
-  markConsumed: (orderId: string) => void;
-  unmarkConsumed: (orderId: string) => void;
   /** Substitui a coleção. Uso restrito ao serviço. */
   replace: (items: InventoryItem[]) => void;
 }
@@ -34,7 +30,6 @@ export const useInventoryStore = create<InventoryStore>()(
       filterBrand: "todas",
       filterCategory: "todas",
       filterStatus: "todos",
-      consumedOrderIds: {},
       setQuery: (query) => set({ query }),
       setFilterBrand: (filterBrand) => set({ filterBrand }),
       setFilterCategory: (filterCategory) => set({ filterCategory }),
@@ -51,33 +46,24 @@ export const useInventoryStore = create<InventoryStore>()(
           logEvent("system.error", message);
         }
       },
-      markConsumed: (orderId) =>
-        set((s) => ({ consumedOrderIds: { ...s.consumedOrderIds, [orderId]: true } })),
-      unmarkConsumed: (orderId) =>
-        set((s) => {
-          const next = { ...s.consumedOrderIds };
-          delete next[orderId];
-          return { consumedOrderIds: next };
-        }),
       replace: (items) => set({ items }),
     }),
     {
-      // v2 — schema real: só persistimos UI/idempotência, itens vêm sempre do backend.
+      // v3 — Sprint 4/Onda 1: consumedOrderIds removido (idempotência agora
+      // é responsabilidade do banco via `pedidos.consumo_aplicado`).
       name: "7d-admin-inventory",
-      version: 2,
+      version: 3,
       migrate: () => ({
         query: "",
         filterBrand: "todas",
         filterCategory: "todas",
         filterStatus: "todos",
-        consumedOrderIds: {},
       }),
       partialize: (s) => ({
         query: s.query,
         filterBrand: s.filterBrand,
         filterCategory: s.filterCategory,
         filterStatus: s.filterStatus,
-        consumedOrderIds: s.consumedOrderIds,
       }),
     },
   ),
