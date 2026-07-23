@@ -75,6 +75,11 @@ export function ReservaDrawer() {
     setPayment,
     setInstallments,
     setPickup,
+    idempotencyKey,
+    pendingOrder,
+    ensureIdempotencyKey,
+    clearIdempotencyKey,
+    setPendingOrder,
     reset: resetCheckout,
   } = useCheckout();
 
@@ -183,6 +188,17 @@ export function ReservaDrawer() {
   };
   const goBack = () => setStep(Math.max(0, (step as number) - 1) as Step);
 
+  /**
+   * Sprint 4 · Onda 1
+   *
+   * Fluxo corrigido:
+   *  1. Bloqueia clique duplo (ref + submitting) e gera/recupera `idempotencyKey`.
+   *  2. AGUARDA a RPC `criar_pedido` — sem `void` e sem race.
+   *  3. Só monta a URL do WhatsApp com o `numero_pedido` OFICIAL do servidor.
+   *  4. Persiste `pendingOrder` (id/número/URL) e mostra CTA "Já enviei/Reenviar".
+   *  5. Em qualquer falha: mantém carrinho, checkout, campos e chave —
+   *     nada é limpo até ação explícita "Já enviei" ou "Cancelar solicitação".
+   */
   const finalizar = async () => {
     if (items.length === 0 || submittingRef.current) return;
     // Validação única antes de gerar o pedido.
@@ -200,11 +216,10 @@ export function ReservaDrawer() {
     }
     submittingRef.current = true;
     setSubmitting(true);
-    setPendingWhats(null);
 
-    // Fonte única do pedido — WhatsApp, futuras persistências e o painel
-    // administrativo derivam desse objeto, nunca dos campos do formulário.
-    let order = buildOrder({
+    // Objeto local (usado só para mensagem/telemetria). O backend é a fonte
+    // canônica: preços, total e numero_pedido virão de lá.
+    const localOrder = buildOrder({
       items,
       customer,
       delivery,
@@ -215,90 +230,117 @@ export function ReservaDrawer() {
       installments,
     });
 
-    // Persistência do pedido no backend via RPC `criar_pedido`.
-    // O servidor recalcula o total a partir do catálogo (o cliente NÃO
-    // pode forjar valor) e devolve o número oficial gerado pela sequence.
-    // Falha continua não bloqueando o WhatsApp — o pedido é registrado
-    // best-effort, mas quando dá certo o número passa a ser o do banco.
-    void (async () => {
-      try {
-        const itensPayload = order.itens.map((it) => ({
-          slug: it.slug,
-          name: it.name,
-          size: it.size,
-          quantity: it.quantity,
-          image: it.image,
-        }));
-        const entregaPayload = {
-          metodo: order.entrega.metodo,
-          endereco: order.entrega.endereco ?? null,
-          frete: order.entrega.frete,
-          retirada: order.entrega.retirada ?? null,
-        };
-        const pagamentoPayload = {
-          metodo: order.pagamento.metodo,
-          parcelas: order.pagamento.parcelas,
-          valor_por_parcela:
-            order.pagamento.parcelamento?.perInstallment ?? order.totais.total,
-        };
-        const rpc = supabase.rpc("criar_pedido", {
-          p_itens: itensPayload as never,
-          p_cliente: order.cliente as never,
-          p_entrega: entregaPayload as never,
-          p_pagamento: pagamentoPayload as never,
-          p_observacoes: undefined,
-          p_canal: "whatsapp",
-        });
-        const result = await Promise.race([
-          rpc,
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), 8000),
-          ),
-        ]);
-        const row = Array.isArray(result.data) ? result.data[0] : null;
-        if (row?.numero_pedido) {
-          order = { ...order, numero: row.numero_pedido };
-        }
-      } catch {
-        /* silencioso — número local segue válido para o WhatsApp */
-      }
-    })();
+    // Uma chave por tentativa — persistida. Repetir o clique reutiliza a mesma
+    // e o servidor devolve o pedido já criado (idempotência real).
+    const key = ensureIdempotencyKey();
 
     try {
-      // Prova de integridade da mensagem antes de tentar abrir o WhatsApp.
-      const preview = buildReservaMessage(order);
-      if (!preview || preview.length < 20) throw new Error("mensagem inválida");
-      const url = buildWhatsAppUrl(order);
+      const itensPayload = localOrder.itens.map((it) => ({
+        slug: it.slug,
+        name: it.name,
+        size: it.size,
+        quantity: it.quantity,
+        image: it.image,
+      }));
+      const entregaPayload = {
+        metodo: localOrder.entrega.metodo,
+        endereco: localOrder.entrega.endereco ?? null,
+        retirada: localOrder.entrega.retirada ?? null,
+        // Frete é sempre "pendente" no MVP; servidor ignora custo enviado pelo cliente.
+      };
+      const pagamentoPayload = {
+        metodo: localOrder.pagamento.metodo,
+        parcelas: localOrder.pagamento.parcelas,
+      };
+
+      const { data, error } = await supabase.rpc("criar_pedido", {
+        p_itens: itensPayload as never,
+        p_cliente: localOrder.cliente as never,
+        p_entrega: entregaPayload as never,
+        p_pagamento: pagamentoPayload as never,
+        p_observacoes: localOrder.cliente.observacoes || undefined,
+        p_canal: "whatsapp",
+        p_idempotency_key: key,
+      });
+
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row?.numero_pedido || !row?.id) {
+        throw new Error("Resposta inválida do servidor.");
+      }
+
+      // Monta a mensagem/URL SOMENTE após confirmação do banco, com o número oficial.
+      const officialOrder = {
+        ...localOrder,
+        numero: row.numero_pedido as string,
+        totais: {
+          ...localOrder.totais,
+          total: Number(row.valor_total) || localOrder.totais.total,
+        },
+      };
+      const preview = buildReservaMessage(officialOrder);
+      if (!preview || preview.length < 20) throw new Error("Mensagem inválida.");
+      const url = buildWhatsAppUrl(officialOrder);
+
+      setPendingOrder({
+        id: row.id as string,
+        numero: row.numero_pedido as string,
+        url,
+        criadoEm: officialOrder.criadoEm,
+      });
+
       track({
         name: "checkout_whatsapp",
-        total: order.totais.total,
-        items: order.itens.reduce((a, i) => a + i.quantity, 0),
+        total: officialOrder.totais.total,
+        items: officialOrder.itens.reduce((a, i) => a + i.quantity, 0),
       });
-      const popup =
-        typeof window !== "undefined" ? window.open(url, "_blank", "noopener,noreferrer") : null;
 
-      if (!popup) {
-        // Popup bloqueado — apresentamos o link para o cliente concluir.
-        setPendingWhats(url);
-        toast.message("Pedido pronto", {
-          description: "Toque em 'Abrir WhatsApp' para continuar.",
-        });
-      } else {
-        order = markOrderSent(order);
-        toast.success(`Pedido ${order.numero} enviado`, {
-          description: "Prossiga a conversa no WhatsApp para confirmar.",
-        });
-        clear();
-        resetCheckout();
-        setOpen(false);
+      // Tenta abrir automaticamente; abrir o WhatsApp NÃO é prova de envio —
+      // o CTA "Já enviei" continua sendo obrigatório na próxima interação.
+      if (typeof window !== "undefined") {
+        window.open(url, "_blank", "noopener,noreferrer");
       }
-    } catch {
-      toast.error("Não foi possível preparar o pedido. Tente novamente.");
+      toast.success(`Pedido ${row.numero_pedido} criado`, {
+        description: "Envie a mensagem no WhatsApp para concluir a solicitação.",
+      });
+    } catch (err) {
+      // Falha: mantém carrinho, checkout, campos e a chave — para a próxima
+      // tentativa reutilizar a mesma e não duplicar o pedido no servidor.
+      const msg = (err as Error)?.message ?? "Falha ao registrar pedido.";
+      toast.error("Não foi possível registrar o pedido", {
+        description: `${msg} Tente novamente.`,
+      });
     } finally {
       submittingRef.current = false;
       setSubmitting(false);
     }
   };
+
+  /** CTAs do estado pós-criação (pedido registrado, aguardando envio). */
+  const marcarEnviado = () => {
+    setPendingOrder(null);
+    clearIdempotencyKey();
+    clear();
+    resetCheckout();
+    setOpen(false);
+    toast.success("Solicitação finalizada. Obrigado!");
+  };
+  const reenviarWhats = () => {
+    if (!pendingOrder) return;
+    if (typeof window !== "undefined") {
+      window.open(pendingOrder.url, "_blank", "noopener,noreferrer");
+    }
+  };
+  const cancelarSolicitacao = () => {
+    // Não excluímos o pedido no banco (ele fica em `novo` e pode ser tratado
+    // pelo admin). Aqui limpamos o rastro local e destravamos nova tentativa.
+    setPendingOrder(null);
+    clearIdempotencyKey();
+  };
+  // markOrderSent/pendingWhats permanecem para compatibilidade da UI antiga
+  // (fallback quando popup bloqueado). Ver rodapé abaixo.
+  void markOrderSent;
+  void idempotencyKey;
 
   const currentIndex = useMemo(() => STEPS.findIndex((s) => s.key === step), [step]);
 
