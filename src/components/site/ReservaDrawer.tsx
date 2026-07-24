@@ -9,14 +9,15 @@ import {
   Store,
   Truck,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
-import { useCheckout, type CheckoutStep } from "@/store/checkout";
+import { useCheckout, type CheckoutStep, type PendingOrder } from "@/store/checkout";
 import { formatBRL } from "@/features/catalog";
 import { buildReservaMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
-import { buildOrder, markOrderSent, type OrderPickup } from "@/lib/order";
+import { buildOrder, type OrderPickup } from "@/lib/order";
 import {
   getUpcomingPickupSlots,
   formatPickupSlot,
@@ -49,6 +50,16 @@ import {
 } from "@/lib/installments";
 
 type Step = CheckoutStep;
+
+type CheckoutFlowState =
+  | "idle"
+  | "creating"
+  | "created_pending_whatsapp"
+  | "reopening_whatsapp"
+  | "confirming_sent"
+  | "cancelling"
+  | "completed"
+  | "error";
 
 const STEPS: { key: Step; label: string }[] = [
   { key: 0, label: "Reserva" },
@@ -87,10 +98,13 @@ export function ReservaDrawer() {
 
   const [freight, setFreight] = useState<Freight>({ cost: null, label: "A combinar" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [pendingWhats, setPendingWhats] = useState<string | null>(null);
+  const [flowState, setFlowState] = useState<CheckoutFlowState>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<{ numero: string } | null>(null);
   const [cepLoading, setCepLoading] = useState(false);
   const submittingRef = useRef(false);
+  const actionRef = useRef(false);
 
   const baseTotal = subtotal + (freight.cost ?? 0);
   const adminSettings = useSettingsStore((s) => s.settings);
@@ -137,17 +151,25 @@ export function ReservaDrawer() {
   useEffect(() => {
     if (!open) {
       setErrors({});
-      setPendingWhats(null);
+      setCancelConfirmOpen(false);
     }
   }, [open]);
 
   // if cart empties, snap back to step 0
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !pendingOrder) {
       setStep(0);
-      setPendingWhats(null);
     }
-  }, [items.length, setStep]);
+  }, [items.length, pendingOrder, setStep]);
+
+  useEffect(() => {
+    if (pendingOrder && (flowState === "idle" || flowState === "completed")) {
+      setFlowState("created_pending_whatsapp");
+      setCompletedOrder(null);
+      setErrorMessage(null);
+      setCancelConfirmOpen(false);
+    }
+  }, [flowState, pendingOrder]);
 
   // recompute freight when address/delivery change
   useEffect(() => {
@@ -188,6 +210,34 @@ export function ReservaDrawer() {
   };
   const goBack = () => setStep(Math.max(0, (step as number) - 1) as Step);
 
+  const isBusy =
+    flowState === "creating" ||
+    flowState === "reopening_whatsapp" ||
+    flowState === "confirming_sent" ||
+    flowState === "cancelling";
+
+  const currentPendingSummary = useMemo(() => {
+    if (!pendingOrder) return null;
+    return (
+      pendingOrder.summary ?? {
+        itens: items,
+        subtotalOficial: subtotal,
+        entrega: delivery,
+        endereco: delivery === "entrega" ? address : undefined,
+        retirada: delivery === "retirada" ? pickup : null,
+        freteLabel: delivery === "entrega" ? "A combinar" : "Retirada na loja",
+        pagamento: payment,
+        parcelas: payment === "credito" ? installments : 1,
+      }
+    );
+  }, [address, delivery, installments, items, payment, pendingOrder, pickup, subtotal]);
+
+  const openWhatsApp = (url: string): boolean => {
+    if (typeof window === "undefined") return false;
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    return Boolean(opened);
+  };
+
   /**
    * Sprint 4 · Onda 1
    *
@@ -201,6 +251,8 @@ export function ReservaDrawer() {
    */
   const finalizar = async () => {
     if (items.length === 0 || submittingRef.current) return;
+    setFlowState("creating");
+    setErrorMessage(null);
     // Validação única antes de gerar o pedido.
     const check = validateOrder(snapshot);
     if (!check.ok) {
@@ -215,8 +267,6 @@ export function ReservaDrawer() {
       return;
     }
     submittingRef.current = true;
-    setSubmitting(true);
-
     // Objeto local (usado só para mensagem/telemetria). O backend é a fonte
     // canônica: preços, total e numero_pedido virão de lá.
     const localOrder = buildOrder({
@@ -281,13 +331,32 @@ export function ReservaDrawer() {
       const preview = buildReservaMessage(officialOrder);
       if (!preview || preview.length < 20) throw new Error("Mensagem inválida.");
       const url = buildWhatsAppUrl(officialOrder);
+      const officialSubtotal = Number(row.valor_total) || officialOrder.totais.subtotal;
 
       setPendingOrder({
         id: row.id as string,
         numero: row.numero_pedido as string,
         url,
         criadoEm: officialOrder.criadoEm,
+        idempotencyKey: key,
+        summary: {
+          itens: officialOrder.itens.map((item) => ({ ...item })),
+          subtotalOficial: officialSubtotal,
+          entrega: officialOrder.entrega.metodo,
+          endereco: officialOrder.entrega.endereco,
+          retirada: officialOrder.entrega.retirada ?? null,
+          freteLabel:
+            officialOrder.entrega.metodo === "entrega"
+              ? officialOrder.entrega.frete.cost != null
+                ? formatBRL(officialOrder.entrega.frete.cost)
+                : "A combinar"
+              : "Retirada na loja",
+          pagamento: officialOrder.pagamento.metodo,
+          parcelas: officialOrder.pagamento.parcelas,
+        },
       });
+      setFlowState("created_pending_whatsapp");
+      setCancelConfirmOpen(false);
 
       track({
         name: "checkout_whatsapp",
@@ -297,8 +366,11 @@ export function ReservaDrawer() {
 
       // Tenta abrir automaticamente; abrir o WhatsApp NÃO é prova de envio —
       // o CTA "Já enviei" continua sendo obrigatório na próxima interação.
-      if (typeof window !== "undefined") {
-        window.open(url, "_blank", "noopener,noreferrer");
+      const opened = openWhatsApp(url);
+      if (!opened) {
+        toast.error("O WhatsApp não abriu automaticamente", {
+          description: "O pedido foi criado. Use Reenviar mensagem para abrir novamente.",
+        });
       }
       toast.success(`Pedido ${row.numero_pedido} criado`, {
         description: "Envie a mensagem no WhatsApp para concluir a solicitação.",
@@ -307,42 +379,124 @@ export function ReservaDrawer() {
       // Falha: mantém carrinho, checkout, campos e a chave — para a próxima
       // tentativa reutilizar a mesma e não duplicar o pedido no servidor.
       const msg = (err as Error)?.message ?? "Falha ao registrar pedido.";
+      setFlowState("error");
+      setErrorMessage(msg);
       toast.error("Não foi possível registrar o pedido", {
         description: `${msg} Tente novamente.`,
       });
     } finally {
       submittingRef.current = false;
-      setSubmitting(false);
     }
   };
 
   /** CTAs do estado pós-criação (pedido registrado, aguardando envio). */
-  const marcarEnviado = () => {
+  const marcarEnviado = async () => {
+    if (!pendingOrder || actionRef.current) return;
+    actionRef.current = true;
+    setFlowState("confirming_sent");
+    setErrorMessage(null);
+    const numero = pendingOrder.numero;
+    await Promise.resolve();
     setPendingOrder(null);
     clearIdempotencyKey();
     clear();
     resetCheckout();
-    setOpen(false);
-    toast.success("Solicitação finalizada. Obrigado!");
+    setCompletedOrder({ numero });
+    setFlowState("completed");
+    actionRef.current = false;
+    toast.success(`Pedido ${numero} sinalizado como enviado`, {
+      description: "Confirmação registrada a partir da sua declaração.",
+    });
   };
-  const reenviarWhats = () => {
+  const reenviarWhats = async () => {
+    if (!pendingOrder || actionRef.current) return;
+    actionRef.current = true;
+    setFlowState("reopening_whatsapp");
+    setErrorMessage(null);
+    await Promise.resolve();
+    const opened = openWhatsApp(pendingOrder.url);
+    if (!opened) {
+      setErrorMessage("O navegador bloqueou a abertura do WhatsApp. Tente novamente pelo botão.");
+      toast.error("WhatsApp bloqueado pelo navegador", {
+        description: "O pedido continua salvo e pode ser reenviado.",
+      });
+    } else {
+      toast.success(`Mensagem do pedido ${pendingOrder.numero} reaberta`);
+    }
+    setFlowState("created_pending_whatsapp");
+    actionRef.current = false;
+  };
+  const revisarDados = () => {
     if (!pendingOrder) return;
-    if (typeof window !== "undefined") {
-      window.open(pendingOrder.url, "_blank", "noopener,noreferrer");
+    setCancelConfirmOpen(false);
+    setErrorMessage(
+      `Pedido ${pendingOrder.numero} já foi criado. Para alterar peças ou dados, cancele esta solicitação e inicie uma nova.`,
+    );
+    toast.message(`Resumo do pedido ${pendingOrder.numero}`, {
+      description: "Alterações silenciosas não são aplicadas em pedido já criado.",
+    });
+  };
+  const cancelarSolicitacao = async () => {
+    if (!pendingOrder || actionRef.current) return;
+    const key = pendingOrder.idempotencyKey ?? idempotencyKey;
+    if (!key) {
+      const msg = "Chave da solicitação ausente. O pedido foi preservado para suporte.";
+      setFlowState("error");
+      setErrorMessage(msg);
+      toast.error("Cancelamento não executado", { description: msg });
+      return;
+    }
+    actionRef.current = true;
+    setFlowState("cancelling");
+    setErrorMessage(null);
+    try {
+      const { data, error } = await supabase.rpc("cancelar_pedido_checkout", {
+        p_pedido_id: pendingOrder.id,
+        p_idempotency_key: key,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row || row.status !== "cancelado") {
+        throw new Error("Cancelamento não confirmado pelo servidor.");
+      }
+      const numero = pendingOrder.numero;
+      setPendingOrder(null);
+      clearIdempotencyKey();
+      clear();
+      resetCheckout();
+      setCompletedOrder({ numero });
+      setFlowState("completed");
+      setCancelConfirmOpen(false);
+      toast.success(`Solicitação ${numero} cancelada`);
+    } catch (err) {
+      const msg = (err as Error)?.message ?? "Falha ao cancelar solicitação.";
+      setFlowState("error");
+      setErrorMessage(msg);
+      toast.error("Não foi possível cancelar", {
+        description: `${msg} O pedido foi preservado para tentar novamente.`,
+      });
+    } finally {
+      actionRef.current = false;
     }
   };
-  const cancelarSolicitacao = () => {
-    // Não excluímos o pedido no banco (ele fica em `novo` e pode ser tratado
-    // pelo admin). Aqui limpamos o rastro local e destravamos nova tentativa.
-    setPendingOrder(null);
-    clearIdempotencyKey();
-  };
-  // markOrderSent/pendingWhats permanecem para compatibilidade da UI antiga
-  // (fallback quando popup bloqueado). Ver rodapé abaixo.
-  void markOrderSent;
-  void idempotencyKey;
 
   const currentIndex = useMemo(() => STEPS.findIndex((s) => s.key === step), [step]);
+  const drawerTitle = pendingOrder
+    ? "Pedido criado"
+    : flowState === "completed"
+      ? "Solicitação concluída"
+      : STEPS[currentIndex].label;
+  const drawerEyebrow = pendingOrder
+    ? "Aguardando WhatsApp"
+    : flowState === "completed"
+      ? "Fluxo finalizado"
+      : `Etapa ${currentIndex + 1} de ${STEPS.length}`;
+  const footerLabel = pendingOrder ? "Total oficial" : step === 4 ? "Total" : "Subtotal";
+  const footerAmount = pendingOrder
+    ? (currentPendingSummary?.subtotalOficial ?? subtotal)
+    : step === 4
+      ? total
+      : subtotal;
 
   return (
     <AnimatePresence>
@@ -371,10 +525,10 @@ export function ReservaDrawer() {
             <div className="flex items-center justify-between border-b border-[color:var(--border)] px-6 py-5">
               <div className="min-w-0">
                 <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                  Etapa {currentIndex + 1} de {STEPS.length}
+                  {drawerEyebrow}
                 </p>
                 <h2 className="mt-1 truncate font-display text-2xl text-[color:var(--forest-deep)]">
-                  {STEPS[currentIndex].label}
+                  {drawerTitle}
                 </h2>
               </div>
               <button
@@ -401,7 +555,22 @@ export function ReservaDrawer() {
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-6">
-              {items.length === 0 ? (
+              {pendingOrder && currentPendingSummary ? (
+                <PendingOrderPanel
+                  pendingOrder={pendingOrder}
+                  summary={currentPendingSummary}
+                  state={flowState}
+                  errorMessage={errorMessage}
+                  cancelConfirmOpen={cancelConfirmOpen}
+                  onCancelOpen={() => setCancelConfirmOpen(true)}
+                  onCancelClose={() => setCancelConfirmOpen(false)}
+                  onConfirmCancel={cancelarSolicitacao}
+                  onReview={revisarDados}
+                  isBusy={isBusy}
+                />
+              ) : flowState === "completed" && completedOrder ? (
+                <CompletedOrderPanel numero={completedOrder.numero} />
+              ) : items.length === 0 ? (
                 <p className="mt-8 text-center font-display text-lg italic text-[color:var(--muted-foreground)]">
                   Sua reserva aguarda a primeira peça.
                 </p>
@@ -536,35 +705,72 @@ export function ReservaDrawer() {
             <div className="border-t border-[color:var(--border)] p-6">
               <div className="flex items-baseline justify-between">
                 <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                  {step === 4 ? "Total" : "Subtotal"}
+                  {footerLabel}
                 </span>
                 <span className="font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">
-                  {formatBRL(step === 4 ? total : subtotal)}
+                  {formatBRL(footerAmount)}
                 </span>
               </div>
 
-              {pendingWhats ? (
-                <a
-                  href={pendingWhats}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {pendingOrder ? (
+                <div className="mt-5 flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={reenviarWhats}
+                    disabled={isBusy}
+                    aria-busy={flowState === "reopening_whatsapp"}
+                    className="inline-flex h-14 w-full items-center justify-center gap-2 bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {flowState === "reopening_whatsapp" ? "Abrindo…" : "Reenviar WhatsApp"}
+                    {flowState === "reopening_whatsapp" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={marcarEnviado}
+                    disabled={isBusy}
+                    aria-busy={flowState === "confirming_sent"}
+                    className="inline-flex h-14 w-full items-center justify-center gap-2 border border-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {flowState === "confirming_sent" ? "Confirmando…" : "Já enviei"}
+                    {flowState === "confirming_sent" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCancelConfirmOpen(true)}
+                    disabled={isBusy}
+                    className="inline-flex h-12 w-full items-center justify-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] underline-offset-4 hover:text-[color:var(--forest-deep)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Cancelar solicitação
+                  </button>
+                </div>
+              ) : flowState === "completed" ? (
+                <button
+                  type="button"
                   onClick={() => {
-                    clear();
-                    setOpen(false);
+                    setFlowState("idle");
+                    setCompletedOrder(null);
                     setStep(0);
+                    setOpen(false);
                   }}
-                  className="mt-5 inline-flex h-14 w-full items-center justify-center gap-2 bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)]"
+                  className="mt-5 inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)]"
                 >
-                  Abrir WhatsApp
-                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                </a>
+                  Concluir
+                </button>
               ) : (
                 <div className="mt-5 flex items-center gap-3">
                   {step > 0 && (
                     <button
                       type="button"
                       onClick={goBack}
-                      disabled={submitting}
+                      disabled={isBusy}
                       className="inline-flex h-14 shrink-0 items-center justify-center gap-2 border border-[color:var(--forest-deep)] px-5 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] disabled:opacity-50"
                     >
                       <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -589,16 +795,20 @@ export function ReservaDrawer() {
                     <button
                       type="button"
                       onClick={finalizar}
-                      disabled={items.length === 0 || submitting}
-                      aria-busy={submitting}
+                      disabled={items.length === 0 || isBusy}
+                      aria-busy={flowState === "creating"}
                       className={`inline-flex h-14 w-full items-center justify-center gap-2 text-[11px] tracking-luxe uppercase transition-colors ${
-                        items.length === 0 || submitting
+                        items.length === 0 || isBusy
                           ? "bg-[color:var(--cream-deep)] text-[color:var(--muted-foreground)] cursor-not-allowed"
                           : "bg-[color:var(--forest-deep)] text-[color:var(--cream)] hover:bg-[color:var(--forest)]"
                       }`}
                     >
-                      {submitting ? "Preparando…" : "Finalizar via WhatsApp"}
-                      {!submitting && <ExternalLink className="h-4 w-4" aria-hidden="true" />}
+                      {flowState === "creating" ? "Preparando…" : "Finalizar via WhatsApp"}
+                      {flowState === "creating" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                      )}
                     </button>
                   )}
                 </div>
@@ -612,6 +822,160 @@ export function ReservaDrawer() {
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+type PendingSummary = NonNullable<PendingOrder["summary"]>;
+
+function PendingOrderPanel({
+  pendingOrder,
+  summary,
+  state,
+  errorMessage,
+  cancelConfirmOpen,
+  onCancelOpen,
+  onCancelClose,
+  onConfirmCancel,
+  onReview,
+  isBusy,
+}: {
+  pendingOrder: PendingOrder;
+  summary: PendingSummary;
+  state: CheckoutFlowState;
+  errorMessage: string | null;
+  cancelConfirmOpen: boolean;
+  onCancelOpen: () => void;
+  onCancelClose: () => void;
+  onConfirmCancel: () => void;
+  onReview: () => void;
+  isBusy: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-6" data-testid="pending-order-panel">
+      <section className="border border-[color:var(--forest-deep)]/10 bg-[color:var(--forest-deep)]/5 p-5 text-center">
+        <Check className="mx-auto h-8 w-8 text-[color:var(--gold)]" aria-hidden="true" />
+        <h3 className="mt-3 font-display text-2xl text-[color:var(--forest-deep)]">
+          Pedido {pendingOrder.numero}
+        </h3>
+        <p className="mt-1 text-sm text-[color:var(--muted-foreground)]">
+          Criado e aguardando envio pelo WhatsApp.
+        </p>
+      </section>
+
+      {errorMessage && (
+        <div className="flex gap-3 border border-[color:var(--gold)]/40 bg-[color:var(--gold)]/10 p-4 text-sm text-[color:var(--forest-deep)]">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>{errorMessage}</p>
+        </div>
+      )}
+
+      <section>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h4 className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            Resumo oficial
+          </h4>
+          <button
+            type="button"
+            onClick={onReview}
+            className="text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)] underline-offset-4 hover:underline"
+          >
+            Revisar dados
+          </button>
+        </div>
+        <ul className="flex flex-col gap-3">
+          {summary.itens.map((item) => (
+            <li key={`${item.slug}-${item.size}`} className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="truncate font-display text-base text-[color:var(--forest-deep)]">
+                  {item.name}
+                </p>
+                <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                  Tam. {item.size} · {item.quantity}×
+                </p>
+              </div>
+              <span className="shrink-0 font-display tabular-nums text-[color:var(--forest-deep)]">
+                {formatBRL(item.price * item.quantity)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="grid gap-3 text-sm text-[color:var(--forest-deep)]">
+        <div className="flex items-start gap-3">
+          {summary.entrega === "retirada" ? (
+            <Store className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          ) : (
+            <Truck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          )}
+          <div>
+            <p>{DELIVERY_LABEL[summary.entrega]}</p>
+            <p className="text-[color:var(--muted-foreground)]">
+              {summary.entrega === "retirada" && summary.retirada
+                ? formatPickupSlot(summary.retirada.date, summary.retirada.time)
+                : summary.endereco
+                  ? `${summary.endereco.rua}, ${summary.endereco.numero} · ${summary.endereco.bairro}`
+                  : summary.freteLabel}
+            </p>
+          </div>
+        </div>
+        <p>
+          {PAYMENT_LABEL[summary.pagamento]}
+          {summary.parcelas > 1 ? ` · ${summary.parcelas}x` : " · à vista"}
+        </p>
+      </section>
+
+      {cancelConfirmOpen ? (
+        <section className="border border-[color:var(--gold)]/40 p-4">
+          <p className="text-sm text-[color:var(--forest-deep)]">
+            Cancelar esta solicitação marca o pedido como cancelado e libera uma nova tentativa.
+          </p>
+          <div className="mt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={onCancelClose}
+              disabled={isBusy}
+              className="h-11 flex-1 border border-[color:var(--border)] text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)] disabled:opacity-60"
+            >
+              Manter
+            </button>
+            <button
+              type="button"
+              onClick={onConfirmCancel}
+              disabled={isBusy}
+              aria-busy={state === "cancelling"}
+              className="h-11 flex-1 bg-[color:var(--forest-deep)] text-[10px] tracking-luxe uppercase text-[color:var(--cream)] disabled:opacity-60"
+            >
+              {state === "cancelling" ? "Cancelando…" : "Confirmar"}
+            </button>
+          </div>
+        </section>
+      ) : (
+        <button
+          type="button"
+          onClick={onCancelOpen}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+        >
+          Abrir confirmação de cancelamento
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CompletedOrderPanel({ numero }: { numero: string }) {
+  return (
+    <div className="mt-8 text-center" data-testid="checkout-completed-panel">
+      <Check className="mx-auto h-9 w-9 text-[color:var(--gold)]" aria-hidden="true" />
+      <h3 className="mt-4 font-display text-2xl text-[color:var(--forest-deep)]">
+        Solicitação {numero} concluída
+      </h3>
+      <p className="mt-2 text-sm text-[color:var(--muted-foreground)]">
+        O carrinho foi limpo e o checkout está pronto para uma nova reserva.
+      </p>
+    </div>
   );
 }
 

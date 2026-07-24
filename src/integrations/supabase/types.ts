@@ -318,6 +318,15 @@ export type Database = {
         }
         Returns: number
       }
+      cancelar_pedido_checkout: {
+        Args: { p_idempotency_key: string; p_pedido_id: string }
+        Returns: {
+          id: string
+          numero_pedido: string
+          status: string
+          valor_total: number
+        }[]
+      }
       criar_pedido: {
         Args: {
           p_canal?: string

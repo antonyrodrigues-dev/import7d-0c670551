@@ -14,6 +14,7 @@ import { persist } from "zustand/middleware";
 import type { Address, Customer, DeliveryMethod, PaymentMethod } from "@/lib/checkout";
 import { isValidPickupSlot } from "@/lib/pickup";
 import type { OrderPickup } from "@/lib/order";
+import type { ReservaItem } from "@/store/reserva";
 
 export type CheckoutStep = 0 | 1 | 2 | 3 | 4;
 
@@ -37,6 +38,19 @@ export interface PendingOrder {
   numero: string;
   url: string;
   criadoEm: string;
+  /** Chave da tentativa que criou o pedido — necessária para cancelamento seguro/idempotente. */
+  idempotencyKey?: string;
+  /** Snapshot imutável exibido no pós-criação; não depende do carrinho vivo. */
+  summary?: {
+    itens: ReservaItem[];
+    subtotalOficial: number;
+    entrega: DeliveryMethod;
+    endereco?: Address;
+    retirada?: OrderPickup | null;
+    freteLabel: string;
+    pagamento: PaymentMethod;
+    parcelas: number;
+  };
 }
 
 interface CheckoutState {
