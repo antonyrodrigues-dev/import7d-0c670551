@@ -251,7 +251,6 @@ export function ReservaDrawer() {
    */
   const finalizar = async () => {
     if (items.length === 0 || submittingRef.current) return;
-    setFlowState("creating");
     setErrorMessage(null);
     // Validação única antes de gerar o pedido.
     const check = validateOrder(snapshot);
@@ -266,6 +265,7 @@ export function ReservaDrawer() {
       else if (missing === "payment" || missing === "installments") setStep(3);
       return;
     }
+    setFlowState("creating");
     submittingRef.current = true;
     // Objeto local (usado só para mensagem/telemetria). O backend é a fonte
     // canônica: preços, total e numero_pedido virão de lá.
