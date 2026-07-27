@@ -798,7 +798,7 @@ export function ReservaDrawer() {
                     aria-busy={flowState === "confirming_sent"}
                     className="inline-flex h-14 w-full items-center justify-center gap-2 border border-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {flowState === "confirming_sent" ? "Confirmando…" : "Já enviei"}
+                    {flowState === "confirming_sent" ? "Registrando…" : "Já enviei a mensagem"}
                     {flowState === "confirming_sent" ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     ) : (
