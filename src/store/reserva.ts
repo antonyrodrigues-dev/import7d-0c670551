@@ -160,3 +160,14 @@ export const useReserva = create<ReservaState>()(
     },
   ),
 );
+
+/**
+ * Ressincronização automática: sempre que o catálogo oficial mudar (carga
+ * inicial, refresh, alteração feita no Admin), o carrinho persistido é
+ * reconciliado. Evita preço/nome/estoque defasados vindos do localStorage.
+ */
+if (typeof window !== "undefined") {
+  useCatalogStore.subscribe(() => {
+    useReserva.getState().syncWithCatalog();
+  });
+}
