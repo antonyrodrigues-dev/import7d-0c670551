@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      pedido_eventos: {
+        Row: {
+          criado_em: string
+          detalhe: Json
+          id: string
+          numero_pedido: string
+          origem: string
+          pedido_id: string
+          por_usuario: string | null
+          tipo: string
+        }
+        Insert: {
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          numero_pedido: string
+          origem: string
+          pedido_id: string
+          por_usuario?: string | null
+          tipo: string
+        }
+        Update: {
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          numero_pedido?: string
+          origem?: string
+          pedido_id?: string
+          por_usuario?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_eventos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedido_status_historico: {
         Row: {
           criado_em: string
@@ -79,8 +120,11 @@ export type Database = {
           idempotency_key: string | null
           itens: Json
           numero_pedido: string
+          responsavel_id: string | null
           status: string
           valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
         }
         Insert: {
           atendente_nome?: string | null
@@ -93,8 +137,11 @@ export type Database = {
           idempotency_key?: string | null
           itens: Json
           numero_pedido?: string
+          responsavel_id?: string | null
           status?: string
           valor_total: number
+          whatsapp_confirmacao_origem?: string | null
+          whatsapp_declarado_enviado_em?: string | null
         }
         Update: {
           atendente_nome?: string | null
@@ -107,8 +154,11 @@ export type Database = {
           idempotency_key?: string | null
           itens?: Json
           numero_pedido?: string
+          responsavel_id?: string | null
           status?: string
           valor_total?: number
+          whatsapp_confirmacao_origem?: string | null
+          whatsapp_declarado_enviado_em?: string | null
         }
         Relationships: []
       }
@@ -327,6 +377,16 @@ export type Database = {
           valor_total: number
         }[]
       }
+      confirmar_whatsapp_checkout: {
+        Args: { p_idempotency_key: string; p_pedido_id: string }
+        Returns: {
+          id: string
+          numero_pedido: string
+          snapshot: Json
+          status: string
+          whatsapp_declarado_enviado_em: string
+        }[]
+      }
       criar_pedido: {
         Args: {
           p_canal?: string
@@ -338,8 +398,10 @@ export type Database = {
           p_pagamento: Json
         }
         Returns: {
+          frete_status: string
           id: string
           numero_pedido: string
+          snapshot: Json
           valor_total: number
         }[]
       }
@@ -351,12 +413,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      pedido_snapshot: {
+        Args: { p_pedido: Database["public"]["Tables"]["pedidos"]["Row"] }
+        Returns: Json
+      }
       transicionar_pedido: {
-        Args: {
-          p_novo_status: string
-          p_pedido_id: string
-          p_responsavel?: string
-        }
+        Args: { p_novo_status: string; p_pedido_id: string }
         Returns: {
           atendente_nome: string | null
           atualizado_em: string
@@ -368,8 +430,11 @@ export type Database = {
           idempotency_key: string | null
           itens: Json
           numero_pedido: string
+          responsavel_id: string | null
           status: string
           valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
         }
         SetofOptions: {
           from: "*"
@@ -378,6 +443,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      validar_checkout_key: { Args: { p_key: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "atendente"

@@ -178,7 +178,15 @@ export function ReservaDrawer() {
       setFreight({ cost: null, label: "Retirada na loja" });
       return;
     }
-    const r = validateStep(1, { items, delivery, address, pickup, customer, payment, installments });
+    const r = validateStep(1, {
+      items,
+      delivery,
+      address,
+      pickup,
+      customer,
+      payment,
+      installments,
+    });
     if (!r.ok) {
       setFreight({ cost: null, label: "Preencha o endereço" });
       return;
@@ -275,7 +283,7 @@ export function ReservaDrawer() {
       delivery,
       address: delivery === "entrega" ? address : undefined,
       freight,
-      pickup: delivery === "retirada" ? pickup ?? undefined : undefined,
+      pickup: delivery === "retirada" ? (pickup ?? undefined) : undefined,
       payment,
       installments,
     });
@@ -319,19 +327,65 @@ export function ReservaDrawer() {
         throw new Error("Resposta inválida do servidor.");
       }
 
-      // Monta a mensagem/URL SOMENTE após confirmação do banco, com o número oficial.
+      // Snapshot OFICIAL do servidor — nome, imagem, preço, subtotal e total
+      // vêm exclusivamente do banco. Nada de apresentação do localStorage.
+      const snap = (row.snapshot ?? {}) as {
+        produtos?: {
+          slug: string;
+          name: string;
+          size: string;
+          quantity: number;
+          price: number | string;
+          image?: string;
+        }[];
+        subtotal?: number | string;
+        entrega?: { metodo?: string; endereco?: Address | null; retirada?: OrderPickup | null };
+        pagamento?: { metodo?: string; parcelas?: number };
+      };
+      const officialItems = (snap.produtos ?? []).map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        size: p.size,
+        quantity: Number(p.quantity) || 0,
+        price: Number(p.price) || 0,
+        image: p.image ?? "",
+      }));
+      if (officialItems.length === 0) throw new Error("Snapshot oficial vazio.");
+      const officialSubtotal = Number(snap.subtotal ?? row.valor_total) || 0;
+      const officialTotal = Number(row.valor_total) || officialSubtotal;
+      const officialDelivery = (snap.entrega?.metodo ??
+        localOrder.entrega.metodo) as DeliveryMethod;
+      const officialPayment = (snap.pagamento?.metodo ??
+        localOrder.pagamento.metodo) as PaymentMethod;
+      const officialInstallments = Number(snap.pagamento?.parcelas) || 1;
+      const officialAddress = (snap.entrega?.endereco ?? undefined) as Address | undefined;
+      const officialPickup = (snap.entrega?.retirada ?? null) as OrderPickup | null;
       const officialOrder = {
         ...localOrder,
         numero: row.numero_pedido as string,
+        itens: officialItems,
+        entrega: {
+          ...localOrder.entrega,
+          metodo: officialDelivery,
+          endereco: officialAddress,
+          retirada: officialPickup ?? undefined,
+          frete: { cost: null, label: "A combinar" },
+        },
+        pagamento: {
+          ...localOrder.pagamento,
+          metodo: officialPayment,
+          parcelas: officialInstallments,
+        },
         totais: {
           ...localOrder.totais,
-          total: Number(row.valor_total) || localOrder.totais.total,
+          subtotal: officialSubtotal,
+          frete: 0,
+          total: officialTotal,
         },
       };
       const preview = buildReservaMessage(officialOrder);
       if (!preview || preview.length < 20) throw new Error("Mensagem inválida.");
       const url = buildWhatsAppUrl(officialOrder);
-      const officialSubtotal = Number(row.valor_total) || officialOrder.totais.subtotal;
 
       setPendingOrder({
         id: row.id as string,
@@ -346,11 +400,7 @@ export function ReservaDrawer() {
           endereco: officialOrder.entrega.endereco,
           retirada: officialOrder.entrega.retirada ?? null,
           freteLabel:
-            officialOrder.entrega.metodo === "entrega"
-              ? officialOrder.entrega.frete.cost != null
-                ? formatBRL(officialOrder.entrega.frete.cost)
-                : "A combinar"
-              : "Retirada na loja",
+            officialOrder.entrega.metodo === "entrega" ? "A combinar" : "Retirada na loja",
           pagamento: officialOrder.pagamento.metodo,
           parcelas: officialOrder.pagamento.parcelas,
         },
@@ -389,24 +439,55 @@ export function ReservaDrawer() {
     }
   };
 
-  /** CTAs do estado pós-criação (pedido registrado, aguardando envio). */
+  /**
+   * CTA "Já enviei" — DECLARAÇÃO DO CLIENTE, persistida no servidor.
+   * Nunca afirma que o WhatsApp confirmou tecnicamente o envio.
+   * Carrinho/checkout só são limpos após o servidor confirmar a gravação.
+   */
   const marcarEnviado = async () => {
     if (!pendingOrder || actionRef.current) return;
+    const key = pendingOrder.idempotencyKey ?? idempotencyKey;
+    if (!key) {
+      const msg = "Chave da solicitação ausente. O pedido foi preservado para suporte.";
+      setFlowState("error");
+      setErrorMessage(msg);
+      toast.error("Confirmação não registrada", { description: msg });
+      return;
+    }
     actionRef.current = true;
     setFlowState("confirming_sent");
     setErrorMessage(null);
     const numero = pendingOrder.numero;
-    await Promise.resolve();
-    setPendingOrder(null);
-    clearIdempotencyKey();
-    clear();
-    resetCheckout();
-    setCompletedOrder({ numero });
-    setFlowState("completed");
-    actionRef.current = false;
-    toast.success(`Pedido ${numero} sinalizado como enviado`, {
-      description: "Confirmação registrada a partir da sua declaração.",
-    });
+    try {
+      const { data, error } = await supabase.rpc("confirmar_whatsapp_checkout", {
+        p_pedido_id: pendingOrder.id,
+        p_idempotency_key: key,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row?.whatsapp_declarado_enviado_em) {
+        throw new Error("Confirmação não registrada pelo servidor.");
+      }
+      setPendingOrder(null);
+      clearIdempotencyKey();
+      clear();
+      resetCheckout();
+      setCompletedOrder({ numero });
+      setFlowState("completed");
+      toast.success(`Pedido ${numero}: você confirmou que enviou a mensagem.`, {
+        description: "Registramos a sua declaração. A equipe responderá pelo WhatsApp.",
+      });
+    } catch (err) {
+      // Falha: preserva pendingOrder, carrinho, checkout e chave.
+      const msg = (err as Error)?.message ?? "Falha ao registrar a confirmação.";
+      setFlowState("error");
+      setErrorMessage(msg);
+      toast.error("Não foi possível registrar sua confirmação", {
+        description: `${msg} Tente novamente.`,
+      });
+    } finally {
+      actionRef.current = false;
+    }
   };
   const reenviarWhats = async () => {
     if (!pendingOrder || actionRef.current) return;
@@ -735,7 +816,7 @@ export function ReservaDrawer() {
                     aria-busy={flowState === "confirming_sent"}
                     className="inline-flex h-14 w-full items-center justify-center gap-2 border border-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {flowState === "confirming_sent" ? "Confirmando…" : "Já enviei"}
+                    {flowState === "confirming_sent" ? "Registrando…" : "Já enviei a mensagem"}
                     {flowState === "confirming_sent" ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     ) : (
@@ -884,7 +965,10 @@ function PendingOrderPanel({
         </div>
         <ul className="flex flex-col gap-3">
           {summary.itens.map((item) => (
-            <li key={`${item.slug}-${item.size}`} className="flex items-start justify-between gap-4">
+            <li
+              key={`${item.slug}-${item.size}`}
+              className="flex items-start justify-between gap-4"
+            >
               <div className="min-w-0">
                 <p className="truncate font-display text-base text-[color:var(--forest-deep)]">
                   {item.name}
@@ -1213,7 +1297,11 @@ function StepEntrega({
               <p className="mb-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
                 Horário
               </p>
-              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Horário da retirada">
+              <div
+                className="flex flex-wrap gap-2"
+                role="radiogroup"
+                aria-label="Horário da retirada"
+              >
                 {selectedDay.slots.map((s) => {
                   const active = pickup?.time === s;
                   return (
@@ -1340,53 +1428,53 @@ function StepPagamento({
         const selected = payment === p;
         return (
           <div key={p} className="flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => setPayment(p)}
-            className={`flex items-center justify-between border p-4 text-left transition-colors ${
-              selected
-                ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
-                : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
-            }`}
-          >
-            <span className="font-display text-lg">{PAYMENT_LABEL[p]}</span>
-            {selected && <Check className="h-4 w-4" aria-hidden="true" />}
-          </button>
-          {p === "credito" && selected && (
-            <div
-              role="radiogroup"
-              aria-label="Parcelamento"
-              className="flex flex-col gap-2 border border-[color:var(--border)] p-3"
+            <button
+              type="button"
+              onClick={() => setPayment(p)}
+              className={`flex items-center justify-between border p-4 text-left transition-colors ${
+                selected
+                  ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                  : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
+              }`}
             >
-              <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Parcelamento (até {config.maxInstallments}x)
-              </p>
-              {installmentOptions.map((opt) => {
-                const active = installments === opt.count;
-                return (
-                  <button
-                    key={opt.count}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => setInstallments(opt.count)}
-                    className={`flex items-center justify-between border px-3 py-2 text-left transition-colors ${
-                      active
-                        ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)]/5"
-                        : "border-[color:var(--border)] hover:border-[color:var(--forest-deep)]"
-                    }`}
-                  >
-                    <span className="font-sans text-sm tabular-nums text-[color:var(--forest-deep)]">
-                      {opt.count}x de {formatBRL(opt.perInstallment)}
-                    </span>
-                    <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] tabular-nums">
-                      Total {formatBRL(opt.total)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+              <span className="font-display text-lg">{PAYMENT_LABEL[p]}</span>
+              {selected && <Check className="h-4 w-4" aria-hidden="true" />}
+            </button>
+            {p === "credito" && selected && (
+              <div
+                role="radiogroup"
+                aria-label="Parcelamento"
+                className="flex flex-col gap-2 border border-[color:var(--border)] p-3"
+              >
+                <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                  Parcelamento (até {config.maxInstallments}x)
+                </p>
+                {installmentOptions.map((opt) => {
+                  const active = installments === opt.count;
+                  return (
+                    <button
+                      key={opt.count}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setInstallments(opt.count)}
+                      className={`flex items-center justify-between border px-3 py-2 text-left transition-colors ${
+                        active
+                          ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)]/5"
+                          : "border-[color:var(--border)] hover:border-[color:var(--forest-deep)]"
+                      }`}
+                    >
+                      <span className="font-sans text-sm tabular-nums text-[color:var(--forest-deep)]">
+                        {opt.count}x de {formatBRL(opt.perInstallment)}
+                      </span>
+                      <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] tabular-nums">
+                        Total {formatBRL(opt.total)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
@@ -1511,9 +1599,7 @@ function StepRevisao({
         {installmentInfo && installmentInfo.surcharge > 0 && (
           <div className="mt-1 flex justify-between text-[color:var(--muted-foreground)]">
             <span>Acréscimo cartão</span>
-            <span className="tabular-nums">
-              {formatBRL(installmentInfo.total - baseTotal)}
-            </span>
+            <span className="tabular-nums">{formatBRL(installmentInfo.total - baseTotal)}</span>
           </div>
         )}
         <div className="mt-2 flex items-baseline justify-between">

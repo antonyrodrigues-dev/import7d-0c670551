@@ -57,7 +57,7 @@ export interface AdminDataSource {
    * aplica consumo/estorno de estoque na MESMA transação do banco e grava
    * histórico. Ver RPC `transicionar_pedido` em migrations/2026-07-23.
    */
-  transitionOrder(id: string, status: OrderStatus, responsavel?: string): Promise<void>;
+  transitionOrder(id: string, status: OrderStatus): Promise<void>;
 
   // Funcionários
   listEmployees(): Promise<Employee[]>;
