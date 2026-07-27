@@ -165,14 +165,14 @@ export const lovableCloudDataSource: AdminDataSource = {
     return (data ?? []).map((r) => mapRow(r as PedidoRow));
   },
 
-  async transitionOrder(id: string, status: OrderStatus, responsavel?: string): Promise<void> {
+  async transitionOrder(id: string, status: OrderStatus): Promise<void> {
     // Chamada única: o banco valida transição, consome/estorna estoque e
     // registra histórico dentro da mesma transação (SELECT ... FOR UPDATE
     // em pedido e variações). O cliente NÃO decide mais o que consumir.
+    // O responsável é derivado de `auth.uid()` no servidor (Onda 1.1 · item 8).
     const { error } = await supabase.rpc("transicionar_pedido", {
       p_pedido_id: id,
       p_novo_status: status,
-      p_responsavel: responsavel ?? undefined,
     });
     if (error) throw error;
   },
