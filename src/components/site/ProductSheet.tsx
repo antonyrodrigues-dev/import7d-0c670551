@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Minus, Plus } from "lucide-react";
 import { formatBRL, type PublicProduct } from "@/features/catalog";
 import { useReserva } from "@/store/reserva";
@@ -13,9 +13,17 @@ interface Props {
 
 const MAX_QTY = 10;
 
+/** Tamanhos com saldo real; se o catálogo não trouxer saldo, o tamanho é ignorado. */
+function availableSizes(product: PublicProduct): string[] {
+  return product.sizes.filter((s) => (product.stockBySize?.[s] ?? 0) > 0);
+}
+
 export function ProductSheet({ product, open, onOpenChange }: Props) {
-  const [size, setSize] = useState<string>(product.sizes[0]);
+  const sizesEmStock = useMemo(() => availableSizes(product), [product]);
+  const [size, setSize] = useState<string>(sizesEmStock[0] ?? "");
   const [qty, setQty] = useState(1);
+  const maxQty = Math.max(0, Math.min(MAX_QTY, product.stockBySize?.[size] ?? 0));
+  const canAdd = Boolean(size) && maxQty > 0 && qty >= 1 && qty <= maxQty;
   const addItem = useReserva((s) => s.addItem);
   const addingRef = useRef(false);
   const dialogRef = useRef<HTMLElement | null>(null);
@@ -29,6 +37,18 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
       addingRef.current = false;
     }
   }, [open]);
+
+  // Tamanho SEMPRE coerente com o produto atual e com o saldo real:
+  // ao trocar de produto (ou ao catálogo atualizar), nunca mantém o tamanho
+  // do produto anterior nem um tamanho esgotado.
+  useEffect(() => {
+    setSize((current) => (current && sizesEmStock.includes(current) ? current : (sizesEmStock[0] ?? "")));
+  }, [product.slug, sizesEmStock]);
+
+  // Quantidade nunca ultrapassa o estoque do tamanho selecionado.
+  useEffect(() => {
+    setQty((q) => (maxQty > 0 ? Math.min(Math.max(1, q), maxQty) : 1));
+  }, [maxQty]);
 
   useEffect(() => {
     if (!open) return;
@@ -171,23 +191,37 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     Tamanho
                   </legend>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {product.sizes.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setSize(s)}
-                        aria-pressed={size === s}
-                        data-testid={`size-${s}`}
-                        className={`min-h-11 min-w-11 border px-4 text-sm tracking-wider transition-colors ${
-                          size === s
-                            ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
-                            : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                    {product.sizes.map((s) => {
+                      const saldo = product.stockBySize?.[s] ?? 0;
+                      const esgotado = saldo <= 0;
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          disabled={esgotado}
+                          onClick={() => !esgotado && setSize(s)}
+                          aria-pressed={size === s}
+                          aria-disabled={esgotado}
+                          title={esgotado ? "Tamanho esgotado" : `${saldo} disponível(is)`}
+                          data-testid={`size-${s}`}
+                          className={`min-h-11 min-w-11 border px-4 text-sm tracking-wider transition-colors ${
+                            esgotado
+                              ? "cursor-not-allowed border-[color:var(--border)] text-[color:var(--muted-foreground)] line-through opacity-50"
+                              : size === s
+                                ? "border-[color:var(--forest-deep)] bg-[color:var(--forest-deep)] text-[color:var(--cream)]"
+                                : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {sizesEmStock.length === 0 ? (
+                    <p className="mt-3 text-xs text-[color:var(--muted-foreground)]">
+                      Todas as numerações desta peça estão esgotadas.
+                    </p>
+                  ) : null}
                 </fieldset>
 
                 <div className="flex items-center gap-3">
@@ -212,13 +246,19 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     </span>
                     <button
                       aria-label="Aumentar"
-                      onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
+                      disabled={qty >= maxQty}
+                      onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
                       data-testid="product-qty-inc"
-                      className="flex h-11 w-11 items-center justify-center"
+                      className="flex h-11 w-11 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
+                  {maxQty > 0 ? (
+                    <span className="text-[11px] text-[color:var(--muted-foreground)]">
+                      {maxQty} disponível(is)
+                    </span>
+                  ) : null}
                 </div>
                   </div>
                 </div>
@@ -226,7 +266,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 <div className="shrink-0 border-t border-[color:var(--border)]/60 bg-[color:var(--cream)] px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:px-12 lg:py-6">
                   <button
                   onClick={() => {
-                    if (addingRef.current) return;
+                    if (addingRef.current || !canAdd) return;
                     addingRef.current = true;
                     addItem(product, size, qty);
                     track({
@@ -239,9 +279,10 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     onOpenChange(false);
                   }}
                   data-testid="product-add"
-                  className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98]"
+                  disabled={!canAdd}
+                  className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Adicionar à reserva
+                  {canAdd ? "Adicionar à reserva" : "Indisponível"}
                   </button>
                 </div>
               </div>
