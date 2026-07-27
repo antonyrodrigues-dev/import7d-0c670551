@@ -319,19 +319,56 @@ export function ReservaDrawer() {
         throw new Error("Resposta inválida do servidor.");
       }
 
-      // Monta a mensagem/URL SOMENTE após confirmação do banco, com o número oficial.
+      // Snapshot OFICIAL do servidor — nome, imagem, preço, subtotal e total
+      // vêm exclusivamente do banco. Nada de apresentação do localStorage.
+      const snap = (row.snapshot ?? {}) as {
+        produtos?: { slug: string; name: string; size: string; quantity: number; price: number | string; image?: string }[];
+        subtotal?: number | string;
+        entrega?: { metodo?: string; endereco?: Address | null; retirada?: OrderPickup | null };
+        pagamento?: { metodo?: string; parcelas?: number };
+      };
+      const officialItems = (snap.produtos ?? []).map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        size: p.size,
+        quantity: Number(p.quantity) || 0,
+        price: Number(p.price) || 0,
+        image: p.image ?? "",
+      }));
+      if (officialItems.length === 0) throw new Error("Snapshot oficial vazio.");
+      const officialSubtotal = Number(snap.subtotal ?? row.valor_total) || 0;
+      const officialTotal = Number(row.valor_total) || officialSubtotal;
+      const officialDelivery = (snap.entrega?.metodo ?? localOrder.entrega.metodo) as DeliveryMethod;
+      const officialPayment = (snap.pagamento?.metodo ?? localOrder.pagamento.metodo) as PaymentMethod;
+      const officialInstallments = Number(snap.pagamento?.parcelas) || 1;
+      const officialAddress = (snap.entrega?.endereco ?? undefined) as Address | undefined;
+      const officialPickup = (snap.entrega?.retirada ?? null) as OrderPickup | null;
       const officialOrder = {
         ...localOrder,
         numero: row.numero_pedido as string,
+        itens: officialItems,
+        entrega: {
+          ...localOrder.entrega,
+          metodo: officialDelivery,
+          endereco: officialAddress,
+          retirada: officialPickup ?? undefined,
+          frete: { cost: null, label: "A combinar" },
+        },
+        pagamento: {
+          ...localOrder.pagamento,
+          metodo: officialPayment,
+          parcelas: officialInstallments,
+        },
         totais: {
           ...localOrder.totais,
-          total: Number(row.valor_total) || localOrder.totais.total,
+          subtotal: officialSubtotal,
+          frete: 0,
+          total: officialTotal,
         },
       };
       const preview = buildReservaMessage(officialOrder);
       if (!preview || preview.length < 20) throw new Error("Mensagem inválida.");
       const url = buildWhatsAppUrl(officialOrder);
-      const officialSubtotal = Number(row.valor_total) || officialOrder.totais.subtotal;
 
       setPendingOrder({
         id: row.id as string,
@@ -345,12 +382,7 @@ export function ReservaDrawer() {
           entrega: officialOrder.entrega.metodo,
           endereco: officialOrder.entrega.endereco,
           retirada: officialOrder.entrega.retirada ?? null,
-          freteLabel:
-            officialOrder.entrega.metodo === "entrega"
-              ? officialOrder.entrega.frete.cost != null
-                ? formatBRL(officialOrder.entrega.frete.cost)
-                : "A combinar"
-              : "Retirada na loja",
+          freteLabel: officialOrder.entrega.metodo === "entrega" ? "A combinar" : "Retirada na loja",
           pagamento: officialOrder.pagamento.metodo,
           parcelas: officialOrder.pagamento.parcelas,
         },
