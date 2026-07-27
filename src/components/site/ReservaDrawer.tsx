@@ -421,24 +421,55 @@ export function ReservaDrawer() {
     }
   };
 
-  /** CTAs do estado pós-criação (pedido registrado, aguardando envio). */
+  /**
+   * CTA "Já enviei" — DECLARAÇÃO DO CLIENTE, persistida no servidor.
+   * Nunca afirma que o WhatsApp confirmou tecnicamente o envio.
+   * Carrinho/checkout só são limpos após o servidor confirmar a gravação.
+   */
   const marcarEnviado = async () => {
     if (!pendingOrder || actionRef.current) return;
+    const key = pendingOrder.idempotencyKey ?? idempotencyKey;
+    if (!key) {
+      const msg = "Chave da solicitação ausente. O pedido foi preservado para suporte.";
+      setFlowState("error");
+      setErrorMessage(msg);
+      toast.error("Confirmação não registrada", { description: msg });
+      return;
+    }
     actionRef.current = true;
     setFlowState("confirming_sent");
     setErrorMessage(null);
     const numero = pendingOrder.numero;
-    await Promise.resolve();
-    setPendingOrder(null);
-    clearIdempotencyKey();
-    clear();
-    resetCheckout();
-    setCompletedOrder({ numero });
-    setFlowState("completed");
-    actionRef.current = false;
-    toast.success(`Pedido ${numero} sinalizado como enviado`, {
-      description: "Confirmação registrada a partir da sua declaração.",
-    });
+    try {
+      const { data, error } = await supabase.rpc("confirmar_whatsapp_checkout", {
+        p_pedido_id: pendingOrder.id,
+        p_idempotency_key: key,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row?.whatsapp_declarado_enviado_em) {
+        throw new Error("Confirmação não registrada pelo servidor.");
+      }
+      setPendingOrder(null);
+      clearIdempotencyKey();
+      clear();
+      resetCheckout();
+      setCompletedOrder({ numero });
+      setFlowState("completed");
+      toast.success(`Pedido ${numero}: você confirmou que enviou a mensagem.`, {
+        description: "Registramos a sua declaração. A equipe responderá pelo WhatsApp.",
+      });
+    } catch (err) {
+      // Falha: preserva pendingOrder, carrinho, checkout e chave.
+      const msg = (err as Error)?.message ?? "Falha ao registrar a confirmação.";
+      setFlowState("error");
+      setErrorMessage(msg);
+      toast.error("Não foi possível registrar sua confirmação", {
+        description: `${msg} Tente novamente.`,
+      });
+    } finally {
+      actionRef.current = false;
+    }
   };
   const reenviarWhats = async () => {
     if (!pendingOrder || actionRef.current) return;
