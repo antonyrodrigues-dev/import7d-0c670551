@@ -82,7 +82,9 @@ export async function transitionOrderStatus(
         //    - consome apenas na PRIMEIRA entrada em separado/reservado
         //    - estorna apenas se `consumo_aplicado = true` e o pedido é cancelado
         //    - finalização NUNCA consome novamente
-        await adminDataSource.transitionOrder(id, status, by);
+        // Responsável é resolvido no banco a partir de `auth.uid()` (fonte
+        // canônica). `by` serve apenas para rótulo otimista na store.
+        await adminDataSource.transitionOrder(id, status);
 
         // Refresh do estoque quando a transição pode ter mexido em variações.
         const touchesStock =
