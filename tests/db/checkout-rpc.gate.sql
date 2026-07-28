@@ -128,28 +128,36 @@ BEGIN
 END $gate$;
 
 -- 12. Cancelamento bloqueado após o atendimento começar (separado / reservado / enviado).
+--     O avanço é feito pela RPC protegida `transicionar_pedido`, autenticada
+--     como um admin real via claims JWT — nunca por UPDATE direto.
 DO $gate2$
 DECLARE
   v_cli jsonb := jsonb_build_object('nome','Cliente Gate','telefone','31999998888');
   v_ent jsonb := jsonb_build_object('metodo','retirada','retirada',
       jsonb_build_object('date', to_char((now() AT TIME ZONE 'America/Sao_Paulo')::date + 1,'YYYY-MM-DD'),'time','10:00'));
   v_pag jsonb := jsonb_build_object('metodo','pix');
+  v_admin uuid;
   st text; v_key text; r record;
 BEGIN
+  SELECT user_id INTO v_admin FROM public.user_roles WHERE role = 'admin' LIMIT 1;
+  IF v_admin IS NULL THEN
+    PERFORM pg_temp.check_('15/16/17 cancelamento pós-atendimento', false, 'sem admin para o harness');
+    RETURN;
+  END IF;
+
   FOREACH st IN ARRAY ARRAY['separado','reservado','enviado'] LOOP
     v_key := 'gate-' || replace(gen_random_uuid()::text,'-','');
     SELECT * INTO r FROM public.criar_pedido(
       jsonb_build_array(jsonb_build_object('slug','polo-oliva-tipped','size','M','quantity',1)),
       v_cli, v_ent, v_pag, NULL, 'whatsapp', v_key);
-    -- Simula o avanço feito pela equipe (via contexto de RPC protegida).
-    PERFORM set_config('app.rpc_ctx','on', true);
-    UPDATE public.pedidos SET status = 'separado', responsavel_id = gen_random_uuid(),
-           atendente_nome = 'Equipe' WHERE id = r.id;
-    IF st <> 'separado' THEN
-      UPDATE public.pedidos SET status = CASE WHEN st='enviado' THEN 'reservado' ELSE st END WHERE id = r.id;
-      IF st = 'enviado' THEN UPDATE public.pedidos SET status='enviado' WHERE id = r.id; END IF;
-    END IF;
-    PERFORM set_config('app.rpc_ctx','off', true);
+
+    PERFORM set_config('request.jwt.claims',
+      json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+    PERFORM public.transicionar_pedido(r.id, 'separado');
+    IF st IN ('reservado','enviado') THEN PERFORM public.transicionar_pedido(r.id, 'reservado'); END IF;
+    IF st = 'enviado' THEN PERFORM public.transicionar_pedido(r.id, 'enviado'); END IF;
+    PERFORM set_config('request.jwt.claims', '', true);
+
     BEGIN
       PERFORM public.cancelar_pedido_checkout(r.id, v_key);
       PERFORM pg_temp.check_(format('15/16/17 cancelamento em %s bloqueado', st), false, 'não lançou erro');
@@ -162,30 +170,20 @@ BEGIN
   END LOOP;
 END $gate2$;
 
--- 13. UPDATE direto em pedidos é negado fora das RPCs protegidas.
+-- 13. Nenhum papel de aplicação pode alterar pedidos fora das RPCs protegidas.
 DO $gate3$
-DECLARE
-  v_id uuid;
 BEGIN
-  SELECT id INTO v_id FROM public.pedidos ORDER BY criado_em DESC LIMIT 1;
-  BEGIN
-    UPDATE public.pedidos SET status = 'separado' WHERE id = v_id;
-    PERFORM pg_temp.check_('22 UPDATE direto de status negado', false, 'não lançou erro');
-  EXCEPTION WHEN OTHERS THEN
-    PERFORM pg_temp.check_('22 UPDATE direto de status negado', true, SQLERRM);
-  END;
-  BEGIN
-    UPDATE public.pedidos SET consumo_aplicado = true WHERE id = v_id;
-    PERFORM pg_temp.check_('22 UPDATE direto de consumo_aplicado negado', false, 'não lançou erro');
-  EXCEPTION WHEN OTHERS THEN
-    PERFORM pg_temp.check_('22 UPDATE direto de consumo_aplicado negado', true, SQLERRM);
-  END;
-  BEGIN
-    UPDATE public.pedidos SET valor_total = 1 WHERE id = v_id;
-    PERFORM pg_temp.check_('22 UPDATE direto de valor_total negado', false, 'não lançou erro');
-  EXCEPTION WHEN OTHERS THEN
-    PERFORM pg_temp.check_('22 UPDATE direto de valor_total negado', true, SQLERRM);
-  END;
+  PERFORM pg_temp.check_('22 authenticated não tem UPDATE em pedidos',
+    NOT has_table_privilege('authenticated','public.pedidos','UPDATE'));
+  PERFORM pg_temp.check_('22 anon não tem UPDATE em pedidos',
+    NOT has_table_privilege('anon','public.pedidos','UPDATE'));
+  PERFORM pg_temp.check_('22 anon não tem INSERT direto em pedidos',
+    NOT has_table_privilege('anon','public.pedidos','INSERT'));
+  PERFORM pg_temp.check_('22 authenticated não tem DELETE em pedidos',
+    NOT has_table_privilege('authenticated','public.pedidos','DELETE'));
+  PERFORM pg_temp.check_('22 guarda de banco pedidos_guard_update ativa',
+    EXISTS (SELECT 1 FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+            WHERE c.relname = 'pedidos' AND t.tgname LIKE '%guard%' AND NOT t.tgisinternal));
 END $gate3$;
 
 \echo '--- RESULTADO DO GATE DE BANCO ---'
