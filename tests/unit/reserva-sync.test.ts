@@ -47,7 +47,16 @@ describe("carrinho × catálogo oficial", () => {
 
   it("limita quantidade ao estoque real do tamanho", () => {
     useReserva.setState({
-      items: [{ slug: "polo-x", name: "Polo Oficial", price: 299, image: "a.jpg", size: "M", quantity: 9 }],
+      items: [
+        {
+          slug: "polo-x",
+          name: "Polo Oficial",
+          price: 299,
+          image: "a.jpg",
+          size: "M",
+          quantity: 9,
+        },
+      ],
     });
     useReserva.getState().syncWithCatalog();
     expect(useReserva.getState().items[0].quantity).toBe(2);

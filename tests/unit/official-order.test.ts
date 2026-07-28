@@ -9,9 +9,7 @@ const localOrder: Order = {
   status: "pending",
   metadata: { canal: "whatsapp" },
   cliente: { nome: "Ana", telefone: "11999999999", cpf: "", observacoes: "" },
-  itens: [
-    { slug: "polo-x", name: "FAKE BARATO", price: 1, image: "", size: "M", quantity: 99 },
-  ],
+  itens: [{ slug: "polo-x", name: "FAKE BARATO", price: 1, image: "", size: "M", quantity: 99 }],
   entrega: { metodo: "entrega", frete: { cost: 50, label: "R$ 50" } },
   pagamento: { metodo: "pix", parcelas: 1, parcelamento: null },
   totais: { subtotal: 99, frete: 50, total: 149 },
@@ -23,10 +21,21 @@ const row = {
   valor_total: "598.00",
   snapshot: {
     produtos: [
-      { slug: "polo-x", name: "Polo Oficial", size: "M", quantity: 2, price: "299.00", image: "a.jpg" },
+      {
+        slug: "polo-x",
+        name: "Polo Oficial",
+        size: "M",
+        quantity: 2,
+        price: "299.00",
+        image: "a.jpg",
+      },
     ],
     subtotal: "598.00",
-    entrega: { metodo: "retirada", endereco: null, retirada: { date: "2026-08-01", time: "10:00" } },
+    entrega: {
+      metodo: "retirada",
+      endereco: null,
+      retirada: { date: "2026-08-01", time: "10:00" },
+    },
     pagamento: { metodo: "credito", parcelas: 3 },
   },
 };
@@ -62,9 +71,9 @@ describe("applyOfficialSnapshot", () => {
   });
 
   it("rejeita snapshot sem itens válidos", () => {
-    expect(() =>
-      applyOfficialSnapshot(localOrder, { ...row, snapshot: { produtos: [] } }),
-    ).toThrow(/Snapshot oficial vazio/);
+    expect(() => applyOfficialSnapshot(localOrder, { ...row, snapshot: { produtos: [] } })).toThrow(
+      /Snapshot oficial vazio/,
+    );
     expect(() =>
       applyOfficialSnapshot(localOrder, {
         ...row,
