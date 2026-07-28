@@ -18,6 +18,7 @@ import { useCheckout, type CheckoutStep, type PendingOrder } from "@/store/check
 import { formatBRL } from "@/features/catalog";
 import { buildReservaMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { buildOrder, type OrderPickup } from "@/lib/order";
+import { applyOfficialSnapshot } from "@/lib/official-order";
 import {
   getUpcomingPickupSlots,
   formatPickupSlot,
