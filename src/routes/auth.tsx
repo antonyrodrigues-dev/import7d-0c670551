@@ -106,8 +106,8 @@ function AuthPage() {
             aria-hidden="true"
           />
           <p>
-            Acesso exclusivo para funcionários autorizados da 7D Imports. Todas as
-            ações realizadas neste painel podem ser registradas para auditoria.
+            Acesso exclusivo para funcionários autorizados da 7D Imports. Todas as ações realizadas
+            neste painel podem ser registradas para auditoria.
           </p>
         </div>
 

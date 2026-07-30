@@ -29,10 +29,7 @@ import type { FinancePeriod } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
   head: () => ({
-    meta: [
-      { title: "Financeiro — 7D IMPORTS" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Financeiro — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: FinanceiroPage,
 });
@@ -165,9 +162,7 @@ function FinanceiroPage() {
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
                 <Tooltip
                   formatter={(value, name) =>
-                    name === "Receita"
-                      ? [formatBRL(Number(value)), name]
-                      : [value, name]
+                    name === "Receita" ? [formatBRL(Number(value)), name] : [value, name]
                   }
                 />
                 <Legend />
@@ -215,12 +210,7 @@ function FinanceiroPage() {
                     tickFormatter={(v: number) => formatBRL(v)}
                     tick={{ fontSize: 11 }}
                   />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={140}
-                    tick={{ fontSize: 11 }}
-                  />
+                  <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(value: number) => formatBRL(value)} />
                   <Bar dataKey="receita" name="Receita" fill="var(--gold)" />
                 </BarChart>
@@ -245,17 +235,12 @@ function FinanceiroPage() {
           {m && m.topAtendentes.length > 0 ? (
             <ul className="divide-y divide-[color:var(--border)]">
               {m.topAtendentes.map((a, i) => (
-                <li
-                  key={a.nome}
-                  className="flex items-center justify-between gap-4 py-3"
-                >
+                <li key={a.nome} className="flex items-center justify-between gap-4 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[color:var(--border)] text-[11px] font-semibold tabular-nums text-[color:var(--forest-deep)]">
                       {i + 1}
                     </span>
-                    <p className="truncate text-sm text-[color:var(--forest-deep)]">
-                      {a.nome}
-                    </p>
+                    <p className="truncate text-sm text-[color:var(--forest-deep)]">{a.nome}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold tabular-nums text-[color:var(--forest-deep)]">
@@ -300,9 +285,7 @@ function FinanceiroPage() {
                   <tr key={p.metodo} className="border-b border-[color:var(--border)]">
                     <td className="py-2 pr-4">{p.metodo}</td>
                     <td className="py-2 pr-4 text-right tabular-nums">{p.pedidos}</td>
-                    <td className="py-2 text-right tabular-nums">
-                      {formatBRL(p.receita)}
-                    </td>
+                    <td className="py-2 text-right tabular-nums">{formatBRL(p.receita)}</td>
                   </tr>
                 ))}
               </tbody>

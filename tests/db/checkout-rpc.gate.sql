@@ -186,6 +186,60 @@ BEGIN
             WHERE c.relname = 'pedidos' AND t.tgname LIKE '%guard%' AND NOT t.tgisinternal));
 END $gate3$;
 
+
+-- 14. Validações de payload: telefone, quantidade mínima/máxima e produto inativo.
+DO $gate4$
+DECLARE
+  v_cli jsonb := jsonb_build_object('nome','Cliente Gate','telefone','31999998888');
+  v_sem_tel jsonb := jsonb_build_object('nome','Cliente Gate','telefone','123');
+  v_ent jsonb := jsonb_build_object('metodo','retirada','retirada',
+      jsonb_build_object('date', to_char((now() AT TIME ZONE 'America/Sao_Paulo')::date + 1,'YYYY-MM-DD'),'time','10:00'));
+  v_pag jsonb := jsonb_build_object('metodo','pix');
+  v_slug text;
+BEGIN
+  BEGIN
+    PERFORM public.criar_pedido(jsonb_build_array(jsonb_build_object('slug','polo-piquet-marfim','size','M','quantity',1)),
+      v_sem_tel, v_ent, v_pag, NULL, 'whatsapp', 'gate-' || replace(gen_random_uuid()::text,'-',''));
+    PERFORM pg_temp.check_('23 telefone inválido rejeitado', false, 'não lançou erro');
+  EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.check_('23 telefone inválido rejeitado', true, SQLERRM); END;
+
+  BEGIN
+    PERFORM public.criar_pedido(jsonb_build_array(jsonb_build_object('slug','polo-piquet-marfim','size','M','quantity',0)),
+      v_cli, v_ent, v_pag, NULL, 'whatsapp', 'gate-' || replace(gen_random_uuid()::text,'-',''));
+    PERFORM pg_temp.check_('24 quantidade mínima rejeitada', false, 'não lançou erro');
+  EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.check_('24 quantidade mínima rejeitada', true, SQLERRM); END;
+
+  BEGIN
+    PERFORM public.criar_pedido(jsonb_build_array(jsonb_build_object('slug','polo-piquet-marfim','size','M','quantity',11)),
+      v_cli, v_ent, v_pag, NULL, 'whatsapp', 'gate-' || replace(gen_random_uuid()::text,'-',''));
+    PERFORM pg_temp.check_('25 quantidade máxima por item rejeitada', false, 'não lançou erro');
+  EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.check_('25 quantidade máxima por item rejeitada', true, SQLERRM); END;
+
+  -- Produto/variação inativos: o harness roda com papel de aplicação (sem UPDATE
+  -- em produtos), então validamos estaticamente que a RPC filtra por `ativo`.
+  PERFORM pg_temp.check_('26 criar_pedido filtra produto/variação inativos',
+    pg_get_functiondef('public.criar_pedido(jsonb,jsonb,jsonb,jsonb,text,text,text)'::regprocedure) LIKE '%ativo%');
+
+  -- Saldo de estoque só muda via RPC: ninguém tem UPDATE em produto_variacoes,
+  -- e anon não escreve nada em catálogo/estoque.
+  PERFORM pg_temp.check_('27 ninguém altera saldo de estoque diretamente',
+    NOT has_table_privilege('anon','public.produto_variacoes','UPDATE')
+    AND NOT has_table_privilege('authenticated','public.produto_variacoes','UPDATE'));
+  PERFORM pg_temp.check_('28 anon não escreve em catálogo/estoque',
+    NOT has_table_privilege('anon','public.produtos','INSERT')
+    AND NOT has_table_privilege('anon','public.produtos','UPDATE')
+    AND NOT has_table_privilege('anon','public.produto_variacoes','INSERT')
+    AND NOT has_table_privilege('anon','public.produto_movimentacoes','INSERT'));
+  PERFORM pg_temp.check_('29 trilhas de auditoria são somente leitura',
+    NOT has_table_privilege('authenticated','public.pedido_eventos','INSERT')
+    AND NOT has_table_privilege('authenticated','public.pedido_status_historico','UPDATE')
+    AND NOT has_table_privilege('anon','public.pedido_eventos','INSERT'));
+  PERFORM pg_temp.check_('30 anon não escreve em perfis e papéis',
+    NOT has_table_privilege('anon','public.profiles','INSERT')
+    AND NOT has_table_privilege('anon','public.user_roles','INSERT')
+    AND NOT has_table_privilege('anon','public.user_roles','UPDATE'));
+END $gate4$;
+
 \echo '--- RESULTADO DO GATE DE BANCO ---'
 SELECT CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END AS r, nome, detalhe FROM gate_result ORDER BY nome;
 SELECT count(*) FILTER (WHERE ok) AS passaram, count(*) FILTER (WHERE NOT ok) AS falharam, count(*) AS total FROM gate_result;

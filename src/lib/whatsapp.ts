@@ -95,10 +95,7 @@ export function buildReservaMessage(order: Order): string {
   ]);
 }
 
-export function buildWhatsAppUrl(
-  order: Order,
-  attendant: Attendant = DEFAULT_ATTENDANT,
-): string {
+export function buildWhatsAppUrl(order: Order, attendant: Attendant = DEFAULT_ATTENDANT): string {
   const msg = buildReservaMessage(order);
   return `https://wa.me/${attendant.phone}?text=${encodeURIComponent(msg)}`;
 }

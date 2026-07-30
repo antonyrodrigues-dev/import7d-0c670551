@@ -7,10 +7,7 @@ import { AdminShell } from "@/features/admin/layout/AdminShell";
  */
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
-    meta: [
-      { title: "Painel — 7D IMPORTS" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Painel — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: AdminShell,
 });

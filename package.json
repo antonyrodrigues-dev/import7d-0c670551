@@ -11,7 +11,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsgo --noEmit",
+    "test:e2e": "python3 tests/e2e/checkout-gate.spec.py && python3 tests/e2e/checkout-pending.spec.py",
+    "test:db": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f tests/db/checkout-rpc.gate.sql"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -72,7 +75,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.7.7",
+    "@lovable.dev/vite-tanstack-config": "2.8.2",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

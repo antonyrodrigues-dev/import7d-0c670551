@@ -70,13 +70,7 @@ export function LoadingState({ label = "Carregando…" }: { label?: string }) {
   );
 }
 
-export function ErrorState({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry?: () => void;
-}) {
+export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div
       role="alert"

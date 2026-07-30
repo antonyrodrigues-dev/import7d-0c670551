@@ -34,9 +34,7 @@ export function resolvePickupConfigFromSettings(
   settings: AdminSettings,
   overrides: { minLeadHours?: number; horizonDays?: number } = {},
 ): PickupHoursConfig {
-  const openWeekdays = new Set(
-    settings.businessHours.filter((h) => h.open).map((h) => h.weekday),
-  );
+  const openWeekdays = new Set(settings.businessHours.filter((h) => h.open).map((h) => h.weekday));
   const days: PickupDayConfig[] = settings.pickupSlots
     .filter((d) => openWeekdays.has(d.weekday) && d.slots.length > 0)
     .map((d) => ({
@@ -119,9 +117,7 @@ export function isValidPickupSlot(
   now: Date = new Date(),
   config: PickupHoursConfig = DEFAULT_PICKUP_HOURS,
 ): boolean {
-  return getUpcomingPickupSlots(now, config).some(
-    (d) => d.date === date && d.slots.includes(time),
-  );
+  return getUpcomingPickupSlots(now, config).some((d) => d.date === date && d.slots.includes(time));
 }
 
 export function formatPickupSlot(date: string, time: string): string {

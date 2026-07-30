@@ -74,9 +74,6 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
 /** Skeleton simples reutilizável. */
 export function Skeleton({ className = "h-4 w-full" }: { className?: string }) {
   return (
-    <div
-      className={`animate-pulse bg-[color:var(--cream-deep)] ${className}`}
-      aria-hidden="true"
-    />
+    <div className={`animate-pulse bg-[color:var(--cream-deep)] ${className}`} aria-hidden="true" />
   );
 }

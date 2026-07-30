@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Lock, MoreHorizontal, Plus, ShieldCheck, Trash2, UserCog, Users, UserX } from "lucide-react";
+import {
+  Lock,
+  MoreHorizontal,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  UserCog,
+  Users,
+  UserX,
+} from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, ErrorState, Skeleton } from "@/features/admin/components/PageHeader";
 import { EmptyState } from "@/features/admin/components/AdminUI";
@@ -44,10 +53,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/admin/funcionarios")({
   head: () => ({
-    meta: [
-      { title: "Funcionários — 7D IMPORTS" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Funcionários — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: FuncionariosPage,
 });
@@ -58,35 +64,36 @@ export const Route = createFileRoute("/_authenticated/admin/funcionarios")({
  * ficam dentro de `ROLE_PERMISSIONS`, longe da UI.
  */
 
-const ROLE_SUMMARY: Record<EmployeeRole, { label: string; description: string; access: string[] }> = {
-  admin: {
-    label: "Administrador Master",
-    description: "Acesso total. Único papel que edita Configurações e Funcionários.",
-    access: [
-      "Pedidos",
-      "Estoque",
-      "Clientes",
-      "Notificações",
-      "Configurações",
-      "Funcionários",
-      "Financeiro",
-    ],
-  },
-  vendedor: {
-    label: "Vendedor",
-    description: "Operação diária. Sem acesso a Configurações, Funcionários ou Financeiro.",
-    access: ["Pedidos", "Estoque", "Clientes", "Notificações"],
-  },
-};
+const ROLE_SUMMARY: Record<EmployeeRole, { label: string; description: string; access: string[] }> =
+  {
+    admin: {
+      label: "Administrador Master",
+      description: "Acesso total. Único papel que edita Configurações e Funcionários.",
+      access: [
+        "Pedidos",
+        "Estoque",
+        "Clientes",
+        "Notificações",
+        "Configurações",
+        "Funcionários",
+        "Financeiro",
+      ],
+    },
+    vendedor: {
+      label: "Vendedor",
+      description: "Operação diária. Sem acesso a Configurações, Funcionários ou Financeiro.",
+      access: ["Pedidos", "Estoque", "Clientes", "Notificações"],
+    },
+  };
 
 function FuncionariosPage() {
   const { employees, state, error, refresh } = useEmployees();
   const { can } = usePermissions();
   const [addOpen, setAddOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<
-    | { kind: "deactivate" | "activate" | "remove"; emp: Employee }
-    | null
-  >(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    kind: "deactivate" | "activate" | "remove";
+    emp: Employee;
+  } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const runAction = async () => {
@@ -104,7 +111,9 @@ function FuncionariosPage() {
           },
         });
         toast.success(
-          confirmAction.kind === "deactivate" ? "Funcionário desativado." : "Funcionário reativado.",
+          confirmAction.kind === "deactivate"
+            ? "Funcionário desativado."
+            : "Funcionário reativado.",
         );
       }
       await refresh();
@@ -156,10 +165,7 @@ function FuncionariosPage() {
       </div>
 
       {/* Cards de papéis — explicam o modelo antes de listar as pessoas. */}
-      <section
-        aria-label="Papéis disponíveis"
-        className="grid grid-cols-1 gap-4 md:grid-cols-2"
-      >
+      <section aria-label="Papéis disponíveis" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {EMPLOYEE_ROLES.map((r) => {
           const s = ROLE_SUMMARY[r.key];
           return (
@@ -174,9 +180,7 @@ function FuncionariosPage() {
               <p className="mt-2 font-display text-2xl text-[color:var(--forest-deep)]">
                 {s.label}
               </p>
-              <p className="mt-1 text-sm text-[color:var(--muted-foreground)]">
-                {s.description}
-              </p>
+              <p className="mt-1 text-sm text-[color:var(--muted-foreground)]">{s.description}</p>
               <ul className="mt-3 flex flex-wrap gap-2">
                 {s.access.map((p) => (
                   <li
@@ -230,10 +234,7 @@ function FuncionariosPage() {
         }}
       />
 
-      <AlertDialog
-        open={!!confirmAction}
-        onOpenChange={(o) => !o && setConfirmAction(null)}
-      >
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -272,9 +273,7 @@ function EmployeesTable({
   employees: Employee[];
   canEdit: boolean;
   onChangeRole: (emp: Employee, role: EmployeeRole) => void | Promise<void>;
-  onConfirm: (
-    action: { kind: "deactivate" | "activate" | "remove"; emp: Employee },
-  ) => void;
+  onConfirm: (action: { kind: "deactivate" | "activate" | "remove"; emp: Employee }) => void;
 }) {
   return (
     <div className="overflow-x-auto border border-[color:var(--border)] bg-white">
@@ -309,7 +308,7 @@ function EmployeesTable({
               <td className="px-4 py-3 text-sm text-[color:var(--muted-foreground)]">
                 {e.login && digitsOnly(e.login).length >= 10
                   ? formatPhoneBR(e.login)
-                  : e.email ?? "—"}
+                  : (e.email ?? "—")}
               </td>
               <td className="px-4 py-3 text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)]">
                 {ROLE_SUMMARY[e.role]?.label ?? e.role}
@@ -347,22 +346,16 @@ function EmployeesTable({
                         onClick={() => onChangeRole(e, e.role === "admin" ? "vendedor" : "admin")}
                       >
                         <UserCog className="mr-2 h-4 w-4" />
-                        {e.role === "admin"
-                          ? "Tornar Vendedor"
-                          : "Promover a Admin Master"}
+                        {e.role === "admin" ? "Tornar Vendedor" : "Promover a Admin Master"}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {e.status === "ativo" ? (
-                        <DropdownMenuItem
-                          onClick={() => onConfirm({ kind: "deactivate", emp: e })}
-                        >
+                        <DropdownMenuItem onClick={() => onConfirm({ kind: "deactivate", emp: e })}>
                           <UserX className="mr-2 h-4 w-4" />
                           Desativar
                         </DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem
-                          onClick={() => onConfirm({ kind: "activate", emp: e })}
-                        >
+                        <DropdownMenuItem onClick={() => onConfirm({ kind: "activate", emp: e })}>
                           <UserCog className="mr-2 h-4 w-4" />
                           Reativar
                         </DropdownMenuItem>
@@ -464,7 +457,11 @@ function AddEmployeeDialog({
           </label>
           <label className="flex flex-col gap-1 text-[11px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
             Nome
-            <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" />
+            <Input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Nome completo"
+            />
           </label>
           <label className="flex flex-col gap-1 text-[11px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
             WhatsApp

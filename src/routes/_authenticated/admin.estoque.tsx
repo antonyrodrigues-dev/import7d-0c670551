@@ -40,10 +40,7 @@ import type { ProductWritePayload } from "@/features/admin/adapters/types";
 
 export const Route = createFileRoute("/_authenticated/admin/estoque")({
   head: () => ({
-    meta: [
-      { title: "Estoque — 7D IMPORTS" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Estoque — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: EstoquePage,
 });
@@ -89,10 +86,10 @@ function EstoquePage() {
   const [drawer, setDrawer] = useState<
     { mode: "create" } | { mode: "edit"; item: InventoryItem } | null
   >(null);
-  const [confirm, setConfirm] = useState<
-    | { kind: "archive" | "restore" | "delete"; item: InventoryItem }
-    | null
-  >(null);
+  const [confirm, setConfirm] = useState<{
+    kind: "archive" | "restore" | "delete";
+    item: InventoryItem;
+  } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
 
   const runConfirm = async () => {
@@ -111,21 +108,16 @@ function EstoquePage() {
   };
 
   const brands = useMemo(() => Array.from(new Set(items.map((i) => i.brand))), [items]);
-  const categories = useMemo(
-    () => Array.from(new Set(items.map((i) => i.category))),
-    [items],
-  );
+  const categories = useMemo(() => Array.from(new Set(items.map((i) => i.category))), [items]);
 
   const visiveis = items.filter((i) => {
     const q = query.trim().toLowerCase();
-    if (q && !i.name.toLowerCase().includes(q) && !i.sku.toLowerCase().includes(q))
-      return false;
+    if (q && !i.name.toLowerCase().includes(q) && !i.sku.toLowerCase().includes(q)) return false;
     if (filterBrand !== "todas" && i.brand !== filterBrand) return false;
     if (filterCategory !== "todas" && i.category !== filterCategory) return false;
     if (filterStatus === "ativos" && !i.active) return false;
     if (filterStatus === "inativos" && i.active) return false;
-    if (filterStatus === "baixo" && !(i.active && i.quantity <= LOW_STOCK_THRESHOLD))
-      return false;
+    if (filterStatus === "baixo" && !(i.active && i.quantity <= LOW_STOCK_THRESHOLD)) return false;
     return true;
   });
 
@@ -389,10 +381,7 @@ function RowActions({
         {canDelete && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={onDelete}
-              className="text-red-600 focus:text-red-600"
-            >
+            <DropdownMenuItem onClick={onDelete} className="text-red-600 focus:text-red-600">
               <Trash2 className="h-4 w-4 mr-2" /> Excluir
             </DropdownMenuItem>
           </>
@@ -494,8 +483,7 @@ function ProductFormDrawer({
     setImageInput("");
   };
 
-  const removeImage = (url: string) =>
-    patch({ imagens: draft.imagens.filter((i) => i !== url) });
+  const removeImage = (url: string) => patch({ imagens: draft.imagens.filter((i) => i !== url) });
 
   const addVariation = () => {
     const t = sizeInput.trim().toUpperCase();
@@ -557,9 +545,7 @@ function ProductFormDrawer({
       <div className="flex h-full w-full max-w-2xl flex-col bg-[color:var(--cream)] shadow-2xl">
         <header className="flex items-center justify-between border-b border-[color:var(--border)] p-5">
           <div>
-            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
-              Estoque
-            </p>
+            <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Estoque</p>
             <h2 className="mt-1 font-display text-2xl text-[color:var(--forest-deep)]">
               {initial ? "Editar produto" : "Novo produto"}
             </h2>
@@ -613,9 +599,7 @@ function ProductFormDrawer({
                 onChange={(e) => patch({ marca: e.target.value })}
                 maxLength={80}
               />
-              {errors.marca && (
-                <span className="text-[11px] text-red-600">{errors.marca}</span>
-              )}
+              {errors.marca && <span className="text-[11px] text-red-600">{errors.marca}</span>}
             </label>
             <label className={LABEL}>
               Categoria
@@ -657,9 +641,7 @@ function ProductFormDrawer({
                 value={draft.preco}
                 onChange={(e) => patch({ preco: Math.max(0, Number(e.target.value) || 0) })}
               />
-              {errors.preco && (
-                <span className="text-[11px] text-red-600">{errors.preco}</span>
-              )}
+              {errors.preco && <span className="text-[11px] text-red-600">{errors.preco}</span>}
             </label>
             <label className={`${LABEL} md:col-span-2`}>
               Descrição
@@ -677,8 +659,8 @@ function ProductFormDrawer({
                 Imagens (URLs)
               </legend>
               <p className="text-[11px] text-[color:var(--muted-foreground)]">
-                Cole a URL pública da imagem. Upload direto será liberado quando o
-                workspace habilitar buckets públicos.
+                Cole a URL pública da imagem. Upload direto será liberado quando o workspace
+                habilitar buckets públicos.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {draft.imagens.map((url) => (
@@ -733,10 +715,7 @@ function ProductFormDrawer({
               </legend>
               <ul className="mt-2 flex flex-col gap-2">
                 {draft.variacoes.map((v, idx) => (
-                  <li
-                    key={v.tamanho}
-                    className="grid grid-cols-[80px_1fr_auto] items-center gap-2"
-                  >
+                  <li key={v.tamanho} className="grid grid-cols-[80px_1fr_auto] items-center gap-2">
                     <span className="text-sm font-medium tabular-nums">{v.tamanho}</span>
                     <input
                       type="number"

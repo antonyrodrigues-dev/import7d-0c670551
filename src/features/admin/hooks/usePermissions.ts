@@ -41,8 +41,7 @@ const useStore = create<PermissionsState>((set) => ({
       set({ ready: true, roles: [], userId: null, displayName: null, email: null });
     }
   },
-  clear: () =>
-    set({ ready: false, roles: [], userId: null, displayName: null, email: null }),
+  clear: () => set({ ready: false, roles: [], userId: null, displayName: null, email: null }),
 }));
 
 export function usePermissions() {
@@ -51,9 +50,7 @@ export function usePermissions() {
     if (!state.ready) void state.hydrate();
   }, [state]);
 
-  const allPermissions = new Set<Permission>(
-    state.roles.flatMap((r) => ROLE_PERMISSIONS[r] ?? []),
-  );
+  const allPermissions = new Set<Permission>(state.roles.flatMap((r) => ROLE_PERMISSIONS[r] ?? []));
 
   return {
     ready: state.ready,

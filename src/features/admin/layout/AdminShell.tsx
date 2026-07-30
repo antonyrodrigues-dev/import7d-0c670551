@@ -83,8 +83,7 @@ export function AdminShell() {
 
   const displayName = userName || userEmail || "Sessão";
   const roleLabel =
-    EMPLOYEE_ROLES.find((r) => roles.includes(r.key))?.label ??
-    (roles[0] ?? "Sem cargo");
+    EMPLOYEE_ROLES.find((r) => roles.includes(r.key))?.label ?? roles[0] ?? "Sem cargo";
 
   return (
     <div className="flex min-h-dvh bg-[color:var(--cream)] text-[color:var(--forest-deep)]">

@@ -81,7 +81,10 @@ export function sanitizeInstagram(raw: string): string {
   } catch {
     /* not a URL — fall through */
   }
-  return `@${v.replace(/^@/, "").split(/[\/\s?]/)[0].toLowerCase()}`;
+  return `@${v
+    .replace(/^@/, "")
+    .split(/[/\s?]/)[0]
+    .toLowerCase()}`;
 }
 
 export function isValidInstagram(raw: string): boolean {
@@ -102,7 +105,7 @@ export function sanitizeFacebook(raw: string): string {
   } catch {
     /* not a URL */
   }
-  return `@${v.replace(/^@/, "").split(/[\/\s?]/)[0]}`;
+  return `@${v.replace(/^@/, "").split(/[/\s?]/)[0]}`;
 }
 
 /** Capitaliza cada palavra (respeitando conectivos comuns em PT-BR). */

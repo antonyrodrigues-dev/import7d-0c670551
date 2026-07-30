@@ -43,7 +43,7 @@ function ClientesPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visiveis = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const detalhe = detailId ? customers.find((c) => c.id === detailId) ?? null : null;
+  const detalhe = detailId ? (customers.find((c) => c.id === detailId) ?? null) : null;
 
   return (
     <PermissionGate perm="customers:view" title="Clientes">
@@ -161,16 +161,8 @@ const CustomerRow = memo(function CustomerRow({ customer: c, onOpen }: CustomerR
   );
 });
 
-function CustomerDetail({
-  customer,
-  onClose,
-}: {
-  customer: AdminCustomer;
-  onClose: () => void;
-}) {
-  const historico = [...customer.historico].sort((a, b) =>
-    b.criadoEm.localeCompare(a.criadoEm),
-  );
+function CustomerDetail({ customer, onClose }: { customer: AdminCustomer; onClose: () => void }) {
+  const historico = [...customer.historico].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
   return (
     <div
       role="dialog"
@@ -190,7 +182,7 @@ function CustomerDetail({
               {capitalizeName(customer.nome)}
             </h2>
             <p className="mt-1 text-[11px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-              {(formatPhoneBR(customer.telefone) || "—")} · {customer.cidade}
+              {formatPhoneBR(customer.telefone) || "—"} · {customer.cidade}
             </p>
           </div>
           <button
@@ -213,9 +205,7 @@ function CustomerDetail({
             <dt className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
               Valor gasto
             </dt>
-            <dd className="font-display text-xl tabular-nums">
-              {formatBRL(customer.valorGasto)}
-            </dd>
+            <dd className="font-display text-xl tabular-nums">{formatBRL(customer.valorGasto)}</dd>
           </div>
           <div>
             <dt className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">

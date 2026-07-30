@@ -17,8 +17,7 @@ export const useSettingsStore = create<SettingsStore>()(
     (set) => ({
       settings: loadDefaultSettings(),
       dirty: false,
-      patch: (partial) =>
-        set((s) => ({ settings: { ...s.settings, ...partial }, dirty: true })),
+      patch: (partial) => set((s) => ({ settings: { ...s.settings, ...partial }, dirty: true })),
       commit: () => set({ dirty: false }),
       reset: () => set({ settings: loadDefaultSettings(), dirty: false }),
     }),
