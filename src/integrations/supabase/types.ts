@@ -14,6 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
+      parametros_operacionais: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          descricao: string | null
+          valor: Json
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave: string
+          descricao?: string | null
+          valor: Json
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave?: string
+          descricao?: string | null
+          valor?: Json
+        }
+        Relationships: []
+      }
+      pedido_atendimentos: {
+        Row: {
+          acao: string
+          criado_em: string
+          id: string
+          observacao: string | null
+          pedido_id: string
+          por_usuario: string | null
+          responsavel_id: string | null
+          responsavel_nome: string | null
+        }
+        Insert: {
+          acao: string
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          pedido_id: string
+          por_usuario?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          pedido_id?: string
+          por_usuario?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_atendimentos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_devolucao_itens: {
+        Row: {
+          condicao: string
+          criado_em: string
+          devolucao_id: string
+          id: string
+          produto_id: string | null
+          quantidade: number
+          retornou_estoque: boolean
+          slug: string
+          tamanho: string
+        }
+        Insert: {
+          condicao: string
+          criado_em?: string
+          devolucao_id: string
+          id?: string
+          produto_id?: string | null
+          quantidade: number
+          retornou_estoque?: boolean
+          slug: string
+          tamanho: string
+        }
+        Update: {
+          condicao?: string
+          criado_em?: string
+          devolucao_id?: string
+          id?: string
+          produto_id?: string | null
+          quantidade?: number
+          retornou_estoque?: boolean
+          slug?: string
+          tamanho?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_devolucao_itens_devolucao_id_fkey"
+            columns: ["devolucao_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_devolucoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedido_devolucao_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_devolucoes: {
+        Row: {
+          aprovado_por: string | null
+          criado_em: string
+          evidencias: Json
+          id: string
+          motivo: string
+          observacoes: string | null
+          pedido_id: string
+          valor_estornado: number
+        }
+        Insert: {
+          aprovado_por?: string | null
+          criado_em?: string
+          evidencias?: Json
+          id?: string
+          motivo: string
+          observacoes?: string | null
+          pedido_id: string
+          valor_estornado?: number
+        }
+        Update: {
+          aprovado_por?: string | null
+          criado_em?: string
+          evidencias?: Json
+          id?: string
+          motivo?: string
+          observacoes?: string | null
+          pedido_id?: string
+          valor_estornado?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_devolucoes_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedido_eventos: {
         Row: {
           criado_em: string
@@ -48,6 +205,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pedido_eventos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_pagamentos: {
+        Row: {
+          comprovante_url: string | null
+          criado_em: string
+          estado: string
+          id: string
+          metodo: string | null
+          observacao: string | null
+          parcelas: number
+          pedido_id: string
+          por_usuario: string | null
+          valor: number
+        }
+        Insert: {
+          comprovante_url?: string | null
+          criado_em?: string
+          estado: string
+          id?: string
+          metodo?: string | null
+          observacao?: string | null
+          parcelas?: number
+          pedido_id: string
+          por_usuario?: string | null
+          valor?: number
+        }
+        Update: {
+          comprovante_url?: string | null
+          criado_em?: string
+          estado?: string
+          id?: string
+          metodo?: string | null
+          observacao?: string | null
+          parcelas?: number
+          pedido_id?: string
+          por_usuario?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_pagamentos_pedido_id_fkey"
             columns: ["pedido_id"]
             isOneToOne: false
             referencedRelation: "pedidos"
@@ -111,6 +315,7 @@ export type Database = {
       pedidos: {
         Row: {
           atendente_nome: string | null
+          atribuido_em: string | null
           atualizado_em: string
           canal: string
           consumo_aplicado: boolean
@@ -120,14 +325,17 @@ export type Database = {
           idempotency_key: string | null
           itens: Json
           numero_pedido: string
+          pagamento_estado: string
           responsavel_id: string | null
           status: string
+          valor_devolvido: number
           valor_total: number
           whatsapp_confirmacao_origem: string | null
           whatsapp_declarado_enviado_em: string | null
         }
         Insert: {
           atendente_nome?: string | null
+          atribuido_em?: string | null
           atualizado_em?: string
           canal?: string
           consumo_aplicado?: boolean
@@ -137,14 +345,17 @@ export type Database = {
           idempotency_key?: string | null
           itens: Json
           numero_pedido?: string
+          pagamento_estado?: string
           responsavel_id?: string | null
           status?: string
+          valor_devolvido?: number
           valor_total: number
           whatsapp_confirmacao_origem?: string | null
           whatsapp_declarado_enviado_em?: string | null
         }
         Update: {
           atendente_nome?: string | null
+          atribuido_em?: string | null
           atualizado_em?: string
           canal?: string
           consumo_aplicado?: boolean
@@ -154,8 +365,10 @@ export type Database = {
           idempotency_key?: string | null
           itens?: Json
           numero_pedido?: string
+          pagamento_estado?: string
           responsavel_id?: string | null
           status?: string
+          valor_devolvido?: number
           valor_total?: number
           whatsapp_confirmacao_origem?: string | null
           whatsapp_declarado_enviado_em?: string | null
@@ -166,36 +379,45 @@ export type Database = {
         Row: {
           criado_em: string
           id: string
+          motivo: string | null
           observacao: string | null
           origem: string | null
           pedido_id: string | null
           por_usuario: string | null
           produto_id: string
           quantidade: number
+          saldo_anterior: number | null
+          saldo_posterior: number | null
           tamanho: string
           tipo: string
         }
         Insert: {
           criado_em?: string
           id?: string
+          motivo?: string | null
           observacao?: string | null
           origem?: string | null
           pedido_id?: string | null
           por_usuario?: string | null
           produto_id: string
           quantidade: number
+          saldo_anterior?: number | null
+          saldo_posterior?: number | null
           tamanho: string
           tipo: string
         }
         Update: {
           criado_em?: string
           id?: string
+          motivo?: string | null
           observacao?: string | null
           origem?: string | null
           pedido_id?: string | null
           por_usuario?: string | null
           produto_id?: string
           quantidade?: number
+          saldo_anterior?: number | null
+          saldo_posterior?: number | null
           tamanho?: string
           tipo?: string
         }
@@ -213,25 +435,34 @@ export type Database = {
         Row: {
           atualizado_em: string
           criado_em: string
+          disponivel: number | null
           id: string
           produto_id: string
           quantidade: number
+          quantidade_quarentena: number
+          quantidade_reservada: number
           tamanho: string
         }
         Insert: {
           atualizado_em?: string
           criado_em?: string
+          disponivel?: number | null
           id?: string
           produto_id: string
           quantidade?: number
+          quantidade_quarentena?: number
+          quantidade_reservada?: number
           tamanho: string
         }
         Update: {
           atualizado_em?: string
           criado_em?: string
+          disponivel?: number | null
           id?: string
           produto_id?: string
           quantidade?: number
+          quantidade_quarentena?: number
+          quantidade_reservada?: number
           tamanho?: string
         }
         Relationships: [
@@ -258,6 +489,7 @@ export type Database = {
           id: string
           imagens: Json
           marca: string
+          modelo_estoque: string
           nome: string
           preco: number
           sku: string
@@ -276,6 +508,7 @@ export type Database = {
           id?: string
           imagens?: Json
           marca: string
+          modelo_estoque?: string
           nome: string
           preco: number
           sku: string
@@ -294,6 +527,7 @@ export type Database = {
           id?: string
           imagens?: Json
           marca?: string
+          modelo_estoque?: string
           nome?: string
           preco?: number
           sku?: string
@@ -330,6 +564,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      reservas_estoque: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          estado: string
+          expira_em: string
+          id: string
+          pedido_id: string
+          produto_id: string
+          quantidade: number
+          tamanho: string
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          estado?: string
+          expira_em: string
+          id?: string
+          pedido_id: string
+          produto_id: string
+          quantidade: number
+          tamanho: string
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          estado?: string
+          expira_em?: string
+          id?: string
+          pedido_id?: string
+          produto_id?: string
+          quantidade?: number
+          tamanho?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservas_estoque_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservas_estoque_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -368,6 +653,35 @@ export type Database = {
         }
         Returns: number
       }
+      assumir_atendimento: {
+        Args: { p_pedido_id: string }
+        Returns: {
+          atendente_nome: string | null
+          atribuido_em: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          pagamento_estado: string
+          responsavel_id: string | null
+          status: string
+          valor_devolvido: number
+          valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       cancelar_pedido_checkout: {
         Args: { p_idempotency_key: string; p_pedido_id: string }
         Returns: {
@@ -387,6 +701,10 @@ export type Database = {
           whatsapp_declarado_enviado_em: string
         }[]
       }
+      converter_reservas_pedido: {
+        Args: { p_pedido_id: string }
+        Returns: undefined
+      }
       criar_pedido: {
         Args: {
           p_canal?: string
@@ -405,22 +723,15 @@ export type Database = {
           valor_total: number
         }[]
       }
-      gerar_numero_pedido: { Args: never; Returns: string }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
+      definir_parametro: {
+        Args: { p_chave: string; p_valor: Json }
+        Returns: undefined
       }
-      pedido_snapshot: {
-        Args: { p_pedido: Database["public"]["Tables"]["pedidos"]["Row"] }
-        Returns: Json
-      }
-      transicionar_pedido: {
-        Args: { p_novo_status: string; p_pedido_id: string }
+      devolver_para_fila: {
+        Args: { p_observacao?: string; p_pedido_id: string }
         Returns: {
           atendente_nome: string | null
+          atribuido_em: string | null
           atualizado_em: string
           canal: string
           consumo_aplicado: boolean
@@ -430,8 +741,150 @@ export type Database = {
           idempotency_key: string | null
           itens: Json
           numero_pedido: string
+          pagamento_estado: string
           responsavel_id: string | null
           status: string
+          valor_devolvido: number
+          valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      expirar_reservas: { Args: never; Returns: number }
+      gerar_numero_pedido: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      liberar_reservas_pedido: {
+        Args: { p_motivo: string; p_pedido_id: string }
+        Returns: undefined
+      }
+      listar_equipe: {
+        Args: never
+        Returns: {
+          criado_em: string
+          email: string
+          nome: string
+          perfil_status: string
+          roles: string[]
+          situacao: string
+          telefone: string
+          ultimo_acesso: string
+          user_id: string
+        }[]
+      }
+      metricas_financeiras: { Args: { p_periodo?: string }; Returns: Json }
+      pedido_snapshot: {
+        Args: { p_pedido: Database["public"]["Tables"]["pedidos"]["Row"] }
+        Returns: Json
+      }
+      registrar_devolucao: {
+        Args: {
+          p_evidencias?: Json
+          p_itens: Json
+          p_motivo: string
+          p_observacoes?: string
+          p_pedido_id: string
+          p_valor_estornado?: number
+        }
+        Returns: string
+      }
+      registrar_pagamento: {
+        Args: {
+          p_comprovante_url?: string
+          p_estado: string
+          p_observacao?: string
+          p_pedido_id: string
+        }
+        Returns: {
+          atendente_nome: string | null
+          atribuido_em: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          pagamento_estado: string
+          responsavel_id: string | null
+          status: string
+          valor_devolvido: number
+          valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reserva_minutos: { Args: never; Returns: number }
+      transferir_atendimento: {
+        Args: {
+          p_novo_responsavel: string
+          p_observacao?: string
+          p_pedido_id: string
+        }
+        Returns: {
+          atendente_nome: string | null
+          atribuido_em: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          pagamento_estado: string
+          responsavel_id: string | null
+          status: string
+          valor_devolvido: number
+          valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      transicionar_pedido: {
+        Args: { p_novo_status: string; p_pedido_id: string }
+        Returns: {
+          atendente_nome: string | null
+          atribuido_em: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          pagamento_estado: string
+          responsavel_id: string | null
+          status: string
+          valor_devolvido: number
           valor_total: number
           whatsapp_confirmacao_origem: string | null
           whatsapp_declarado_enviado_em: string | null
