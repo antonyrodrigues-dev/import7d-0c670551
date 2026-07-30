@@ -62,10 +62,6 @@ export const useLogsStore = create<LogsStore>()(
   ),
 );
 
-export function logEvent(
-  kind: LogKind,
-  message: string,
-  meta?: Record<string, unknown>,
-): void {
+export function logEvent(kind: LogKind, message: string, meta?: Record<string, unknown>): void {
   useLogsStore.getState().push(kind, message, meta);
 }

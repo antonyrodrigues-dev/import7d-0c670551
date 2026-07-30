@@ -76,10 +76,7 @@ export function Footer() {
             <p className="font-display text-[13px] font-medium tracking-[0.22em] uppercase text-[color:var(--forest-deep)]">
               {c.title}
             </p>
-            <span
-              aria-hidden="true"
-              className="mt-2 block h-px w-8 bg-[color:var(--gold)]/70"
-            />
+            <span aria-hidden="true" className="mt-2 block h-px w-8 bg-[color:var(--gold)]/70" />
             <ul className="mt-5 space-y-3.5">
               {c.links.map(([label, href]) => (
                 <li key={label}>

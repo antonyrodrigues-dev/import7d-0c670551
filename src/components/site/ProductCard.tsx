@@ -88,7 +88,12 @@ export function FullGrid() {
     return <LoadingState label="Carregando acervo…" />;
   }
   if (state === "ready" && products.length === 0) {
-    return <EmptyState title="Sem peças disponíveis" description="Volte em breve para conferir novidades." />;
+    return (
+      <EmptyState
+        title="Sem peças disponíveis"
+        description="Volte em breve para conferir novidades."
+      />
+    );
   }
   return (
     <>

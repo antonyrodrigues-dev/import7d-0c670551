@@ -5,13 +5,7 @@
  *   { ok: boolean; errors: string[] }.
  */
 
-import type {
-  AdminCustomer,
-  AdminOrder,
-  Employee,
-  InventoryItem,
-  OrderStatus,
-} from "../types";
+import type { AdminCustomer, AdminOrder, Employee, InventoryItem, OrderStatus } from "../types";
 import { canTransition } from "./statusMachine";
 
 export interface ValidationResult {
@@ -39,13 +33,8 @@ export function validateOrder(order: AdminOrder): ValidationResult {
   return errors.length ? fail(errors) : pass();
 }
 
-export function validateStatusTransition(
-  from: OrderStatus,
-  to: OrderStatus,
-): ValidationResult {
-  return canTransition(from, to)
-    ? pass()
-    : fail([`Transição inválida: ${from} → ${to}.`]);
+export function validateStatusTransition(from: OrderStatus, to: OrderStatus): ValidationResult {
+  return canTransition(from, to) ? pass() : fail([`Transição inválida: ${from} → ${to}.`]);
 }
 
 export function validateCustomer(c: AdminCustomer): ValidationResult {

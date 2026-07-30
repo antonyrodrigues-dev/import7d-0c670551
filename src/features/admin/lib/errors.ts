@@ -46,13 +46,7 @@ export function createAdminError(
 }
 
 export function isAdminError(e: unknown): e is AdminError {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    "code" in e &&
-    "origin" in e &&
-    "timestamp" in e
-  );
+  return typeof e === "object" && e !== null && "code" in e && "origin" in e && "timestamp" in e;
 }
 
 export function toAdminError(e: unknown, origin: string): AdminError {

@@ -101,13 +101,14 @@ export function validateCustomer(customer: Customer): ValidationResult {
 }
 
 /** Etapa 3 — pagamento. */
-export function validatePayment(
-  payment: PaymentMethod,
-  installments: number,
-): ValidationResult {
+export function validatePayment(payment: PaymentMethod, installments: number): ValidationResult {
   if (!payment) return { ok: false, errors: {}, missing: ["payment"] };
   if (payment === "credito" && (installments < 1 || installments > 12)) {
-    return { ok: false, errors: { installments: "Parcelamento inválido" }, missing: ["installments"] };
+    return {
+      ok: false,
+      errors: { installments: "Parcelamento inválido" },
+      missing: ["installments"],
+    };
   }
   return ok();
 }

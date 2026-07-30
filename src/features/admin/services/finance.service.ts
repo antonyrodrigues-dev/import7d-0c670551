@@ -52,11 +52,7 @@ function shortLabel(iso: string): string {
 
 function buildSeries(orders: AdminOrder[], start: Date, end: Date): FinanceSeriesPoint[] {
   const bucket = new Map<string, { receita: number; pedidos: number }>();
-  for (
-    let d = new Date(start);
-    d.getTime() <= end.getTime();
-    d.setDate(d.getDate() + 1)
-  ) {
+  for (let d = new Date(start); d.getTime() <= end.getTime(); d.setDate(d.getDate() + 1)) {
     bucket.set(isoDay(d), { receita: 0, pedidos: 0 });
   }
   for (const o of orders) {
@@ -122,10 +118,7 @@ function pagamentos(orders: AdminOrder[]): FinancePaymentSlice[] {
 }
 
 /** Constrói o snapshot financeiro para o período informado. */
-export function buildFinanceMetrics(
-  orders: AdminOrder[],
-  period: FinancePeriod,
-): FinanceMetrics {
+export function buildFinanceMetrics(orders: AdminOrder[], period: FinancePeriod): FinanceMetrics {
   const now = new Date();
   const start = periodStart(period, now);
   const finalizados = orders.filter((o) => o.status === "finalizado");
@@ -167,9 +160,8 @@ export function buildFinanceMetrics(
     receitaPeriodo,
     ticketMedioPeriodo,
     pedidosFinalizados: finalizadosPeriodo.length,
-    pedidosCancelados: cancelados.filter(
-      (o) => new Date(o.criadoEm).getTime() >= start.getTime(),
-    ).length,
+    pedidosCancelados: cancelados.filter((o) => new Date(o.criadoEm).getTime() >= start.getTime())
+      .length,
     taxaCancelamentoPct,
     series: period === "todos" ? [] : buildSeries(finalizadosPeriodo, start, now),
     topProdutos: topProdutos(finalizadosPeriodo),

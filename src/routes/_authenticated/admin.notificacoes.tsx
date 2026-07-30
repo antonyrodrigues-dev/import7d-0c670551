@@ -53,8 +53,12 @@ function NotificacoesPage() {
               }`}
             >
               <div className="min-w-0">
-                <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">{n.kind}</p>
-                <p className="mt-1 font-display text-lg text-[color:var(--forest-deep)]">{n.title}</p>
+                <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+                  {n.kind}
+                </p>
+                <p className="mt-1 font-display text-lg text-[color:var(--forest-deep)]">
+                  {n.title}
+                </p>
                 <p className="mt-1 text-sm text-[color:var(--muted-foreground)]">{n.body}</p>
                 <p className="mt-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
                   {new Date(n.createdAt).toLocaleString("pt-BR")}

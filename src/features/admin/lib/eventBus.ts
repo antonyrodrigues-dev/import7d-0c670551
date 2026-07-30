@@ -51,10 +51,7 @@ export function subscribe<E extends AdminEvent>(
   return () => unsubscribe(event, handler);
 }
 
-export function unsubscribe<E extends AdminEvent>(
-  event: E,
-  handler: AdminEventHandler<E>,
-): void {
+export function unsubscribe<E extends AdminEvent>(event: E, handler: AdminEventHandler<E>): void {
   listeners.get(event)?.delete(handler as AnyHandler);
 }
 

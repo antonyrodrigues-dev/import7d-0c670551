@@ -26,7 +26,6 @@ export function track(event: AnalyticsEvent): void {
     /* noop */
   }
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.debug("[analytics]", event);
   }
 }

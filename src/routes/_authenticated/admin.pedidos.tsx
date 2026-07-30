@@ -12,11 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ORDER_STATUSES } from "@/features/admin/constants";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
 import { nextStatuses } from "@/features/admin/lib/statusMachine";
-import type {
-  AdminOrder,
-  DeliveryMethod,
-  OrderStatus,
-} from "@/features/admin/types";
+import type { AdminOrder, DeliveryMethod, OrderStatus } from "@/features/admin/types";
 import type { OrdersFilter } from "@/features/admin/stores/orders";
 
 /** Pipeline "em andamento" — espelha `PENDING_STATUSES` de `lib/selectors`. */
@@ -80,12 +76,7 @@ function PedidosPage() {
       if (pagamento !== "todos" && o.pagamento.metodo !== pagamento) return false;
       if (min > 0 && o.valorTotal < min) return false;
       if (q) {
-        const hay = [
-          o.numero,
-          o.cliente.nome,
-          o.cliente.telefone,
-          o.cliente.cidade ?? "",
-        ]
+        const hay = [o.numero, o.cliente.nome, o.cliente.telefone, o.cliente.cidade ?? ""]
           .join(" ")
           .toLowerCase();
         if (!hay.includes(q)) return false;
@@ -250,7 +241,10 @@ const OrderTimeline = memo(function OrderTimeline({ order }: { order: AdminOrder
       : TIMELINE_STAGES;
   const currentIdx = Math.max(0, stages.indexOf(order.status));
   return (
-    <ol className="mt-4 flex items-center gap-1 overflow-x-auto" aria-label="Linha do tempo do pedido">
+    <ol
+      className="mt-4 flex items-center gap-1 overflow-x-auto"
+      aria-label="Linha do tempo do pedido"
+    >
       {stages.map((s, i) => {
         const done = i < currentIdx;
         const current = i === currentIdx;
@@ -353,8 +347,7 @@ const OrderCard = memo(function OrderCard({ order, canEdit, onStatus }: OrderCar
             {p.numero}
           </p>
           <p className="mt-1 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-            {new Date(p.criadoEm).toLocaleString("pt-BR")} · {p.cliente.nome} ·{" "}
-            {p.cliente.telefone}
+            {new Date(p.criadoEm).toLocaleString("pt-BR")} · {p.cliente.nome} · {p.cliente.telefone}
             {p.cliente.cidade ? ` · ${p.cliente.cidade}` : ""}
           </p>
           <p className="mt-1 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">

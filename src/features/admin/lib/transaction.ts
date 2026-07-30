@@ -59,9 +59,7 @@ export interface TransactionOptions {
   origin: string;
 }
 
-export type TransactionResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: AdminError };
+export type TransactionResult<T> = { ok: true; value: T } | { ok: false; error: AdminError };
 
 /**
  * Executa uma operação envolvendo várias stores com rollback automático em

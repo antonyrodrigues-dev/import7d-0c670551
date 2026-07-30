@@ -107,6 +107,11 @@ function ConfiguracoesPage() {
   const { settings, dirty, patch, reset, commit } = useAdminSettings();
   const { can } = usePermissions();
 
+  // Validação por campo — reflete no botão Salvar e nas mensagens inline.
+  // Precisa vir antes de qualquer retorno antecipado (ordem de hooks estável).
+  const errors = useMemo(() => validate(settings), [settings]);
+  const hasErrors = Object.values(errors).some(Boolean);
+
   if (!can("settings:view")) {
     return (
       <>
@@ -121,10 +126,6 @@ function ConfiguracoesPage() {
   }
 
   const canEdit = can("settings:edit");
-
-  // Validação por campo — reflete no botão Salvar e nas mensagens inline.
-  const errors = useMemo(() => validate(settings), [settings]);
-  const hasErrors = Object.values(errors).some(Boolean);
 
   const save = () => {
     if (hasErrors) {
@@ -164,7 +165,12 @@ function ConfiguracoesPage() {
         <AddressSection settings={settings} errors={errors} patch={patch} disabled={!canEdit} />
         <BusinessHoursSection settings={settings} patch={patch} disabled={!canEdit} />
         <PickupSlotsSection settings={settings} patch={patch} disabled={!canEdit} />
-        <InstallmentsSection settings={settings} errors={errors} patch={patch} disabled={!canEdit} />
+        <InstallmentsSection
+          settings={settings}
+          errors={errors}
+          patch={patch}
+          disabled={!canEdit}
+        />
       </form>
     </>
   );
@@ -180,14 +186,12 @@ function validate(s: AdminSettings): Errors {
   const e: Errors = {};
   if (s.whatsapp && !isValidPhoneBR(s.whatsapp))
     e.whatsapp = "Formato inválido. Use DDD + número (11 dígitos).";
-  if (s.telefone && !isValidPhoneBR(s.telefone))
-    e.telefone = "Formato inválido. Use DDD + número.";
+  if (s.telefone && !isValidPhoneBR(s.telefone)) e.telefone = "Formato inválido. Use DDD + número.";
   if (s.cep && !isValidCEP(s.cep)) e.cep = "CEP deve ter 8 dígitos.";
   if (s.email && !isValidEmail(s.email)) e.email = "E-mail inválido.";
   if (s.instagram && !isValidInstagram(s.instagram))
     e.instagram = "Handle inválido. Use @usuario ou a URL completa.";
-  if (s.parcelamentoMax < 1 || s.parcelamentoMax > 12)
-    e.parcelamentoMax = "Entre 1 e 12 parcelas.";
+  if (s.parcelamentoMax < 1 || s.parcelamentoMax > 12) e.parcelamentoMax = "Entre 1 e 12 parcelas.";
   if (s.parcelaMinima < 0) e.parcelaMinima = "Não pode ser negativo.";
   return e;
 }
@@ -383,9 +387,7 @@ function PickupSlotsSection({
     }
     const business = settings.businessHours.find((h) => h.weekday === weekday);
     if (business && business.open && (raw < business.from || raw > business.to)) {
-      toast.error(
-        `Horário fora do funcionamento (${business.from}–${business.to}).`,
-      );
+      toast.error(`Horário fora do funcionamento (${business.from}–${business.to}).`);
       return;
     }
     const day = settings.pickupSlots.find((d) => d.weekday === weekday);
@@ -464,9 +466,7 @@ function PickupSlotsSection({
                       className={INPUT_CLASS + " max-w-[160px]"}
                       disabled={disabled}
                       value={drafts[d.weekday] ?? ""}
-                      onChange={(e) =>
-                        setDrafts((s) => ({ ...s, [d.weekday]: e.target.value }))
-                      }
+                      onChange={(e) => setDrafts((s) => ({ ...s, [d.weekday]: e.target.value }))}
                     />
                     <Button
                       type="button"
@@ -502,10 +502,7 @@ function InstallmentsSection({ settings, errors, patch, disabled }: SectionProps
             value={settings.parcelamentoMax}
             onChange={(e) =>
               patch({
-                parcelamentoMax: Math.min(
-                  12,
-                  Math.max(1, Number(digitsOnly(e.target.value) || 1)),
-                ),
+                parcelamentoMax: Math.min(12, Math.max(1, Number(digitsOnly(e.target.value) || 1))),
               })
             }
           />

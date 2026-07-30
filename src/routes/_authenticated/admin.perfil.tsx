@@ -20,10 +20,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/_authenticated/admin/perfil")({
   head: () => ({
-    meta: [
-      { title: "Meu perfil — 7D IMPORTS" },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
+    meta: [{ title: "Meu perfil — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
   validateSearch: searchSchema,
   component: PerfilPage,
@@ -50,8 +47,7 @@ function PerfilPage() {
     });
   }, []);
 
-  const roleLabel =
-    EMPLOYEE_ROLES.find((r) => roles.includes(r.key))?.label ?? "Sem cargo";
+  const roleLabel = EMPLOYEE_ROLES.find((r) => roles.includes(r.key))?.label ?? "Sem cargo";
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,9 +87,7 @@ function PerfilPage() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) =>
-          navigate({ search: { tab: v as "dados" | "senha" } })
-        }
+        onValueChange={(v) => navigate({ search: { tab: v as "dados" | "senha" } })}
         className="w-full"
       >
         <TabsList>
@@ -122,9 +116,7 @@ function PerfilPage() {
             </div>
             <div>
               <Button type="submit" disabled={savingProfile || !ready}>
-                {savingProfile && (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                )}
+                {savingProfile && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 Salvar alterações
               </Button>
             </div>
@@ -187,9 +179,7 @@ function ChangePasswordForm() {
             {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        <p className="text-xs text-[color:var(--muted-foreground)]">
-          Mínimo de 8 caracteres.
-        </p>
+        <p className="text-xs text-[color:var(--muted-foreground)]">Mínimo de 8 caracteres.</p>
       </div>
 
       <div className="grid gap-2">
@@ -204,9 +194,7 @@ function ChangePasswordForm() {
           aria-invalid={confirm.length > 0 && confirm !== password}
         />
         {confirm.length > 0 && confirm !== password && (
-          <p className="text-xs text-[color:var(--destructive)]">
-            As senhas não coincidem.
-          </p>
+          <p className="text-xs text-[color:var(--destructive)]">As senhas não coincidem.</p>
         )}
       </div>
 

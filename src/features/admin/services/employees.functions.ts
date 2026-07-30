@@ -56,7 +56,10 @@ export const addEmployeeByEmail = createServerFn({ method: "POST" })
     // listUsers pagina; para bases pequenas do MVP percorremos até encontrar.
     let userId: string | null = null;
     for (let page = 1; page <= 20 && !userId; page += 1) {
-      const { data: list, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      const { data: list, error } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage: 200,
+      });
       if (error) throw new Error(error.message);
       const match = list.users.find((u) => u.email?.toLowerCase() === data.email);
       if (match) userId = match.id;
@@ -73,17 +76,15 @@ export const addEmployeeByEmail = createServerFn({ method: "POST" })
       .upsert({ user_id: userId, role: toDbRole(data.role) }, { onConflict: "user_id,role" });
     if (roleErr) throw new Error(roleErr.message);
 
-    const { error: profErr } = await supabaseAdmin
-      .from("profiles")
-      .upsert(
-        {
-          user_id: userId,
-          nome: data.nome ?? "",
-          telefone: data.telefone ?? "",
-          status: "ativo",
-        },
-        { onConflict: "user_id" },
-      );
+    const { error: profErr } = await supabaseAdmin.from("profiles").upsert(
+      {
+        user_id: userId,
+        nome: data.nome ?? "",
+        telefone: data.telefone ?? "",
+        status: "ativo",
+      },
+      { onConflict: "user_id" },
+    );
     if (profErr) throw new Error(profErr.message);
 
     return { userId };
@@ -187,9 +188,6 @@ export const removeEmployee = createServerFn({ method: "POST" })
       .eq("user_id", data.userId);
     if (rErr) throw new Error(rErr.message);
     // Marca o profile como inativo para trilha de auditoria.
-    await supabaseAdmin
-      .from("profiles")
-      .update({ status: "inativo" })
-      .eq("user_id", data.userId);
+    await supabaseAdmin.from("profiles").update({ status: "inativo" }).eq("user_id", data.userId);
     return { ok: true };
   });

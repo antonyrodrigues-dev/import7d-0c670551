@@ -104,10 +104,7 @@ export function Header() {
 
         <div className="flex items-center justify-center md:justify-center">
           <LogoLink className="flex md:hidden" scrolled={scrolled} />
-          <nav
-            aria-label="Principal"
-            className="hidden md:flex items-center gap-8 lg:gap-12"
-          >
+          <nav aria-label="Principal" className="hidden md:flex items-center gap-8 lg:gap-12">
             <NavLink href="#acervo" label="Acervo" scrolled={scrolled} />
             <NavLink href="#manifesto" label="Manifesto" scrolled={scrolled} />
             <NavLink href="#atendimento" label="Atendimento" scrolled={scrolled} />

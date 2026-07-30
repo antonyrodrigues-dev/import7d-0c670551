@@ -730,6 +730,7 @@ export function ReservaDrawer() {
                     type="button"
                     onClick={reenviarWhats}
                     disabled={isBusy}
+                    data-testid="pending-reenviar"
                     aria-busy={flowState === "reopening_whatsapp"}
                     className="inline-flex h-14 w-full items-center justify-center gap-2 bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
@@ -744,6 +745,7 @@ export function ReservaDrawer() {
                     type="button"
                     onClick={marcarEnviado}
                     disabled={isBusy}
+                    data-testid="pending-ja-enviei"
                     aria-busy={flowState === "confirming_sent"}
                     className="inline-flex h-14 w-full items-center justify-center gap-2 border border-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
@@ -758,6 +760,7 @@ export function ReservaDrawer() {
                     type="button"
                     onClick={() => setCancelConfirmOpen(true)}
                     disabled={isBusy}
+                    data-testid="pending-cancelar"
                     className="inline-flex h-12 w-full items-center justify-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] underline-offset-4 hover:text-[color:var(--forest-deep)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Cancelar solicitação
@@ -808,6 +811,7 @@ export function ReservaDrawer() {
                       type="button"
                       onClick={finalizar}
                       disabled={items.length === 0 || isBusy}
+                      data-testid="checkout-finalizar"
                       aria-busy={flowState === "creating"}
                       className={`inline-flex h-14 w-full items-center justify-center gap-2 text-[11px] tracking-luxe uppercase transition-colors ${
                         items.length === 0 || isBusy
@@ -889,6 +893,7 @@ function PendingOrderPanel({
           <button
             type="button"
             onClick={onReview}
+            data-testid="pending-revisar"
             className="text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)] underline-offset-4 hover:underline"
           >
             Revisar dados
@@ -950,6 +955,7 @@ function PendingOrderPanel({
               type="button"
               onClick={onCancelClose}
               disabled={isBusy}
+              data-testid="pending-cancel-keep"
               className="h-11 flex-1 border border-[color:var(--border)] text-[10px] tracking-luxe uppercase text-[color:var(--forest-deep)] disabled:opacity-60"
             >
               Manter
@@ -958,6 +964,7 @@ function PendingOrderPanel({
               type="button"
               onClick={onConfirmCancel}
               disabled={isBusy}
+              data-testid="pending-cancel-confirm"
               aria-busy={state === "cancelling"}
               className="h-11 flex-1 bg-[color:var(--forest-deep)] text-[10px] tracking-luxe uppercase text-[color:var(--cream)] disabled:opacity-60"
             >

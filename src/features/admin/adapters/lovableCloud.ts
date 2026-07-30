@@ -6,12 +6,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type {
-  AdminIdentity,
-  AdminDataSource,
-  ProductWritePayload,
-  MovementKindDB,
-} from "./types";
+import type { AdminIdentity, AdminDataSource, ProductWritePayload, MovementKindDB } from "./types";
 import type {
   AdminOrder,
   Employee,
@@ -32,13 +27,15 @@ interface PedidoRow {
   canal: string | null;
   criado_em: string;
   atualizado_em: string;
-  pedido_status_historico?: {
-    de: string | null;
-    para: string;
-    criado_em: string;
-    observacao: string | null;
-    por_usuario: string | null;
-  }[] | null;
+  pedido_status_historico?:
+    | {
+        de: string | null;
+        para: string;
+        criado_em: string;
+        observacao: string | null;
+        por_usuario: string | null;
+      }[]
+    | null;
 }
 
 function mapStatus(raw: string): OrderStatus {
@@ -138,10 +135,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
     if (!user) return { userId: null, roles: [] };
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
     const roles = (data ?? [])
       .map((r) => mapDbRole(String(r.role)))
       .filter((r): r is EmployeeRole => Boolean(r));
@@ -258,10 +252,7 @@ export const lovableCloudDataSource: AdminDataSource = {
   },
 
   async updateProduct(id: string, p: ProductWritePayload): Promise<void> {
-    const { error } = await supabase
-      .from("produtos")
-      .update(toProductInsert(p))
-      .eq("id", id);
+    const { error } = await supabase.from("produtos").update(toProductInsert(p)).eq("id", id);
     if (error) throw error;
     await syncVariations(id, p.variacoes);
   },

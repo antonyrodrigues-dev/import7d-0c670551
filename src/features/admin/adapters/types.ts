@@ -6,13 +6,7 @@
  * fila em memória para testes). Trocar a origem só edita este diretório.
  */
 
-import type {
-  AdminOrder,
-  Employee,
-  EmployeeRole,
-  InventoryItem,
-  OrderStatus,
-} from "../types";
+import type { AdminOrder, Employee, EmployeeRole, InventoryItem, OrderStatus } from "../types";
 
 export interface AdminIdentity {
   userId: string | null;
@@ -39,12 +33,7 @@ export interface ProductWritePayload {
   variacoes: { tamanho: string; quantidade: number }[];
 }
 
-export type MovementKindDB =
-  | "entrada"
-  | "saida"
-  | "ajuste"
-  | "reposicao"
-  | "consumo_pedido";
+export type MovementKindDB = "entrada" | "saida" | "ajuste" | "reposicao" | "consumo_pedido";
 
 export interface AdminDataSource {
   // Identidade / autorização
