@@ -22,6 +22,8 @@ import type {
 } from "../types";
 import { DEFAULT_PARAMS, PARAM_LIMITS } from "../types";
 
+import type { Json as DbJson } from "@/integrations/supabase/types";
+
 type Json = Record<string, unknown>;
 
 function asRecord(v: unknown): Json {
@@ -200,7 +202,7 @@ export const opsDataSource: AdminOpsDataSource = {
     const { error } = await supabase.rpc("transferir_atendimento", {
       p_pedido_id: pedidoId,
       p_novo_responsavel: novoResponsavel,
-      p_observacao: observacao ?? null,
+      p_observacao: observacao ?? undefined,
     });
     if (error) throw error;
   },
@@ -208,7 +210,7 @@ export const opsDataSource: AdminOpsDataSource = {
   async releaseOrder(pedidoId, observacao) {
     const { error } = await supabase.rpc("devolver_para_fila", {
       p_pedido_id: pedidoId,
-      p_observacao: observacao ?? null,
+      p_observacao: observacao ?? undefined,
     });
     if (error) throw error;
   },
@@ -237,8 +239,8 @@ export const opsDataSource: AdminOpsDataSource = {
     const { error } = await supabase.rpc("registrar_pagamento", {
       p_pedido_id: input.pedidoId,
       p_estado: input.estado,
-      p_comprovante_url: input.comprovanteUrl ?? null,
-      p_observacao: input.observacao ?? null,
+      p_comprovante_url: input.comprovanteUrl ?? undefined,
+      p_observacao: input.observacao ?? undefined,
     });
     if (error) throw error;
   },
@@ -271,11 +273,11 @@ export const opsDataSource: AdminOpsDataSource = {
   async registerReturn(input) {
     const { data, error } = await supabase.rpc("registrar_devolucao", {
       p_pedido_id: input.pedidoId,
-      p_itens: input.itens as unknown as Json[],
+      p_itens: input.itens as unknown as DbJson,
       p_motivo: input.motivo,
       p_valor_estornado: input.valorEstornado,
-      p_observacoes: input.observacoes ?? null,
-      p_evidencias: (input.evidencias ?? []) as unknown as Json[],
+      p_observacoes: input.observacoes ?? undefined,
+      p_evidencias: (input.evidencias ?? []) as unknown as DbJson,
     });
     if (error) throw error;
     return String(data);
@@ -319,7 +321,7 @@ export const opsDataSource: AdminOpsDataSource = {
   async setParam(chave, valor) {
     const { error } = await supabase.rpc("definir_parametro", {
       p_chave: chave,
-      p_valor: valor as unknown as Json,
+      p_valor: valor as unknown as DbJson,
     });
     if (error) throw error;
   },
