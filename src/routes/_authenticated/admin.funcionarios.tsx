@@ -16,7 +16,7 @@ import { EmptyState } from "@/features/admin/components/AdminUI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EMPLOYEE_ROLES } from "@/features/admin/constants";
-import { useEmployees, usePermissions } from "@/features/admin/hooks";
+import { useEmployees, usePermissions, useTeam } from "@/features/admin/hooks";
 import type { Employee, EmployeeRole } from "@/features/admin/types";
 import {
   addEmployeeByEmail,
@@ -197,6 +197,7 @@ function FuncionariosPage() {
       </section>
 
       <section aria-label="Pessoas" className="mt-6 flex flex-col gap-3">
+        <PendingTeamSection />
         <header className="flex items-center gap-2">
           <Users className="h-4 w-4 text-[color:var(--gold)]" />
           <h2 className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
