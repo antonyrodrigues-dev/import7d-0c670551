@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      job_execucoes: {
+        Row: {
+          criado_em: string
+          id: string
+          job: string
+          resultado: Json
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          job: string
+          resultado?: Json
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          job?: string
+          resultado?: Json
+        }
+        Relationships: []
+      }
+      notificacao_leituras: {
+        Row: {
+          lido_em: string
+          notificacao_id: string
+          user_id: string
+        }
+        Insert: {
+          lido_em?: string
+          notificacao_id: string
+          user_id: string
+        }
+        Update: {
+          lido_em?: string
+          notificacao_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacao_leituras_notificacao_id_fkey"
+            columns: ["notificacao_id"]
+            isOneToOne: false
+            referencedRelation: "notificacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes: {
+        Row: {
+          criado_em: string
+          dedupe_key: string
+          detalhe: Json
+          entidade: string | null
+          entidade_id: string | null
+          id: string
+          mensagem: string
+          severidade: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          criado_em?: string
+          dedupe_key: string
+          detalhe?: Json
+          entidade?: string | null
+          entidade_id?: string | null
+          id?: string
+          mensagem: string
+          severidade?: string
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          criado_em?: string
+          dedupe_key?: string
+          detalhe?: Json
+          entidade?: string | null
+          entidade_id?: string | null
+          id?: string
+          mensagem?: string
+          severidade?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       parametros_operacionais: {
         Row: {
           atualizado_em: string
@@ -756,6 +842,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      emitir_notificacao: {
+        Args: {
+          p_dedupe_key: string
+          p_detalhe?: Json
+          p_entidade?: string
+          p_entidade_id?: string
+          p_mensagem: string
+          p_severidade?: string
+          p_tipo: string
+          p_titulo: string
+        }
+        Returns: undefined
+      }
       expirar_reservas: { Args: never; Returns: number }
       gerar_numero_pedido: { Args: never; Returns: string }
       has_role: {
@@ -765,6 +864,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      job_expirar_reservas: { Args: never; Returns: number }
       liberar_reservas_pedido: {
         Args: { p_motivo: string; p_pedido_id: string }
         Returns: undefined
@@ -790,12 +890,12 @@ export type Database = {
       }
       registrar_devolucao: {
         Args: {
-          p_evidencias?: Json
+          p_evidencias: Json
           p_itens: Json
           p_motivo: string
-          p_observacoes?: string
+          p_observacoes: string
           p_pedido_id: string
-          p_valor_estornado?: number
+          p_valor_estornado: number
         }
         Returns: string
       }

@@ -7,3 +7,4 @@ export * from "./notification";
 export * from "./settings";
 export * from "./dashboard";
 export * from "./finance";
+export * from "./ops";
