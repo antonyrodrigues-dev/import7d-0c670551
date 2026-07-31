@@ -26,12 +26,14 @@ export type AsyncState = AdminAsyncState;
 
 export type AdminNavKey =
   | "dashboard"
+  | "atendimentos"
   | "pedidos"
   | "financeiro"
   | "estoque"
   | "clientes"
   | "funcionarios"
   | "configuracoes"
+  | "parametros"
   | "notificacoes";
 
 export type Permission =
@@ -47,7 +49,11 @@ export type Permission =
   | "settings:edit"
   | "notifications:view"
   | "notifications:edit"
-  | "finance:view";
+  | "finance:view"
+  | "queue:view"
+  | "queue:manage"
+  | "params:view"
+  | "params:edit";
 
 /** ISO 8601 datetime — usado em toda a base administrativa. */
 export type IsoDateTime = string;

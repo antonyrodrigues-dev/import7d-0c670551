@@ -24,7 +24,7 @@ import { PageHeader } from "@/features/admin/components/PageHeader";
 import { StatCard } from "@/features/admin/components/StatCard";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { formatBRL } from "@/features/catalog";
-import { useFinance, useOrders } from "@/features/admin/hooks";
+import { useFinance } from "@/features/admin/hooks";
 import type { FinancePeriod } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
@@ -43,9 +43,8 @@ const PERIODS: { key: FinancePeriod; label: string }[] = [
 ];
 
 function FinanceiroPage() {
-  // Carrega pedidos (fonte única). Sem consulta paralela ao banco.
-  const { state } = useOrders();
-  const { metrics: m, period, setPeriod } = useFinance();
+  // Fonte única: RPC `metricas_financeiras` via useFinance. Zero cálculo local.
+  const { metrics: m, period, setPeriod, state } = useFinance();
   const loading = state === "loading" || !m;
 
   return (

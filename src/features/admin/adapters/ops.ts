@@ -52,7 +52,9 @@ export interface AdminOpsDataSource {
   reconcileReservations(): Promise<number>;
 
   // Fila de atendimento
-  listQueue(params: OperationalParams): Promise<{ fila: QueueOrder[]; emAtendimento: QueueOrder[] }>;
+  listQueue(
+    params: OperationalParams,
+  ): Promise<{ fila: QueueOrder[]; emAtendimento: QueueOrder[] }>;
   claimOrder(pedidoId: string): Promise<void>;
   transferOrder(pedidoId: string, novoResponsavel: string, observacao?: string): Promise<void>;
   releaseOrder(pedidoId: string, observacao?: string): Promise<void>;
@@ -67,7 +69,10 @@ export interface AdminOpsDataSource {
 
   // Equipe
   listTeam(): Promise<TeamMember[]>;
-  setMemberStatus(userId: string, status: Exclude<TeamSituation, "aguardando_liberacao">): Promise<void>;
+  setMemberStatus(
+    userId: string,
+    status: Exclude<TeamSituation, "aguardando_liberacao">,
+  ): Promise<void>;
 
   // Parâmetros
   getParams(): Promise<OperationalParams>;
@@ -372,24 +377,65 @@ export const opsDataSource: AdminOpsDataSource = {
 
   async markAllNotificationsRead(ids, userId) {
     if (ids.length === 0) return;
-    const { error } = await supabase
-      .from("notificacao_leituras")
-      .upsert(
-        ids.map((notificacao_id) => ({ notificacao_id, user_id: userId })),
-        { onConflict: "notificacao_id,user_id" },
-      );
+    const { error } = await supabase.from("notificacao_leituras").upsert(
+      ids.map((notificacao_id) => ({ notificacao_id, user_id: userId })),
+      { onConflict: "notificacao_id,user_id" },
+    );
     if (error) throw error;
   },
 
   subscribeOps(onChange) {
-    const channel = supabase
-      .channel("7d-admin-ops")
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, onChange)
-      .on("postgres_changes", { event: "*", schema: "public", table: "notificacoes" }, onChange)
-      .on("postgres_changes", { event: "*", schema: "public", table: "reservas_estoque" }, onChange)
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return subscribeSharedOps(onChange);
   },
 };
+
+/**
+ * Realtime compartilhado: UM único canal por sessão, com contagem de
+ * referências. Vários hooks podem assinar sem duplicar subscriptions; o
+ * canal é removido quando o último consumidor sai (unmount/logout).
+ */
+const OPS_TABLES = [
+  "pedidos",
+  "notificacoes",
+  "reservas_estoque",
+  "pedido_pagamentos",
+  "pedido_devolucoes",
+  "pedido_atendimentos",
+  "profiles",
+  "user_roles",
+];
+
+type OpsListener = () => void;
+const opsListeners = new Set<OpsListener>();
+let opsChannel: ReturnType<typeof supabase.channel> | null = null;
+
+function notifyOps() {
+  opsListeners.forEach((l) => l());
+}
+
+function subscribeSharedOps(onChange: OpsListener): () => void {
+  opsListeners.add(onChange);
+  if (!opsChannel) {
+    let ch = supabase.channel("7d-admin-ops");
+    for (const table of OPS_TABLES) {
+      ch = ch.on("postgres_changes", { event: "*", schema: "public", table }, notifyOps);
+    }
+    opsChannel = ch.subscribe();
+  }
+  return () => {
+    opsListeners.delete(onChange);
+    if (opsListeners.size === 0 && opsChannel) {
+      void supabase.removeChannel(opsChannel);
+      opsChannel = null;
+    }
+  };
+}
+
+/** Encerra o canal em troca de conta / logout, sem deixar listeners órfãos. */
+export function teardownOpsRealtime(): void {
+  opsListeners.clear();
+  if (opsChannel) {
+    void supabase.removeChannel(opsChannel);
+    opsChannel = null;
+  }
+}

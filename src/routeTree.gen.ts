@@ -25,6 +25,8 @@ import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminEstoqueRouteImport } from './routes/_authenticated/admin.estoque'
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin.configuracoes'
 import { Route as AuthenticatedAdminClientesRouteImport } from './routes/_authenticated/admin.clientes'
+import { Route as AuthenticatedAdminAtendimentosRouteImport } from './routes/_authenticated/admin.atendimentos'
+import { Route as AuthenticatedAdminConfiguracoesOperacaoRouteImport } from './routes/_authenticated/admin.configuracoes_.operacao'
 
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
@@ -113,6 +115,18 @@ const AuthenticatedAdminClientesRoute =
     path: '/clientes',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAtendimentosRoute =
+  AuthenticatedAdminAtendimentosRouteImport.update({
+    id: '/atendimentos',
+    path: '/atendimentos',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesOperacaoRoute =
+  AuthenticatedAdminConfiguracoesOperacaoRouteImport.update({
+    id: '/configuracoes_/operacao',
+    path: '/configuracoes/operacao',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -121,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/admin/atendimentos': typeof AuthenticatedAdminAtendimentosRoute
   '/admin/clientes': typeof AuthenticatedAdminClientesRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
@@ -130,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/admin/perfil': typeof AuthenticatedAdminPerfilRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/configuracoes/operacao': typeof AuthenticatedAdminConfiguracoesOperacaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -137,6 +153,7 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
+  '/admin/atendimentos': typeof AuthenticatedAdminAtendimentosRoute
   '/admin/clientes': typeof AuthenticatedAdminClientesRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
@@ -146,6 +163,7 @@ export interface FileRoutesByTo {
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/admin/perfil': typeof AuthenticatedAdminPerfilRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/configuracoes/operacao': typeof AuthenticatedAdminConfiguracoesOperacaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -156,6 +174,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/admin/atendimentos': typeof AuthenticatedAdminAtendimentosRoute
   '/_authenticated/admin/clientes': typeof AuthenticatedAdminClientesRoute
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/_authenticated/admin/estoque': typeof AuthenticatedAdminEstoqueRoute
@@ -165,6 +184,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/_authenticated/admin/perfil': typeof AuthenticatedAdminPerfilRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/configuracoes_/operacao': typeof AuthenticatedAdminConfiguracoesOperacaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -175,6 +195,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/admin'
+    | '/admin/atendimentos'
     | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/estoque'
@@ -184,6 +205,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/perfil'
     | '/admin/'
+    | '/admin/configuracoes/operacao'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -191,6 +213,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/sitemap.xml'
     | '/termos'
+    | '/admin/atendimentos'
     | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/estoque'
@@ -200,6 +223,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/perfil'
     | '/admin'
+    | '/admin/configuracoes/operacao'
   id:
     | '__root__'
     | '/'
@@ -209,6 +233,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/_authenticated/admin'
+    | '/_authenticated/admin/atendimentos'
     | '/_authenticated/admin/clientes'
     | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/estoque'
@@ -218,6 +243,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/pedidos'
     | '/_authenticated/admin/perfil'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/configuracoes_/operacao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -343,10 +369,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/atendimentos': {
+      id: '/_authenticated/admin/atendimentos'
+      path: '/atendimentos'
+      fullPath: '/admin/atendimentos'
+      preLoaderRoute: typeof AuthenticatedAdminAtendimentosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/configuracoes_/operacao': {
+      id: '/_authenticated/admin/configuracoes_/operacao'
+      path: '/configuracoes/operacao'
+      fullPath: '/admin/configuracoes/operacao'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesOperacaoRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAtendimentosRoute: typeof AuthenticatedAdminAtendimentosRoute
   AuthenticatedAdminClientesRoute: typeof AuthenticatedAdminClientesRoute
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
   AuthenticatedAdminEstoqueRoute: typeof AuthenticatedAdminEstoqueRoute
@@ -356,9 +397,11 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPedidosRoute: typeof AuthenticatedAdminPedidosRoute
   AuthenticatedAdminPerfilRoute: typeof AuthenticatedAdminPerfilRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminConfiguracoesOperacaoRoute: typeof AuthenticatedAdminConfiguracoesOperacaoRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAtendimentosRoute: AuthenticatedAdminAtendimentosRoute,
   AuthenticatedAdminClientesRoute: AuthenticatedAdminClientesRoute,
   AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
   AuthenticatedAdminEstoqueRoute: AuthenticatedAdminEstoqueRoute,
@@ -368,6 +411,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPedidosRoute: AuthenticatedAdminPedidosRoute,
   AuthenticatedAdminPerfilRoute: AuthenticatedAdminPerfilRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminConfiguracoesOperacaoRoute:
+    AuthenticatedAdminConfiguracoesOperacaoRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =

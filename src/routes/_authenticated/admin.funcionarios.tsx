@@ -16,7 +16,7 @@ import { EmptyState } from "@/features/admin/components/AdminUI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EMPLOYEE_ROLES } from "@/features/admin/constants";
-import { useEmployees, usePermissions } from "@/features/admin/hooks";
+import { useEmployees, usePermissions, useTeam } from "@/features/admin/hooks";
 import type { Employee, EmployeeRole } from "@/features/admin/types";
 import {
   addEmployeeByEmail,
@@ -197,6 +197,7 @@ function FuncionariosPage() {
       </section>
 
       <section aria-label="Pessoas" className="mt-6 flex flex-col gap-3">
+        <PendingTeamSection />
         <header className="flex items-center gap-2">
           <Users className="h-4 w-4 text-[color:var(--gold)]" />
           <h2 className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -261,6 +262,66 @@ function FuncionariosPage() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+/**
+ * Usuários que criaram conta mas ainda não têm cargo ou estão inativos.
+ * Fonte única: RPC `listar_equipe()` via `useTeam` — nunca lista local.
+ */
+function PendingTeamSection() {
+  const { groups, state, setActive, setRole, currentUserId } = useTeam();
+  const pendentes = [...groups.aguardando, ...groups.inativos];
+  if (pendentes.length === 0) return null;
+
+  return (
+    <section
+      aria-label="Usuários aguardando liberação"
+      className="border border-amber-300 bg-amber-50 p-4"
+    >
+      <h2 className="text-[10px] tracking-luxe uppercase text-amber-800">
+        Aguardando liberação ou inativos ({pendentes.length})
+      </h2>
+      <ul className="mt-3 flex flex-col gap-2">
+        {pendentes.map((m) => (
+          <li
+            key={m.userId}
+            className="flex flex-wrap items-center justify-between gap-3 border border-[color:var(--border)] bg-[color:var(--cream)] p-3"
+          >
+            <div className="min-w-0">
+              <p className="text-sm text-[color:var(--forest-deep)]">{m.nome || m.email}</p>
+              <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                {m.email} ·{" "}
+                {m.situacao === "aguardando_liberacao" ? "Sem cargo definido" : "Acesso inativo"}
+                {m.ultimoAcesso
+                  ? ` · Último acesso ${new Date(m.ultimoAcesso).toLocaleString("pt-BR")}`
+                  : " · Nunca acessou"}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {EMPLOYEE_ROLES.map((r) => (
+                <Button
+                  key={r.key}
+                  size="sm"
+                  variant="outline"
+                  disabled={state === "saving"}
+                  onClick={() => void setRole(m.userId, r.key)}
+                >
+                  Definir {r.label}
+                </Button>
+              ))}
+              <Button
+                size="sm"
+                disabled={state === "saving" || m.userId === currentUserId}
+                onClick={() => void setActive(m.userId, m.situacao !== "ativo")}
+              >
+                {m.situacao === "ativo" ? "Inativar" : "Liberar acesso"}
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

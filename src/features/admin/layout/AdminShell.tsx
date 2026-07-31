@@ -4,7 +4,7 @@ import { Menu, X, LogOut, Bell, ChevronDown, KeyRound, UserRound } from "lucide-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_NAV, ADMIN_NAV_PERMISSION } from "../constants";
-import { usePermissions, useAdminNotifications } from "../hooks";
+import { usePermissions, useRemoteNotifications } from "../hooks";
 import { InitialsAvatar } from "../components/AdminUI";
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EMPLOYEE_ROLES } from "../constants";
 import { auditAdminArchitecture } from "../lib/audit";
+import { resetAdminSession } from "../lib/session";
 
 /**
  * Shell administrativo — sidebar fixa em desktop, drawer em mobile.
@@ -26,12 +27,19 @@ import { auditAdminArchitecture } from "../lib/audit";
 export function AdminShell() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { roles, reset: resetPerms, userId, can } = usePermissions();
-  const { notifications } = useAdminNotifications();
+  const {
+    roles,
+    reset: resetPerms,
+    userId,
+    can,
+    displayName: identityName,
+    email,
+  } = usePermissions();
+  const { naoLidas } = useRemoteNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
-  const unread = notifications.filter((n) => !n.read).length;
+  const unread = naoLidas;
   const canSeeNotifications = can("notifications:view");
 
   useEffect(() => {
@@ -71,6 +79,9 @@ export function AdminShell() {
   }, [pathname, visibleNav]);
 
   const signOut = async () => {
+    // Ordem inversa: derruba Realtime + estado antes de encerrar a sessão,
+    // para que nenhuma tela reste com dados do usuário anterior.
+    resetAdminSession();
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Não foi possível encerrar a sessão. Tente novamente.");
@@ -81,7 +92,7 @@ export function AdminShell() {
     navigate({ to: "/auth", replace: true });
   };
 
-  const displayName = userName || userEmail || "Sessão";
+  const displayName = identityName || userName || email || userEmail || "Sessão";
   const roleLabel =
     EMPLOYEE_ROLES.find((r) => roles.includes(r.key))?.label ?? roles[0] ?? "Sem cargo";
 
