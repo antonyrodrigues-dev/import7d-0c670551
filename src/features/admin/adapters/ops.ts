@@ -276,7 +276,7 @@ export const opsDataSource: AdminOpsDataSource = {
       p_itens: input.itens as unknown as DbJson,
       p_motivo: input.motivo,
       p_valor_estornado: input.valorEstornado,
-      p_observacoes: input.observacoes ?? undefined,
+      p_observacoes: input.observacoes ?? "",
       p_evidencias: (input.evidencias ?? []) as unknown as DbJson,
     });
     if (error) throw error;
