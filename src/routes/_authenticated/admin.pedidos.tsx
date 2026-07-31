@@ -9,6 +9,7 @@ import {
   Skeleton,
 } from "@/features/admin/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { OrderFinancePanel } from "@/features/admin/components/OrderFinancePanel";
 import { ORDER_STATUSES } from "@/features/admin/constants";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
 import { nextStatuses } from "@/features/admin/lib/statusMachine";
@@ -366,6 +367,7 @@ const OrderCard = memo(function OrderCard({ order, canEdit, onStatus }: OrderCar
 
       <OrderTimeline order={p} />
       <StatusActions order={p} canEdit={canEdit} onStatus={onStatus} />
+      <OrderFinancePanel order={p} />
 
       <ul className="mt-4 divide-y divide-[color:var(--border)] border-t border-[color:var(--border)]">
         {p.itens.map((it, idx) => (
