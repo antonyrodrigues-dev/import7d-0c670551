@@ -35,8 +35,12 @@ const KEYS = Object.keys(PARAM_LIMITS) as OperationalParamKey[];
 
 function OperacaoView() {
   const { state, params, save, validate } = useOperationalParams();
-  const [draft, setDraft] = useState<Record<OperationalParamKey, string>>(() =>
-    Object.fromEntries(KEYS.map((k) => [k, String(params[k])])) as Record<OperationalParamKey, string>,
+  const [draft, setDraft] = useState<Record<OperationalParamKey, string>>(
+    () =>
+      Object.fromEntries(KEYS.map((k) => [k, String(params[k])])) as Record<
+        OperationalParamKey,
+        string
+      >,
   );
 
   useEffect(() => {

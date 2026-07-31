@@ -11,12 +11,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/features/catalog";
 import { useOrderFinance, usePermissions } from "../hooks";
 import { PAYMENT_STATES, RETURN_CONDITIONS } from "../types";
-import type {
-  AdminOrder,
-  PaymentState,
-  ReturnCondition,
-  ReturnItemInput,
-} from "../types";
+import type { AdminOrder, PaymentState, ReturnCondition, ReturnItemInput } from "../types";
 
 export function OrderFinancePanel({ order }: { order: AdminOrder }) {
   const { isAdmin } = usePermissions();
@@ -27,7 +22,10 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
   const atual = payments[0]?.estado ?? "pendente";
 
   return (
-    <section className="mt-4 border-t border-[color:var(--border)] pt-4" aria-label="Financeiro do pedido">
+    <section
+      className="mt-4 border-t border-[color:var(--border)] pt-4"
+      aria-label="Financeiro do pedido"
+    >
       <div className="flex flex-wrap gap-2">
         {(["pagamento", "devolucao"] as const).map((k) => (
           <button
@@ -39,11 +37,17 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
                 : "border-[color:var(--border)] text-[color:var(--forest-deep)]"
             }`}
           >
-            {k === "pagamento" ? `Pagamento (${payments.length})` : `Devoluções (${returns.length})`}
+            {k === "pagamento"
+              ? `Pagamento (${payments.length})`
+              : `Devoluções (${returns.length})`}
           </button>
         ))}
         <span className="self-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-          {state === "loading" ? "Carregando…" : state === "saving" ? "Salvando…" : `Estado: ${atual}`}
+          {state === "loading"
+            ? "Carregando…"
+            : state === "saving"
+              ? "Salvando…"
+              : `Estado: ${atual}`}
         </span>
       </div>
 
@@ -88,7 +92,13 @@ function PaymentTab({
     estado: PaymentState,
     extras?: { comprovanteUrl?: string; observacao?: string },
   ) => Promise<boolean>;
-  history: { id: string; estado: string; valor: number; criadoEm: string; observacao: string | null }[];
+  history: {
+    id: string;
+    estado: string;
+    valor: number;
+    criadoEm: string;
+    observacao: string | null;
+  }[];
 }) {
   const [comprovante, setComprovante] = useState("");
   const [obs, setObs] = useState("");
@@ -96,8 +106,9 @@ function PaymentTab({
   return (
     <div className="mt-3 flex flex-col gap-3">
       <p className="text-[11px] text-[color:var(--muted-foreground)]">
-        Valor oficial do pedido: <strong className="tabular-nums">{formatBRL(order.valorTotal)}</strong> —
-        gravado pelo servidor, nunca informado manualmente.
+        Valor oficial do pedido:{" "}
+        <strong className="tabular-nums">{formatBRL(order.valorTotal)}</strong> — gravado pelo
+        servidor, nunca informado manualmente.
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-[10px] tracking-luxe uppercase">
@@ -126,7 +137,9 @@ function PaymentTab({
               size="sm"
               variant={s.key === atual ? "default" : "outline"}
               disabled={disabled || bloqueado || s.key === atual}
-              title={bloqueado ? "Somente o Administrador Master pode aplicar este estado." : undefined}
+              title={
+                bloqueado ? "Somente o Administrador Master pode aplicar este estado." : undefined
+              }
               onClick={() =>
                 void onApply(s.key, {
                   comprovanteUrl: comprovante.trim() || undefined,

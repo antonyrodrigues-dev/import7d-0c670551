@@ -27,7 +27,14 @@ import { resetAdminSession } from "../lib/session";
 export function AdminShell() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { roles, reset: resetPerms, userId, can, displayName: identityName, email } = usePermissions();
+  const {
+    roles,
+    reset: resetPerms,
+    userId,
+    can,
+    displayName: identityName,
+    email,
+  } = usePermissions();
   const { naoLidas } = useRemoteNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState<string>("");

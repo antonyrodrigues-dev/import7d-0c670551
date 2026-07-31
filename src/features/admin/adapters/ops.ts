@@ -52,7 +52,9 @@ export interface AdminOpsDataSource {
   reconcileReservations(): Promise<number>;
 
   // Fila de atendimento
-  listQueue(params: OperationalParams): Promise<{ fila: QueueOrder[]; emAtendimento: QueueOrder[] }>;
+  listQueue(
+    params: OperationalParams,
+  ): Promise<{ fila: QueueOrder[]; emAtendimento: QueueOrder[] }>;
   claimOrder(pedidoId: string): Promise<void>;
   transferOrder(pedidoId: string, novoResponsavel: string, observacao?: string): Promise<void>;
   releaseOrder(pedidoId: string, observacao?: string): Promise<void>;
@@ -67,7 +69,10 @@ export interface AdminOpsDataSource {
 
   // Equipe
   listTeam(): Promise<TeamMember[]>;
-  setMemberStatus(userId: string, status: Exclude<TeamSituation, "aguardando_liberacao">): Promise<void>;
+  setMemberStatus(
+    userId: string,
+    status: Exclude<TeamSituation, "aguardando_liberacao">,
+  ): Promise<void>;
 
   // Parâmetros
   getParams(): Promise<OperationalParams>;
@@ -372,12 +377,10 @@ export const opsDataSource: AdminOpsDataSource = {
 
   async markAllNotificationsRead(ids, userId) {
     if (ids.length === 0) return;
-    const { error } = await supabase
-      .from("notificacao_leituras")
-      .upsert(
-        ids.map((notificacao_id) => ({ notificacao_id, user_id: userId })),
-        { onConflict: "notificacao_id,user_id" },
-      );
+    const { error } = await supabase.from("notificacao_leituras").upsert(
+      ids.map((notificacao_id) => ({ notificacao_id, user_id: userId })),
+      { onConflict: "notificacao_id,user_id" },
+    );
     if (error) throw error;
   },
 

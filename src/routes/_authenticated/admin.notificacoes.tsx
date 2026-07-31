@@ -30,7 +30,8 @@ function NotificacoesPage() {
 }
 
 function NotificacoesView() {
-  const { state, items, naoLidas, refresh, marcarLida, marcarTodasLidas } = useRemoteNotifications();
+  const { state, items, naoLidas, refresh, marcarLida, marcarTodasLidas } =
+    useRemoteNotifications();
 
   return (
     <>
@@ -55,9 +56,14 @@ function NotificacoesView() {
       />
 
       {state === "error" && (
-        <ErrorState message="Não foi possível carregar as notificações." onRetry={() => void refresh()} />
+        <ErrorState
+          message="Não foi possível carregar as notificações."
+          onRetry={() => void refresh()}
+        />
       )}
-      {state === "loading" && items.length === 0 && <LoadingState label="Carregando notificações…" />}
+      {state === "loading" && items.length === 0 && (
+        <LoadingState label="Carregando notificações…" />
+      )}
       {state !== "loading" && state !== "error" && items.length === 0 && (
         <EmptyState
           icon={<BellOff className="h-5 w-5" />}

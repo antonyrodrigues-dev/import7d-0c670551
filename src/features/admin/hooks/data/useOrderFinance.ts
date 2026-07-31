@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  listPayments,
-  registerPayment,
-  requiresAdmin,
-} from "../../services/ops/payments.service";
+import { listPayments, registerPayment, requiresAdmin } from "../../services/ops/payments.service";
 import { listReturns, registerReturn } from "../../services/ops/returns.service";
-import type { AdminAsyncState, PaymentEntry, PaymentState, ReturnInput, ReturnRecord } from "../../types";
+import type {
+  AdminAsyncState,
+  PaymentEntry,
+  PaymentState,
+  ReturnInput,
+  ReturnRecord,
+} from "../../types";
 
 /**
  * Pagamentos e devoluções de um pedido específico. Ambos os fluxos são
