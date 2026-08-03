@@ -17,7 +17,7 @@ interface Row {
   imagens: unknown;
   preco: number | string;
   destaque: boolean;
-  produto_variacoes: { tamanho: string; quantidade: number }[] | null;
+  produto_variacoes: { tamanho: string; disponivel: number }[] | null;
 }
 
 const SIZE_ORDER = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
@@ -38,9 +38,9 @@ function mapRow(row: Row): PublicProduct {
   const images = parseImages(row.imagens);
   const variacoes = row.produto_variacoes ?? [];
   const stockBySize: Record<string, number> = {};
-  for (const v of variacoes) stockBySize[v.tamanho] = v.quantidade;
+  for (const v of variacoes) stockBySize[v.tamanho] = v.disponivel ?? 0;
   const sizes = Object.keys(stockBySize).sort(sortSizes);
-  const stock = variacoes.reduce((a, v) => a + (v.quantidade ?? 0), 0);
+  const stock = variacoes.reduce((a, v) => a + (v.disponivel ?? 0), 0);
   return {
     slug: row.slug,
     name: row.nome,
@@ -61,7 +61,7 @@ export const lovableCloudCatalog: CatalogDataSource = {
     const { data, error } = await supabase
       .from("produtos")
       .select(
-        "slug, nome, categoria, descricao, imagens, preco, destaque, produto_variacoes ( tamanho, quantidade )",
+        "slug, nome, categoria, descricao, imagens, preco, destaque, produto_variacoes ( tamanho, disponivel )",
       )
       .eq("ativo", true)
       .is("arquivado_em", null)
