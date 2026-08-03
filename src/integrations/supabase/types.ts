@@ -934,6 +934,7 @@ export type Database = {
         }
       }
       reserva_minutos: { Args: never; Returns: number }
+      status_job_reservas: { Args: never; Returns: Json }
       transferir_atendimento: {
         Args: {
           p_novo_responsavel: string
