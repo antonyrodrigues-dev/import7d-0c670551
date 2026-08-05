@@ -523,6 +523,7 @@ export type Database = {
           criado_em: string
           disponivel: number | null
           id: string
+          origem_tamanho: string
           produto_id: string
           quantidade: number
           quantidade_quarentena: number
@@ -534,6 +535,7 @@ export type Database = {
           criado_em?: string
           disponivel?: number | null
           id?: string
+          origem_tamanho?: string
           produto_id: string
           quantidade?: number
           quantidade_quarentena?: number
@@ -545,6 +547,7 @@ export type Database = {
           criado_em?: string
           disponivel?: number | null
           id?: string
+          origem_tamanho?: string
           produto_id?: string
           quantidade?: number
           quantidade_quarentena?: number
@@ -577,9 +580,15 @@ export type Database = {
           marca: string
           modelo_estoque: string
           nome: string
+          observacoes_internas: string | null
+          parcelamento: string | null
           preco: number
+          preco_cartao: number | null
+          preco_status: string
+          quantidade_conferida: boolean
           sku: string
           slug: string
+          status_publicacao: string
         }
         Insert: {
           arquivado_em?: string | null
@@ -596,9 +605,15 @@ export type Database = {
           marca: string
           modelo_estoque?: string
           nome: string
+          observacoes_internas?: string | null
+          parcelamento?: string | null
           preco: number
+          preco_cartao?: number | null
+          preco_status?: string
+          quantidade_conferida?: boolean
           sku: string
           slug: string
+          status_publicacao?: string
         }
         Update: {
           arquivado_em?: string | null
@@ -615,9 +630,15 @@ export type Database = {
           marca?: string
           modelo_estoque?: string
           nome?: string
+          observacoes_internas?: string | null
+          parcelamento?: string | null
           preco?: number
+          preco_cartao?: number | null
+          preco_status?: string
+          quantidade_conferida?: boolean
           sku?: string
           slug?: string
+          status_publicacao?: string
         }
         Relationships: []
       }
