@@ -55,7 +55,7 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
             {p.name}
           </h3>
         </div>
-        <span className="font-display text-base tabular-nums text-[color:var(--forest-deep)]">
+        <span className="shrink-0 font-display text-lg font-medium tabular-nums text-[color:var(--forest-deep)]">
           {formatBRL(p.price)}
         </span>
       </div>
@@ -70,12 +70,16 @@ export function FeaturedCarousel() {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const update = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     setCanPrev(el.scrollLeft > 4);
     setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    const first = el.firstElementChild as HTMLElement | null;
+    const step = first ? first.getBoundingClientRect().width + 24 : el.clientWidth;
+    setActiveIndex(step > 0 ? Math.round(el.scrollLeft / step) : 0);
   }, []);
 
   useEffect(() => {
@@ -97,6 +101,13 @@ export function FeaturedCarousel() {
     el.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
+  const goTo = (i: number) => {
+    const el = scrollerRef.current;
+    const target = el?.children[i] as HTMLElement | undefined;
+    if (!el || !target) return;
+    el.scrollTo({ left: target.offsetLeft - el.offsetLeft, behavior: "smooth" });
+  };
+
   return (
     <div className="relative">
       <div
@@ -110,17 +121,31 @@ export function FeaturedCarousel() {
         <div aria-hidden="true" className="shrink-0 pr-2" />
       </div>
 
-      <div className="mt-10 flex items-center justify-between">
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-          Arraste para explorar
-        </p>
+      <div className="mt-10 flex items-center justify-between gap-6">
+        <div className="flex items-center gap-2" role="tablist" aria-label="Peças em destaque">
+          {featured.map((p, i) => (
+            <button
+              key={p.slug}
+              type="button"
+              role="tab"
+              aria-selected={i === activeIndex}
+              aria-label={`Ir para ${p.name}`}
+              onClick={() => goTo(i)}
+              className={`h-1 rounded-full transition-all duration-500 ${
+                i === activeIndex
+                  ? "w-8 bg-[color:var(--forest-vivid)]"
+                  : "w-3 bg-[color:var(--forest-deep)]/20 hover:bg-[color:var(--forest-deep)]/40"
+              }`}
+            />
+          ))}
+        </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => scrollBy(-1)}
             disabled={!canPrev}
             aria-label="Anterior"
-            className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-deep)] disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -129,7 +154,7 @@ export function FeaturedCarousel() {
             onClick={() => scrollBy(1)}
             disabled={!canNext}
             aria-label="Próximo"
-            className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-deep)] disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>
