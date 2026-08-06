@@ -52,7 +52,7 @@ export function Manifesto() {
             <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
             Manifesto
           </Reveal>
-          <h2 className="mt-8 font-display text-[clamp(2.15rem,5.2vw,4rem)] leading-[1.02] tracking-tight text-[color:var(--cream)]">
+          <h2 className="mt-8 font-display type-section leading-[1.02] tracking-tight text-[color:var(--cream)]">
             {WORDS.map((w, i) => (
               <motion.span
                 key={`${w.text}-${i}`}

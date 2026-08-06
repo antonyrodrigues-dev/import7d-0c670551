@@ -13,7 +13,7 @@ export function FeaturedSection() {
         <Reveal className="mb-14 flex items-end justify-between gap-6">
           <div>
             <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">Estação</p>
-            <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">
+            <h2 className="mt-4 font-display type-section text-[color:var(--forest-deep)]">
               Peças em destaque
             </h2>
           </div>
@@ -67,7 +67,7 @@ export function CatalogSection() {
             Acervo
             <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
           </p>
-          <h2 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] text-[color:var(--forest-deep)]">
+          <h2 className="mt-4 font-display type-section text-[color:var(--forest-deep)]">
             O acervo, por inteiro
           </h2>
           <p className="mx-auto mt-5 max-w-xl font-display italic text-lg text-[color:var(--muted-foreground)]">
@@ -95,7 +95,7 @@ export function DiferenciaisSection() {
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <Reveal className="mb-16">
           <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">A casa</p>
-          <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-[color:var(--forest-deep)]">
+          <h2 className="mt-4 font-display type-section text-[color:var(--forest-deep)]">
             Três compromissos.
           </h2>
         </Reveal>
@@ -184,7 +184,7 @@ export function AtendimentoSection() {
           <p className="text-[11px] font-medium tracking-[0.4em] uppercase text-[color:var(--gold)]">
             Atendimento
           </p>
-          <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(2.25rem,4.5vw,3.5rem)] leading-[1.05]">
+          <h2 className="mx-auto mt-5 max-w-2xl font-display type-section leading-[1.05]">
             Cada reserva começa com uma conversa.
           </h2>
           <p className="mx-auto mt-6 max-w-xl font-display italic text-lg text-[color:var(--cream)]/80">
