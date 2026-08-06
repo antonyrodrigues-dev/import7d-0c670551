@@ -45,12 +45,7 @@ export function Hero() {
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.32, ease: EASE }}
-            className="text-center font-display font-medium text-balance"
-            style={{
-              fontSize: "clamp(40px, 6.4vw, 108px)",
-              letterSpacing: "-0.018em",
-              lineHeight: 1.04,
-            }}
+            className="type-hero text-center font-display font-medium text-balance"
           >
             <span className="block">Não vendemos peças.</span>
             <span className="mt-1 block italic text-[color:var(--forest)] md:mt-2">
@@ -58,19 +53,29 @@ export function Hero() {
             </span>
           </motion.h1>
 
-          <motion.a
-            href="#acervo"
+          <motion.div
             initial={{ opacity: 0, y: reduce ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
-            className="group mt-10 inline-flex h-[56px] items-center gap-3 border border-[color:var(--forest-deep)] bg-transparent px-10 text-[12px] font-medium tracking-luxe uppercase text-[color:var(--forest-deep)] transition-all duration-[400ms] ease-out hover:bg-[color:var(--forest-deep)] hover:text-[color:var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--cream)] md:mt-12 md:h-[60px] md:px-12"
+            className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-6 md:mt-12"
           >
-            <span>Explorar acervo</span>
-            <ArrowRight
-              className="h-4 w-4 transition-transform duration-[400ms] ease-out group-hover:translate-x-1"
-              aria-hidden="true"
-            />
-          </motion.a>
+            <a
+              href="#acervo"
+              className="group inline-flex h-[56px] items-center gap-3 bg-[color:var(--forest)] px-10 text-[12px] font-medium tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 ease-out hover:bg-[color:var(--forest-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--forest-vivid)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--cream)] md:h-[60px] md:px-12"
+            >
+              <span>Explorar acervo</span>
+              <ArrowRight
+                className="h-4 w-4 transition-transform duration-[400ms] ease-out group-hover:translate-x-1"
+                aria-hidden="true"
+              />
+            </a>
+            <a
+              href="#casa"
+              className="inline-flex h-[56px] items-center border-b border-[color:var(--forest-deep)]/30 px-2 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]/80 transition-colors duration-300 hover:border-[color:var(--forest)] hover:text-[color:var(--forest)] md:h-[60px]"
+            >
+              Sobre a casa
+            </a>
+          </motion.div>
         </div>
 
         <motion.div
