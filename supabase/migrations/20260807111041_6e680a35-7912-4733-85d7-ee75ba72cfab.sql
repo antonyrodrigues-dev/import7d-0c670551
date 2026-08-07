@@ -1,0 +1,1 @@
+update public.produtos set destaque = true where sku in ('7D-KIT-TH-002','7D-POL-LAC-001','7D-POL-BOSS-002','7D-POL-ARA-001') and arquivado_em is null and ativo and preco_status = 'confirmado';

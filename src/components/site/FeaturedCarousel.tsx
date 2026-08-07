@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
 import { formatBRL, featuredOf, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
 
@@ -10,7 +11,7 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
       onClick={() => onOpen(p.slug)}
       data-testid={`product-card-${p.slug}`}
       aria-label={`Ver detalhes — ${p.name}`}
-      className="group relative block w-[78vw] shrink-0 snap-center text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99] sm:w-[58vw] md:w-[42vw] lg:w-[32vw] xl:w-[28vw]"
+      className="group relative block min-w-0 shrink-0 grow-0 basis-[87%] pl-6 text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99] sm:basis-1/2 lg:basis-1/3 md:pl-10"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[color:var(--cream-deep)]">
         <img
@@ -66,70 +67,100 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
 export function FeaturedCarousel() {
   const { products } = useCatalog();
   const featured = useMemo(() => featuredOf(products), [products]);
-  const scrollerRef = useRef<HTMLDivElement>(null);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(true);
+  const [canNext, setCanNext] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [snapCount, setSnapCount] = useState(0);
 
-  const update = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setCanPrev(el.scrollLeft > 4);
-    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-    const first = el.firstElementChild as HTMLElement | null;
-    const step = first ? first.getBoundingClientRect().width + 24 : el.clientWidth;
-    setActiveIndex(step > 0 ? Math.round(el.scrollLeft / step) : 0);
-  }, []);
+  // Embla resolve sozinho: resize (via ResizeObserver interno), drag/swipe,
+  // limites reais de scroll e re-cálculo após carga assíncrona (reInit).
+  const [emblaRef, embla] = useEmblaCarousel({
+    align: "start",
+    containScroll: "trimSnaps",
+    slidesToScroll: 1,
+    dragFree: false,
+  });
+
+  const onSelect = useCallback(() => {
+    if (!embla) return;
+    setCanPrev(embla.canScrollPrev());
+    setCanNext(embla.canScrollNext());
+    setActiveIndex(embla.selectedScrollSnap());
+    setSnapCount(embla.scrollSnapList().length);
+  }, [embla]);
 
   useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    if (!embla) return;
+    onSelect();
+    embla.on("select", onSelect);
+    embla.on("reInit", onSelect);
     return () => {
-      el.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      embla.off("select", onSelect);
+      embla.off("reInit", onSelect);
     };
-  }, [update]);
+  }, [embla, onSelect]);
 
-  const scrollBy = (dir: 1 | -1) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const step = el.clientWidth * 0.7;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  };
+  // Carga assíncrona do catálogo: recalcula depois do layout aplicado.
+  useEffect(() => {
+    if (!embla) return;
+    const raf = requestAnimationFrame(() => embla.reInit());
+    return () => cancelAnimationFrame(raf);
+  }, [embla, featured.length]);
 
-  const goTo = (i: number) => {
-    const el = scrollerRef.current;
-    const target = el?.children[i] as HTMLElement | undefined;
-    if (!el || !target) return;
-    el.scrollTo({ left: target.offsetLeft - el.offsetLeft, behavior: "smooth" });
-  };
+  const scrollPrev = () => embla?.scrollPrev();
+  const scrollNext = () => embla?.scrollNext();
+  const goTo = (i: number) => embla?.scrollTo(i);
+
+  /** Sem overflow real: nenhum controle é renderizado (nada desabilitado à toa). */
+  const hasOverflow = snapCount > 1;
+
+  if (featured.length === 0) return null;
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      data-testid="featured-carousel"
+      data-overflow={hasOverflow ? "true" : "false"}
+      data-index={activeIndex}
+      role="region"
+      aria-roledescription="carrossel"
+      aria-label="Peças em destaque"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          scrollNext();
+        }
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          scrollPrev();
+        }
+      }}
+    >
       <div
-        ref={scrollerRef}
-        className="-mx-6 flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-6 scroll-smooth md:-mx-12 md:gap-10 md:px-12 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{ scrollPaddingInline: "1.5rem" }}
+        ref={emblaRef}
+        className="-mx-6 overflow-hidden px-6 pb-6 md:-mx-12 md:px-12"
+        data-testid="featured-viewport"
       >
-        {featured.map((p) => (
-          <Slide key={p.slug} p={p} onOpen={setOpenSlug} />
-        ))}
-        <div aria-hidden="true" className="shrink-0 pr-2" />
+        <div className="-ml-6 flex touch-pan-y md:-ml-10">
+          {featured.map((p) => (
+            <Slide key={p.slug} p={p} onOpen={setOpenSlug} />
+          ))}
+        </div>
       </div>
 
-      <div className="mt-10 flex items-center justify-between gap-6">
-        <div className="flex items-center gap-2" role="tablist" aria-label="Peças em destaque">
-          {featured.map((p, i) => (
+      {hasOverflow && (
+        <div className="mt-10 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-2" role="tablist" aria-label="Peças em destaque">
+            {Array.from({ length: snapCount }).map((_, i) => (
             <button
-              key={p.slug}
+              key={i}
               type="button"
               role="tab"
+              data-testid={`carousel-dot-${i}`}
               aria-selected={i === activeIndex}
-              aria-label={`Ir para ${p.name}`}
+              aria-label={`Ir para o grupo ${i + 1}`}
               onClick={() => goTo(i)}
               className={`h-1 rounded-full transition-all duration-500 ${
                 i === activeIndex
@@ -137,29 +168,32 @@ export function FeaturedCarousel() {
                   : "w-3 bg-[color:var(--forest-deep)]/20 hover:bg-[color:var(--forest-deep)]/40"
               }`}
             />
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => scrollBy(-1)}
-            disabled={!canPrev}
-            aria-label="Anterior"
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={scrollPrev}
+              disabled={!canPrev}
+              aria-label="Anterior"
+              data-testid="carousel-prev"
             className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollBy(1)}
-            disabled={!canNext}
-            aria-label="Próximo"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={scrollNext}
+              disabled={!canNext}
+              aria-label="Próximo"
+              data-testid="carousel-next"
             className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </button>
+            >
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {(() => {
         const active = openSlug ? featured.find((p) => p.slug === openSlug) : null;

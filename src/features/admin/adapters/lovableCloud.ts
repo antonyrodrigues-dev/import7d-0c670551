@@ -6,15 +6,18 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "../lib/logger";
 import type { AdminIdentity, AdminDataSource, ProductWritePayload, MovementKindDB } from "./types";
 import type {
   AdminOrder,
   Employee,
   EmployeeRole,
   InventoryItem,
+  OrderAddress,
   OrderItem,
   OrderPayment,
   OrderStatus,
+  PaymentState,
   StockEntry,
 } from "../types";
 
@@ -27,6 +30,11 @@ interface PedidoRow {
   canal: string | null;
   criado_em: string;
   atualizado_em: string;
+  atendente_nome?: string | null;
+  responsavel_id?: string | null;
+  atribuido_em?: string | null;
+  pagamento_estado?: string | null;
+  valor_devolvido?: number | string | null;
   pedido_status_historico?:
     | {
         de: string | null;
@@ -38,22 +46,78 @@ interface PedidoRow {
     | null;
 }
 
+const KNOWN_STATUSES: OrderStatus[] = [
+  "novo",
+  "pagamento_confirmado",
+  "separado",
+  "reservado",
+  "aguardando_retirada",
+  "enviado",
+  "finalizado",
+  "cancelado",
+];
+
+/** Aliases legados que já existiram no banco antes da máquina de estados. */
+const LEGACY_STATUS: Record<string, OrderStatus> = {
+  pendente: "novo",
+  em_atendimento: "novo",
+  pago: "pagamento_confirmado",
+  confirmado: "finalizado",
+};
+
+/**
+ * Nunca inventamos "novo" para um status desconhecido: isso mascararia um
+ * pedido em estágio avançado. Desconhecido é registrado como incidente e
+ * preservado tal como veio, para a UI exibir o rótulo cru.
+ */
 function mapStatus(raw: string): OrderStatus {
-  const known: OrderStatus[] = [
-    "novo",
-    "pagamento_confirmado",
-    "separado",
-    "reservado",
-    "aguardando_retirada",
-    "enviado",
-    "finalizado",
-    "cancelado",
-  ];
-  if ((known as string[]).includes(raw)) return raw as OrderStatus;
-  if (raw === "pendente") return "novo";
-  if (raw === "pago") return "pagamento_confirmado";
-  if (raw === "confirmado") return "finalizado";
-  return "novo";
+  if ((KNOWN_STATUSES as string[]).includes(raw)) return raw as OrderStatus;
+  const legacy = LEGACY_STATUS[raw];
+  if (legacy) return legacy;
+  logger.error("Status de pedido desconhecido recebido do banco.", {
+    status: raw,
+    origin: "lovableCloud.mapStatus",
+  });
+  return raw as OrderStatus;
+}
+
+const PAYMENT_STATE_KEYS: PaymentState[] = [
+  "pendente",
+  "aguardando_comprovante",
+  "em_analise",
+  "confirmado",
+  "recusado",
+  "estornado",
+];
+
+function mapPaymentState(raw: string | null | undefined): PaymentState {
+  if (raw && (PAYMENT_STATE_KEYS as string[]).includes(raw)) return raw as PaymentState;
+  return "pendente";
+}
+
+function parseAddress(raw: unknown): OrderAddress | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "string") return raw.trim() ? { linha: raw.trim() } : undefined;
+  if (typeof raw !== "object") return undefined;
+  const a = raw as Record<string, unknown>;
+  const str = (k: string) => (typeof a[k] === "string" ? (a[k] as string).trim() : "");
+  const rua = str("rua");
+  const numero = str("numero");
+  const complemento = str("complemento");
+  const bairro = str("bairro");
+  const cidade = str("cidade");
+  const cep = str("cep");
+  const linha = [
+    [rua, numero].filter(Boolean).join(", "),
+    complemento,
+    bairro,
+    cidade,
+    cep,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  if (!linha) return undefined;
+  return { rua, numero, complemento, bairro, cidade, cep, linha };
 }
 
 function parseItens(raw: unknown) {
@@ -63,7 +127,8 @@ function parseItens(raw: unknown) {
     telefone: "—",
     cidade: undefined as string | undefined,
     entrega: "retirada" as "entrega" | "retirada",
-    endereco: undefined as string | undefined,
+    endereco: undefined as OrderAddress | undefined,
+    frete: undefined as string | undefined,
     pagamento: { metodo: "—" } as OrderPayment,
     observacoes: undefined as string | undefined,
   };
@@ -75,16 +140,30 @@ function parseItens(raw: unknown) {
       ? (o as OrderItem[])
       : [];
   const cliente = (o.cliente as { nome?: string; telefone?: string; cidade?: string }) ?? {};
-  const entregaObj = (o.entrega as { metodo?: string; endereco?: string }) ?? {};
+  const entregaObj =
+    (o.entrega as {
+      metodo?: string;
+      endereco?: unknown;
+      frete?: { label?: string } | string | null;
+    }) ?? {};
+  // `pagamento` já foi gravado como string ("cartao") e como objeto.
   const pagamentoObj =
-    (o.pagamento as { metodo?: string; parcelas?: number; valorParcela?: number }) ?? {};
+    typeof o.pagamento === "string"
+      ? { metodo: o.pagamento }
+      : ((o.pagamento as { metodo?: string; parcelas?: number; valorParcela?: number }) ?? {});
+  const endereco = parseAddress(entregaObj.endereco);
+  const frete =
+    typeof entregaObj.frete === "string"
+      ? entregaObj.frete
+      : (entregaObj.frete?.label ?? undefined);
   return {
     itens: produtos,
     nome: cliente.nome ?? "—",
     telefone: cliente.telefone ?? "—",
-    cidade: cliente.cidade,
+    cidade: cliente.cidade ?? endereco?.cidade,
     entrega: entregaObj.metodo === "entrega" ? ("entrega" as const) : ("retirada" as const),
-    endereco: entregaObj.endereco,
+    endereco,
+    frete,
     pagamento: {
       metodo: pagamentoObj.metodo ?? "—",
       parcelas: pagamentoObj.parcelas,
@@ -106,12 +185,20 @@ function mapRow(row: PedidoRow): AdminOrder {
     quantidadeTotal,
     valorTotal: Number(row.valor_total) || 0,
     entrega: parsed.entrega,
-    endereco: parsed.endereco,
+    endereco: parsed.endereco?.linha,
+    enderecoDetalhe: parsed.endereco,
+    frete: parsed.frete,
     pagamento: parsed.pagamento,
     status,
+    pagamentoEstado: mapPaymentState(row.pagamento_estado),
+    valorDevolvido: Number(row.valor_devolvido ?? 0) || 0,
     observacoes: parsed.observacoes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
+    responsavel: row.atendente_nome ?? undefined,
+    responsavelId: row.responsavel_id ?? undefined,
+    atribuidoEm: row.atribuido_em ?? undefined,
+    canal: row.canal ?? undefined,
     historico: (row.pedido_status_historico ?? [])
       .slice()
       .sort((a, b) => a.criado_em.localeCompare(b.criado_em))
@@ -152,7 +239,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { data, error } = await supabase
       .from("pedidos")
       .select(
-        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
+        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, atendente_nome, responsavel_id, atribuido_em, pagamento_estado, valor_devolvido, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
       )
       .order("criado_em", { ascending: false });
     if (error) throw error;
