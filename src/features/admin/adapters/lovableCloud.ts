@@ -239,7 +239,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { data, error } = await supabase
       .from("pedidos")
       .select(
-        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
+        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, atendente_nome, responsavel_id, atribuido_em, pagamento_estado, valor_devolvido, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
       )
       .order("criado_em", { ascending: false });
     if (error) throw error;
