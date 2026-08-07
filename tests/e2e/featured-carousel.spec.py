@@ -67,12 +67,18 @@ async def main():
         i0 = await mcar.get_attribute("data-index")
         box = await mp.locator('[data-testid="featured-viewport"]').bounding_box()
         y = box["y"] + box["height"] / 2
-        await mp.touchscreen.tap(box["x"] + box["width"] / 2, y)
-        await mp.mouse.move(box["x"] + box["width"] - 30, y)
-        await mp.mouse.down()
-        for x in range(int(box["x"] + box["width"] - 30), int(box["x"] + 40), -25):
-            await mp.mouse.move(x, y); await mp.wait_for_timeout(12)
-        await mp.mouse.up(); await mp.wait_for_timeout(900)
+        cdp = await m.new_cdp_session(mp)
+        x0 = box["x"] + box["width"] - 30
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchStart",
+            "touchPoints": [{"x": x0, "y": y}]})
+        x = x0
+        while x > box["x"] + 40:
+            x -= 20
+            await cdp.send("Input.dispatchTouchEvent", {"type": "touchMove",
+                "touchPoints": [{"x": x, "y": y}]})
+            await mp.wait_for_timeout(10)
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        await mp.wait_for_timeout(900)
         i1 = await mcar.get_attribute("data-index")
         check("swipe mobile avanca", i0 != i1, f"{i0} -> {i1}")
         await mp.screenshot(path=str(SHOTS / "3_mobile.png"))
