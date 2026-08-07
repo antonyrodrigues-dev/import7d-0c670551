@@ -28,8 +28,7 @@ async def main():
         page = await ctx.new_page()
         await page.goto(BASE, wait_until="domcontentloaded")
         await page.wait_for_selector('[data-testid="featured-carousel"]')
-        await page.wait_for_function(
-            "document.querySelectorAll('[data-testid=\\"featured-viewport\\"] [data-testid^=\\"product-card-\\"]').length >= 6")
+        await page.wait_for_function('''() => document.querySelectorAll('[data-testid="featured-viewport"] [data-testid^="product-card-"]').length >= 6''')
         car = page.locator('[data-testid="featured-carousel"]')
         total = await page.locator('[data-testid="featured-viewport"] [data-testid^="product-card-"]').count()
         first_view = await visible_slugs(page)
@@ -62,8 +61,7 @@ async def main():
         mp = await m.new_page()
         await mp.goto(BASE, wait_until="domcontentloaded")
         await mp.wait_for_selector('[data-testid="featured-carousel"]')
-        await mp.wait_for_function(
-            "document.querySelectorAll('[data-testid=\\"featured-viewport\\"] [data-testid^=\\"product-card-\\"]').length >= 6")
+        await mp.wait_for_function('''() => document.querySelectorAll('[data-testid="featured-viewport"] [data-testid^="product-card-"]').length >= 6''')
         mcar = mp.locator('[data-testid="featured-carousel"]')
         await mcar.scroll_into_view_if_needed(); await mp.wait_for_timeout(400)
         i0 = await mcar.get_attribute("data-index")
