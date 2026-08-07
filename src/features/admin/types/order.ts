@@ -1,4 +1,5 @@
 import type { IsoDateTime } from "./common";
+import type { PaymentState } from "./ops";
 
 export type OrderStatus =
   | "novo"
@@ -38,6 +39,18 @@ export interface OrderPayment {
   valorParcela?: number;
 }
 
+/** Endereço estruturado do pedido (quando a modalidade é entrega). */
+export interface OrderAddress {
+  rua?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  cep?: string;
+  /** Linha única já formatada — fonte única para exibição. */
+  linha: string;
+}
+
 /** Registro imutável do histórico de status de um pedido. */
 export interface OrderHistoryEntry {
   status: OrderStatus;
@@ -58,14 +71,25 @@ export interface AdminOrder {
   quantidadeTotal: number;
   valorTotal: number;
   entrega: DeliveryMethod;
+  /** Linha única formatada do endereço (compatibilidade). */
   endereco?: string;
+  enderecoDetalhe?: OrderAddress;
+  frete?: string;
   retirada?: OrderPickupSlot;
   pagamento: OrderPayment;
   status: OrderStatus;
+  /** Estado financeiro oficial (coluna `pagamento_estado` do banco). */
+  pagamentoEstado: PaymentState;
+  /** Total já devolvido/estornado. */
+  valorDevolvido: number;
   observacoes?: string;
   criadoEm: IsoDateTime;
   atualizadoEm: IsoDateTime;
   responsavel?: string;
+  responsavelId?: string;
+  atribuidoEm?: IsoDateTime;
+  /** Canal de origem do pedido (site, whatsapp, balcão…). */
+  canal?: string;
   historico: OrderHistoryEntry[];
 }
 
