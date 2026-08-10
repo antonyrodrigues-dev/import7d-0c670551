@@ -85,6 +85,7 @@ const Card = memo(function Card({
           src={p.imageHover || p.image}
           alt={p.name}
           hidden
+          fallback={false}
           className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
         {p.stock === 0 && (
