@@ -1,52 +1,11 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { categoriesOf, formatBRL, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
+import { SafeImage } from "./SafeImage";
 import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
 
 /** Lote de peças exibidas por vez no acervo — evita render de 52 cards de uma vez. */
 const PAGE_SIZE = 9;
-
-/** Imagem com fallback: se a URL falhar, mostra a moldura da casa em vez de quebrar. */
-function CardImage({
-  src,
-  alt,
-  hidden,
-  className,
-}: {
-  src: string;
-  alt: string;
-  hidden?: boolean;
-  className: string;
-}) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
-  if (!src || failed) {
-    return (
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 flex items-center justify-center bg-[color:var(--cream-deep)]"
-      >
-        <span className="font-display text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]/35">
-          7D
-        </span>
-      </div>
-    );
-  }
-  return (
-    <img
-      src={src}
-      alt={hidden ? "" : alt}
-      aria-hidden={hidden ? "true" : undefined}
-      width={896}
-      height={1152}
-      loading="lazy"
-      decoding="async"
-      draggable={false}
-      onError={() => setFailed(true)}
-      className={className}
-    />
-  );
-}
 
 const Card = memo(function Card({
   p,
@@ -67,15 +26,16 @@ const Card = memo(function Card({
       aria-label={`Ver detalhes — ${p.name}`}
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[color:var(--cream-deep)]">
-        <CardImage
+        <SafeImage
           src={p.image}
           alt={p.name}
           className="absolute inset-0 h-full w-full object-contain transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-0"
         />
-        <CardImage
+        <SafeImage
           src={p.imageHover || p.image}
           alt={p.name}
           hidden
+          fallback={false}
           className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
         {p.stock === 0 && (

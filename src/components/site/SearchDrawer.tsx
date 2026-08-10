@@ -3,6 +3,7 @@ import { X, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useReserva } from "@/store/reserva";
 import { formatBRL, useCatalog } from "@/features/catalog";
+import { SafeImage } from "./SafeImage";
 
 export function SearchDrawer() {
   const { searchOpen, setSearchOpen } = useReserva();
@@ -89,15 +90,16 @@ export function SearchDrawer() {
                         onClick={() => setSearchOpen(false)}
                         className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[color:var(--border)] py-3 transition-colors hover:bg-[color:var(--cream-deep)]/50"
                       >
-                        <img
-                          src={p.image}
-                          alt=""
-                          aria-hidden="true"
-                          loading="lazy"
-                          width={144}
-                          height={192}
-                          className="aspect-[3/4] h-full w-full object-cover"
-                        />
+                        <span className="relative block aspect-[3/4] w-full overflow-hidden bg-[color:var(--cream-deep)]">
+                          <SafeImage
+                            src={p.image}
+                            alt={p.name}
+                            hidden
+                            width={144}
+                            height={192}
+                            className="absolute inset-0 h-full w-full object-cover"
+                          />
+                        </span>
                         <div className="min-w-0">
                           <p className="font-display text-base text-[color:var(--forest-deep)] truncate">
                             {p.name}

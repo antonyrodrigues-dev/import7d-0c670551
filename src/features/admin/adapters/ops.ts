@@ -156,9 +156,10 @@ const FILA_STATUS = ["novo", "whatsapp_declarado", "aguardando_atendimento"];
 
 export const opsDataSource: AdminOpsDataSource = {
   async reconcileReservations() {
-    const { data, error } = await supabase.rpc("expirar_reservas");
-    if (error) throw error;
-    return num(data);
+    // A expiração global de reservas é responsabilidade EXCLUSIVA do job
+    // server-side (pg_cron → job_expirar_reservas). O navegador nunca executa
+    // mutação global de estoque/reservas.
+    return 0;
   },
 
   async listQueue(params) {

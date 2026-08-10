@@ -57,7 +57,7 @@ export function Hero() {
             initial={{ opacity: 0, y: reduce ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
-            className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-6 md:mt-12"
+            className="mt-10 flex flex-col items-center gap-4 md:mt-12"
           >
             <a
               href="#acervo"
@@ -68,12 +68,6 @@ export function Hero() {
                 className="h-4 w-4 transition-transform duration-[400ms] ease-out group-hover:translate-x-1"
                 aria-hidden="true"
               />
-            </a>
-            <a
-              href="#casa"
-              className="inline-flex h-[56px] items-center border-b border-[color:var(--forest-deep)]/30 px-2 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]/80 transition-colors duration-300 hover:border-[color:var(--forest)] hover:text-[color:var(--forest)] md:h-[60px]"
-            >
-              Sobre a casa
             </a>
           </motion.div>
         </div>
