@@ -7,7 +7,6 @@ import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
 /** Lote de peças exibidas por vez no acervo — evita render de 52 cards de uma vez. */
 const PAGE_SIZE = 9;
 
-
 const Card = memo(function Card({
   p,
   onOpen,

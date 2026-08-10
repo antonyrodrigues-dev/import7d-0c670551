@@ -150,20 +150,20 @@ export function FeaturedCarousel() {
         <div className="mt-10 flex items-center justify-between gap-6">
           <div className="flex items-center gap-2" role="tablist" aria-label="Peças em destaque">
             {Array.from({ length: snapCount }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              role="tab"
-              data-testid={`carousel-dot-${i}`}
-              aria-selected={i === activeIndex}
-              aria-label={`Ir para o grupo ${i + 1}`}
-              onClick={() => goTo(i)}
-              className={`h-1 rounded-full transition-all duration-500 ${
-                i === activeIndex
-                  ? "w-8 bg-[color:var(--forest-vivid)]"
-                  : "w-3 bg-[color:var(--forest-deep)]/20 hover:bg-[color:var(--forest-deep)]/40"
-              }`}
-            />
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                data-testid={`carousel-dot-${i}`}
+                aria-selected={i === activeIndex}
+                aria-label={`Ir para o grupo ${i + 1}`}
+                onClick={() => goTo(i)}
+                className={`h-1 rounded-full transition-all duration-500 ${
+                  i === activeIndex
+                    ? "w-8 bg-[color:var(--forest-vivid)]"
+                    : "w-3 bg-[color:var(--forest-deep)]/20 hover:bg-[color:var(--forest-deep)]/40"
+                }`}
+              />
             ))}
           </div>
           <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export function FeaturedCarousel() {
               disabled={!canPrev}
               aria-label="Anterior"
               data-testid="carousel-prev"
-            className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -183,7 +183,7 @@ export function FeaturedCarousel() {
               disabled={!canNext}
               aria-label="Próximo"
               data-testid="carousel-next"
-            className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center border border-[color:var(--forest-deep)]/30 text-[color:var(--forest-deep)] transition-all duration-300 hover:border-[color:var(--forest-vivid)] hover:text-[color:var(--forest-vivid)] disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
