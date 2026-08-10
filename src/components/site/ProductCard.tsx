@@ -6,56 +6,6 @@ import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
 /** Lote de peças exibidas por vez no acervo — evita render de 52 cards de uma vez. */
 const PAGE_SIZE = 9;
 
-/**
- * Imagem com fallback.
- *
- * `fallback` só é permitido na imagem PRINCIPAL. A imagem de hover, quando
- * falha, simplesmente não é renderizada — nunca sobrepõe a principal com a
- * moldura "7D" (bug confirmado em produção).
- */
-function CardImage({
-  src,
-  alt,
-  hidden,
-  className,
-  fallback = true,
-}: {
-  src: string;
-  alt: string;
-  hidden?: boolean;
-  className: string;
-  fallback?: boolean;
-}) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
-  if (!src || failed) {
-    if (!fallback) return null;
-    return (
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 flex items-center justify-center bg-[color:var(--cream-deep)]"
-      >
-        <span className="font-display text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)]/35">
-          7D
-        </span>
-      </div>
-    );
-  }
-  return (
-    <img
-      src={src}
-      alt={hidden ? "" : alt}
-      aria-hidden={hidden ? "true" : undefined}
-      width={896}
-      height={1152}
-      loading="lazy"
-      decoding="async"
-      draggable={false}
-      onError={() => setFailed(true)}
-      className={className}
-    />
-  );
-}
 
 const Card = memo(function Card({
   p,
@@ -76,12 +26,12 @@ const Card = memo(function Card({
       aria-label={`Ver detalhes — ${p.name}`}
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[color:var(--cream-deep)]">
-        <CardImage
+        <SafeImage
           src={p.image}
           alt={p.name}
           className="absolute inset-0 h-full w-full object-contain transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-0"
         />
-        <CardImage
+        <SafeImage
           src={p.imageHover || p.image}
           alt={p.name}
           hidden
