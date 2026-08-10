@@ -6,21 +6,30 @@ import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
 /** Lote de peças exibidas por vez no acervo — evita render de 52 cards de uma vez. */
 const PAGE_SIZE = 9;
 
-/** Imagem com fallback: se a URL falhar, mostra a moldura da casa em vez de quebrar. */
+/**
+ * Imagem com fallback.
+ *
+ * `fallback` só é permitido na imagem PRINCIPAL. A imagem de hover, quando
+ * falha, simplesmente não é renderizada — nunca sobrepõe a principal com a
+ * moldura "7D" (bug confirmado em produção).
+ */
 function CardImage({
   src,
   alt,
   hidden,
   className,
+  fallback = true,
 }: {
   src: string;
   alt: string;
   hidden?: boolean;
   className: string;
+  fallback?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
   if (!src || failed) {
+    if (!fallback) return null;
     return (
       <div
         aria-hidden="true"
