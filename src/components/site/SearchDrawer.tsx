@@ -3,6 +3,7 @@ import { X, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useReserva } from "@/store/reserva";
 import { formatBRL, useCatalog } from "@/features/catalog";
+import { SafeImage } from "./SafeImage";
 
 export function SearchDrawer() {
   const { searchOpen, setSearchOpen } = useReserva();

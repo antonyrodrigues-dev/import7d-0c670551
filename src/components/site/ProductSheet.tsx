@@ -4,6 +4,7 @@ import { X, Minus, Plus } from "lucide-react";
 import { formatBRL, type PublicProduct } from "@/features/catalog";
 import { useReserva } from "@/store/reserva";
 import { track } from "@/lib/analytics";
+import { SafeImage } from "./SafeImage";
 
 interface Props {
   product: PublicProduct;
