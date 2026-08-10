@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { categoriesOf, formatBRL, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
+import { SafeImage } from "./SafeImage";
 import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
 
 /** Lote de peças exibidas por vez no acervo — evita render de 52 cards de uma vez. */
