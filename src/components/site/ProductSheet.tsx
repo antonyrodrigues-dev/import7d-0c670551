@@ -160,8 +160,8 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
 
-              <div className="h-[38dvh] w-full shrink-0 bg-[color:var(--cream-deep)] sm:h-[42dvh] lg:h-full lg:min-h-0">
-                <img
+              <div className="relative h-[38dvh] w-full shrink-0 bg-[color:var(--cream-deep)] sm:h-[42dvh] lg:h-full lg:min-h-0">
+                <SafeImage
                   src={product.image}
                   alt={product.name}
                   width={896}

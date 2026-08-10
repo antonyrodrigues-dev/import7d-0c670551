@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { formatBRL, featuredOf, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
+import { SafeImage } from "./SafeImage";
 
 function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void }) {
   return (
@@ -14,21 +15,16 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
       className="group relative block min-w-0 shrink-0 grow-0 basis-[87%] pl-6 text-left transition-transform duration-500 ease-out hover:-translate-y-1 active:scale-[0.99] sm:basis-1/2 lg:basis-1/3 md:pl-10"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[color:var(--cream-deep)]">
-        <img
+        <SafeImage
           src={p.image}
           alt={p.name}
-          loading="lazy"
-          decoding="async"
-          draggable={false}
           className="absolute inset-0 h-full w-full object-contain transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-0"
         />
-        <img
+        <SafeImage
           src={p.imageHover || p.image}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          decoding="async"
-          draggable={false}
+          alt={p.name}
+          hidden
+          fallback={false}
           className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
         <div
