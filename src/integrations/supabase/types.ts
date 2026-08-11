@@ -746,7 +746,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      catalogo_publico: {
+        Row: {
+          categoria: string | null
+          colecao: string | null
+          cor: string | null
+          criado_em: string | null
+          descricao: string | null
+          destaque: boolean | null
+          imagens: Json | null
+          marca: string | null
+          modelo_estoque: string | null
+          nome: string | null
+          parcelamento: string | null
+          preco: number | null
+          preco_cartao: number | null
+          slug: string | null
+          variacoes: Json | null
+        }
+        Insert: {
+          categoria?: string | null
+          colecao?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          imagens?: Json | null
+          marca?: string | null
+          modelo_estoque?: string | null
+          nome?: string | null
+          parcelamento?: string | null
+          preco?: number | null
+          preco_cartao?: number | null
+          slug?: string | null
+          variacoes?: never
+        }
+        Update: {
+          categoria?: string | null
+          colecao?: string | null
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          imagens?: Json | null
+          marca?: string | null
+          modelo_estoque?: string | null
+          nome?: string | null
+          parcelamento?: string | null
+          preco?: number | null
+          preco_cartao?: number | null
+          slug?: string | null
+          variacoes?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ajustar_estoque: {

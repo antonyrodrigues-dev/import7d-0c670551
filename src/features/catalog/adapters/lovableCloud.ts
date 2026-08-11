@@ -1,23 +1,24 @@
 /**
- * Implementação `CatalogDataSource` que lê a tabela `produtos` via chave
- * publicável (anon). Depende das policies:
- *   - "Public can view active products"
- *   - "Public can view variations of active products"
- * já existentes no schema — nenhum dado sensível é exposto.
+ * Implementação `CatalogDataSource` que lê a VIEW `catalogo_publico`.
+ *
+ * A vitrine expõe apenas as colunas necessárias ao site. O papel `anon`
+ * não tem mais acesso às tabelas `produtos`/`produto_variacoes`, portanto
+ * observações internas, quantidade física, reservada, quarentena e a
+ * origem do tamanho nunca trafegam para o navegador.
  */
 import { supabase } from "@/integrations/supabase/client";
 import type { CatalogDataSource } from "./types";
 import type { PublicProduct } from "../types";
 
 interface Row {
-  slug: string;
-  nome: string;
-  categoria: string;
+  slug: string | null;
+  nome: string | null;
+  categoria: string | null;
   descricao: string | null;
   imagens: unknown;
-  preco: number | string;
-  destaque: boolean;
-  produto_variacoes: { tamanho: string; disponivel: number }[] | null;
+  preco: number | string | null;
+  destaque: boolean | null;
+  variacoes: unknown;
 }
 
 const SIZE_ORDER = ["PP", "P", "M", "G", "GG", "XG", "XGG"];
@@ -34,18 +35,33 @@ function parseImages(raw: unknown): string[] {
   return Array.isArray(raw) ? raw.filter((s): s is string => typeof s === "string") : [];
 }
 
+interface Variacao {
+  tamanho: string;
+  disponivel: number;
+}
+
+function parseVariacoes(raw: unknown): Variacao[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((v) => {
+    if (typeof v !== "object" || v === null) return [];
+    const o = v as Record<string, unknown>;
+    if (typeof o["tamanho"] !== "string") return [];
+    return [{ tamanho: o["tamanho"], disponivel: Number(o["disponivel"]) || 0 }];
+  });
+}
+
 function mapRow(row: Row): PublicProduct {
   const images = parseImages(row.imagens);
-  const variacoes = row.produto_variacoes ?? [];
+  const variacoes = parseVariacoes(row.variacoes);
   const stockBySize: Record<string, number> = {};
-  for (const v of variacoes) stockBySize[v.tamanho] = v.disponivel ?? 0;
+  for (const v of variacoes) stockBySize[v.tamanho] = v.disponivel;
   const sizes = Object.keys(stockBySize).sort(sortSizes);
-  const stock = variacoes.reduce((a, v) => a + (v.disponivel ?? 0), 0);
+  const stock = variacoes.reduce((a, v) => a + v.disponivel, 0);
   return {
-    slug: row.slug,
-    name: row.nome,
+    slug: row.slug ?? "",
+    name: row.nome ?? "",
     description: row.descricao ?? "",
-    category: row.categoria,
+    category: row.categoria ?? "",
     price: Number(row.preco) || 0,
     sizes,
     image: images[0] ?? "",
@@ -59,12 +75,8 @@ function mapRow(row: Row): PublicProduct {
 export const lovableCloudCatalog: CatalogDataSource = {
   async listActiveProducts(): Promise<PublicProduct[]> {
     const { data, error } = await supabase
-      .from("produtos")
-      .select(
-        "slug, nome, categoria, descricao, imagens, preco, destaque, produto_variacoes ( tamanho, disponivel )",
-      )
-      .eq("ativo", true)
-      .is("arquivado_em", null)
+      .from("catalogo_publico")
+      .select("slug, nome, categoria, descricao, imagens, preco, destaque, variacoes")
       .order("criado_em", { ascending: true });
     if (error) throw error;
     return (data ?? []).map((r) => mapRow(r as Row));
