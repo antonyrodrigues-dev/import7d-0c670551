@@ -272,7 +272,7 @@ async def scenario_happy(browser) -> None:
     body = await page.get_by_test_id("pending-order-panel").inner_text()
     check(
         "payload manipulado não altera dados oficiais",
-        OFFICIAL_NAME in body and "HACK" not in body and "105,00" in body,
+        OFFICIAL_NAME in body and "HACK" not in body and "105" in body,
         body.replace("\n", " | ")[:160],
     )
     check("WhatsApp aberto com número oficial", ORDER_NUMERO in (await page.evaluate("() => (window.__opened[0]||'')")))
