@@ -35,7 +35,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LOW_STOCK_THRESHOLD } from "@/features/admin/constants";
 import { useInventory, usePermissions } from "@/features/admin/hooks";
-import type { InventoryItem } from "@/features/admin/types";
+import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality";
+import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
+import {
+  CatalogQualityPanel,
+  SITUATION_LABEL,
+} from "@/features/admin/components/CatalogQualityPanel";
+import type { InventoryItem, CatalogQualityFilter } from "@/features/admin/types";
 import type { ProductWritePayload } from "@/features/admin/adapters/types";
 
 export const Route = createFileRoute("/_authenticated/admin/estoque")({
@@ -82,6 +88,12 @@ function EstoquePage() {
     remove,
   } = useInventory();
   const { can, isAdmin } = usePermissions();
+  const { items: diagnostics, summary } = useCatalogQuality();
+  const [qualityFilter, setQualityFilter] = useState<CatalogQualityFilter>("todos");
+  const diagBySku = useMemo(
+    () => new Map(diagnostics.map((d) => [d.sku, d])),
+    [diagnostics],
+  );
 
   const [drawer, setDrawer] = useState<
     { mode: "create" } | { mode: "edit"; item: InventoryItem } | null
@@ -118,6 +130,10 @@ function EstoquePage() {
     if (filterStatus === "ativos" && !i.active) return false;
     if (filterStatus === "inativos" && i.active) return false;
     if (filterStatus === "baixo" && !(i.active && i.quantity <= LOW_STOCK_THRESHOLD)) return false;
+    if (qualityFilter !== "todos") {
+      const d = diagBySku.get(i.sku);
+      if (!d || !matchesQualityFilter(d, qualityFilter)) return false;
+    }
     return true;
   });
 
@@ -136,6 +152,12 @@ function EstoquePage() {
             </Button>
           )
         }
+      />
+
+      <CatalogQualityPanel
+        summary={summary}
+        active={qualityFilter}
+        onSelect={(f) => setQualityFilter((cur) => (cur === f ? "todos" : f))}
       />
 
       {/* Filtros — quebram em qualquer breakpoint. */}

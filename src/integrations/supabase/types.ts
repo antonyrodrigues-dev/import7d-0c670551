@@ -524,6 +524,9 @@ export type Database = {
           disponivel: number | null
           id: string
           origem_tamanho: string
+          origem_tamanho_confirmado_em: string | null
+          origem_tamanho_confirmado_por: string | null
+          origem_tamanho_evidencia: string | null
           produto_id: string
           quantidade: number
           quantidade_quarentena: number
@@ -536,6 +539,9 @@ export type Database = {
           disponivel?: number | null
           id?: string
           origem_tamanho?: string
+          origem_tamanho_confirmado_em?: string | null
+          origem_tamanho_confirmado_por?: string | null
+          origem_tamanho_evidencia?: string | null
           produto_id: string
           quantidade?: number
           quantidade_quarentena?: number
@@ -548,6 +554,9 @@ export type Database = {
           disponivel?: number | null
           id?: string
           origem_tamanho?: string
+          origem_tamanho_confirmado_em?: string | null
+          origem_tamanho_confirmado_por?: string | null
+          origem_tamanho_evidencia?: string | null
           produto_id?: string
           quantidade?: number
           quantidade_quarentena?: number
@@ -746,6 +755,63 @@ export type Database = {
       }
     }
     Views: {
+      catalogo_preview: {
+        Row: {
+          categoria: string | null
+          colecao: string | null
+          compravel: boolean | null
+          cor: string | null
+          criado_em: string | null
+          descricao: string | null
+          destaque: boolean | null
+          imagens: Json | null
+          marca: string | null
+          modelo_estoque: string | null
+          nome: string | null
+          parcelamento: string | null
+          preco: number | null
+          preco_cartao: number | null
+          slug: string | null
+          variacoes: Json | null
+        }
+        Insert: {
+          categoria?: string | null
+          colecao?: string | null
+          compravel?: never
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          imagens?: Json | null
+          marca?: string | null
+          modelo_estoque?: string | null
+          nome?: string | null
+          parcelamento?: never
+          preco?: never
+          preco_cartao?: never
+          slug?: string | null
+          variacoes?: never
+        }
+        Update: {
+          categoria?: string | null
+          colecao?: string | null
+          compravel?: never
+          cor?: string | null
+          criado_em?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          imagens?: Json | null
+          marca?: string | null
+          modelo_estoque?: string | null
+          nome?: string | null
+          parcelamento?: never
+          preco?: never
+          preco_cartao?: never
+          slug?: string | null
+          variacoes?: never
+        }
+        Relationships: []
+      }
       catalogo_publico: {
         Row: {
           categoria: string | null
@@ -842,6 +908,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      avaliar_publicacao: { Args: { p_produto_id: string }; Returns: Json }
       cancelar_pedido_checkout: {
         Args: { p_idempotency_key: string; p_pedido_id: string }
         Returns: {
@@ -916,6 +983,35 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      diagnostico_catalogo: {
+        Args: never
+        Returns: {
+          arquivado: boolean
+          ativo: boolean
+          blocking_reasons: string[]
+          can_publish: boolean
+          categoria: string
+          disponivel: number
+          foto_principal: string
+          fotos: number
+          id: string
+          marca: string
+          missing_fields: string[]
+          modelo_estoque: string
+          nome: string
+          preco: number
+          preco_cartao: number
+          preco_status: string
+          quantidade: number
+          quantidade_conferida: boolean
+          quarentena: number
+          reservada: number
+          situacao: string
+          sku: string
+          status_publicacao: string
+          tamanhos: Json
+        }[]
+      }
       emitir_notificacao: {
         Args: {
           p_dedupe_key: string
@@ -970,6 +1066,7 @@ export type Database = {
         Args: { p: Database["public"]["Tables"]["produtos"]["Row"] }
         Returns: boolean
       }
+      qualidade_catalogo: { Args: never; Returns: Json }
       registrar_devolucao: {
         Args: {
           p_evidencias: Json

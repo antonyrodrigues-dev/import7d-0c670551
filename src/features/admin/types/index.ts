@@ -8,3 +8,4 @@ export * from "./settings";
 export * from "./dashboard";
 export * from "./finance";
 export * from "./ops";
+export * from "./catalogQuality";
