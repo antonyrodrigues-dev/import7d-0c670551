@@ -1,45 +1,68 @@
-# Catálogo Real e Estoque Inteligente
+# Fechamento corretivo pós-auditoria
 
-Fonte: planilha `7D_IMPORTS_CATALOGO_E_ESTOQUE_INTELIGENTE.xlsx` (52 produtos propostos, 81 mídias: 69 imagens + 12 vídeos) e os três pacotes de mídia.
+## Primeiro: o snapshot auditado está desatualizado
 
-Nada é publicado automaticamente: todo produto entra como **rascunho**.
+Confirmei no código atual do projeto que várias conclusões da auditoria se referem a um export antigo. Já existem hoje:
 
-## Escopo em 4 ondas
+- Anti-abuso de checkout (`checkout_guard_antiabuso`, `checkout_bloqueios`)
+- Ledger financeiro imutável (`financeiro_lancamentos`) e `pagamento_transicoes`
+- Kits atômicos (`produto_kit_itens`, `kit_disponivel`, explosão em pedido/reserva)
+- Gate de publicação (`avaliar_publicacao`, `diagnostico_catalogo`, `catalogo_preview`)
+- Motor de regras de preço, sino de notificações em tempo real, telas de Pedidos e Atendimentos redesenhadas
+- Vitrine "visível vs. comprável" com "Sob consulta"
 
-### Onda A — Fundação de dados (banco)
-Migração que evolui `produtos` / `produto_variacoes` e cria as tabelas novas:
+Portanto os itens marcados como RELEASE GAP (kit, antiabuso, ledger, NotificationBell, catálogo) não são pendências. Os demais achados eu confirmei um a um e são reais.
 
-- `produtos`: `modelo_estoque` (peca_unica | multi_variante | kit), `marca_visual`, `marca_confirmada`, `preco_pix`, `preco_cartao`, `parcelas`, `preco_confirmado`, `status` (rascunho | ativo | reservado | esgotado | arquivado), `data_entrada`, `observacoes_internas`, `criado_por`, `atualizado_por`.
-- `produto_variacoes`: `sku`, `cor`, `tamanho_origem` (etiqueta | medicao | estimativa | desconhecido), `quantidade_reservada`, `disponivel` (gerada), `estoque_minimo`, `ativo`.
-- `produto_midias`: tipo (imagem/vídeo), url, ordem, principal, legenda, alt, `compartilhada` (mídia editorial com vários produtos).
-- `produto_kit_componentes`: kit → componente + quantidade.
-- `produto_historico`: preço, tamanho e quantidade (append-only, sem update/delete).
-- `produto_movimentacoes`: passa a exigir `saldo_anterior`, `saldo_posterior`, `motivo`, tipos ampliados (entrada, saida, reserva, liberacao_reserva, venda, cancelamento, devolucao, correcao_inventario, perda, avaria).
+## O que ainda está aberto (confirmado no código atual)
 
-RPCs protegidas: `registrar_movimentacao`, `publicar_produto` (gate), `importar_catalogo` (transacional). RLS: escrita de produto/preço/mídia/saldo só para Admin Master; vendedor com leitura + operações de pedido. Catálogo público passa a exigir `status = 'ativo'` **e** tamanho confirmado.
+**P1 — Segurança e integridade**
+- Vendedor ainda consegue gravar produto/variação/estoque pelo backend; passa a ser exclusivo do Admin Master.
+- Defaults inseguros no catálogo (preço confirmado, publicado, quantidade conferida, tamanho de etiqueta) viram defaults de rascunho.
+- Cliente do backend aceita chave secreta como chave de navegador; passa a recusar.
+- `.env` não ignorado pelo Git; adicionar regra e `.env.example`.
+- Checkout não exige publicação nem quantidade conferida.
+- Políticas de armazenamento de imagens não versionadas.
+- Portaria de acesso valida só "existe usuário"; passa a exigir perfil ativo e papel, com listener central de sessão.
+- Invariante "sempre resta 1 Admin Master ativo" em todos os comandos de equipe.
 
-### Onda B — Camadas de domínio (Adapter → Service → Store → Hook)
-- Tipos novos (`StockModel`, `SizeSource`, `ProductStatus`, `Movement`, `PublishGate`).
-- `publishGate.ts`: função pura que lista exatamente os campos faltantes.
-- `inventory.service` reescrito sobre `registrar_movimentacao` (sem edição silenciosa de saldo).
-- `alerts.service`: os 8 alertas, com supressão do falso "estoque baixo" em peça única.
-- `indicators` no dashboard/financeiro: peças únicas disponíveis/reservadas/vendidas, esgotados, catálogo incompleto, valor estimado, mais vendidos, faturamento por produto/marca/categoria/tamanho/funcionário — sempre só pedidos finalizados.
+**P2 — Dinheiro**
+- Devolução parcial marcando o pedido inteiro como devolvido e zerando a venda no financeiro.
+- Duas autoridades de confirmação de pagamento; unificar em um comando idempotente.
+- Receita posicionada por data de atualização; passar a usar o ledger por evento.
+- Frete: nunca 0 para pendente (null + status), operação de definir frete oficial no servidor, total oficial recalculado, retirada = 0 explícito.
 
-### Onda C — Admin (UI)
-- Estoque: modelo de estoque, variações com SKU próprio, gate de publicação com lista de pendências, filtros (sem preço, sem tamanho confirmado, sem foto individual, sem descrição, sem quantidade, pronto para publicação).
-- Gerenciador de mídias: principal, galeria, vídeo, reordenar, legenda, alt, preview, substituir, excluir, fallback; bloqueia mídia compartilhada como foto principal.
-- Movimentações: formulário com tipo + motivo obrigatório; histórico imutável.
-- Kits: componentes vinculados e indisponibilidade automática.
-- Importador em duas etapas: pré-visualização com validações + confirmação transacional e relatório (importados, ignorados, duplicados, incompletos, erros).
+**P3 — Operação e catálogo**
+- Upload real de fotos (galeria, principal, remoção, reordenação, rotação, enquadramento) com bucket e políticas.
+- Estoque em tempo real entre abas e atualização imediata de selos/contadores após salvar.
+- Salvamento de produto + variações atômico; restaurar não reativa venda; exclusão dura só sem histórico; rascunho nasce inativo e sem preço.
+- Consultar preço/tamanho via WhatsApp sem criar pedido, reserva ou lançamento.
+- Configurações persistidas no backend e consumidas pelo site (WhatsApp, redes, endereço, horários, retirada, parcelamento).
+- Clientes agregados no servidor por telefone normalizado e líquido válido.
 
-### Onda D — Carga real + testes
-- Upload das 81 mídias para o storage, agrupadas por peça conforme `Mapeamento_Midias` (uma galeria por produto, sem duplicar produto por imagem).
-- Importação dos 52 produtos como rascunho, com preços da aba `Regras_de_Preco` (polo 180, camiseta 105, calça moletom 100, kit Tommy 995 Pix / 1.050 em 3x); Tommy avulso não recebe 995; moletons/jaquetas/puffers/suéteres sem preço ficam rascunho.
-- Marcações especiais: BOSS só em foto editorial → "Precisa de foto individual"; jaquetas de criativo → "Confirmar existência física, marca, tamanho, preço e foto individual".
-- Testes (Vitest + gate SQL) para os 12 cenários pedidos, incluindo peça única não vendida duas vezes, kit baixando componentes, vendedor sem alterar quantidade, importação rejeitando SKU duplicado e ranking ignorando cancelados.
-- Relatório final: typecheck, lint, build, testes e itens pendentes.
+**P4 — UX e performance**
+- Financeiro com cache por período e medição real antes de otimizar.
+- Painel inicial sem carrinho público nem placeholder.
+- Busca abrindo a peça exata.
+- Fila usando o relógio certo depois de assumir; tempo real direcionado.
+- Estados distintos de carregando, vazio, erro, offline e sem permissão.
 
-## Notas técnicas
-- Estoque público passa a ler `disponivel = quantidade - reservada`, nunca a quantidade física.
-- Toda escrita de saldo passa por RPC `SECURITY DEFINER` com `FOR UPDATE`; grants diretos de UPDATE em estoque permanecem revogados.
-- A importação roda como uma única transação no banco; falha parcial não grava nada.
+**P5 — QA**
+- Todas as suítes no portão oficial e cobertura administrativa.
+
+## Como pretendo executar
+
+Em 5 ondas, cada uma terminando com verificação (typecheck, lint, testes, gate de banco) e um relatório curto de causa → alteração → teste → resultado:
+
+1. **Onda P1** — segurança, defaults, portaria de acesso, políticas de armazenamento.
+2. **Onda P2** — frete, pagamento canônico, devolução parcial, financeiro por evento.
+3. **Onda P3** — upload de fotos, tempo real do estoque, consulta por WhatsApp, configurações no backend, clientes no servidor.
+4. **Onda P4** — desempenho e acertos de tela.
+5. **Onda P5** — testes oficiais e relatório final.
+
+Não vou declarar produção: ao final entrego "implementação corretiva concluída — pronta para homologação externa" ou a lista de bloqueadores restantes.
+
+## Detalhes técnicos
+
+- Mudanças de banco por migration versionada (defaults, grants/RLS Admin-only em `produtos`/`produto_variacoes`, `ajustar_estoque` restrita, gate completo em `criar_pedido`, `definir_frete_pedido`, `confirmar_pagamento` canônico, devolução parcial com `devolucao_parcial`, `metricas_financeiras` lendo `financeiro_lancamentos`, tabela `configuracoes_publicas`, agregação `listar_clientes`, políticas de `storage.objects`).
+- Camada de aplicação mantém Adapter → Service → Store → Hook → UI; nada de cálculo financeiro no cliente.
+- Upload via bucket `produtos` privado com leitura pública controlada e transformação de imagem no cliente antes do envio.
