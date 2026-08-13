@@ -13,6 +13,7 @@ import { OrderFinancePanel } from "@/features/admin/components/OrderFinancePanel
 import { ORDER_STATUSES } from "@/features/admin/constants";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
 import { nextStatuses } from "@/features/admin/lib/statusMachine";
+import { PENDING_STATUSES } from "@/features/admin/lib/orderView";
 import type { AdminOrder, DeliveryMethod, OrderStatus } from "@/features/admin/types";
 import type { OrdersFilter } from "@/features/admin/stores/orders";
 
