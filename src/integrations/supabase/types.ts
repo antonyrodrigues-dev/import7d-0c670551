@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      checkout_bloqueios: {
+        Row: {
+          criado_em: string
+          detalhe: Json
+          id: string
+          motivo: string
+          telefone_hash: string
+          telefone_mascarado: string
+        }
+        Insert: {
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          motivo: string
+          telefone_hash: string
+          telefone_mascarado: string
+        }
+        Update: {
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          motivo?: string
+          telefone_hash?: string
+          telefone_mascarado?: string
+        }
+        Relationships: []
+      }
       financeiro_lancamentos: {
         Row: {
           competencia: string
@@ -986,6 +1013,10 @@ export type Database = {
           valor_total: number
         }[]
       }
+      checkout_guard_antiabuso: {
+        Args: { p_telefone: string }
+        Returns: undefined
+      }
       confirmar_whatsapp_checkout: {
         Args: { p_idempotency_key: string; p_pedido_id: string }
         Returns: {
@@ -1137,6 +1168,10 @@ export type Database = {
         }[]
       }
       metricas_financeiras: { Args: { p_periodo?: string }; Returns: Json }
+      parametro_int: {
+        Args: { p_chave: string; p_default: number }
+        Returns: number
+      }
       pedido_snapshot: {
         Args: { p_pedido: Database["public"]["Tables"]["pedidos"]["Row"] }
         Returns: Json

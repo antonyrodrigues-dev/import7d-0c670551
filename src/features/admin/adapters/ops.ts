@@ -9,6 +9,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type {
+  CheckoutBlock,
   FinancePeriod,
   LedgerEntry,
   OperationalParams,
@@ -81,6 +82,9 @@ export interface AdminOpsDataSource {
   // Parâmetros
   getParams(): Promise<OperationalParams>;
   setParam(chave: string, valor: number): Promise<void>;
+
+  /** Tentativas de checkout recusadas pela proteção anti-abuso (Admin Master). */
+  listCheckoutBlocks(limit?: number): Promise<CheckoutBlock[]>;
 
   // Financeiro (RPC restrita ao Admin Master)
   financeMetrics(periodo: FinancePeriod): Promise<Json>;
@@ -354,6 +358,22 @@ export const opsDataSource: AdminOpsDataSource = {
       p_valor: valor as unknown as DbJson,
     });
     if (error) throw error;
+  },
+
+  async listCheckoutBlocks(limit = 50) {
+    const { data, error } = await supabase
+      .from("checkout_bloqueios")
+      .select("id,telefone_mascarado,motivo,detalhe,criado_em")
+      .order("criado_em", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      telefoneMascarado: r.telefone_mascarado,
+      motivo: r.motivo,
+      detalhe: asRecord(r.detalhe),
+      criadoEm: r.criado_em,
+    }));
   },
 
   async financeMetrics(periodo) {

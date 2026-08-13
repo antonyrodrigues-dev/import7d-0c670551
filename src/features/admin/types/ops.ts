@@ -160,6 +160,10 @@ export interface OperationalParams {
   alertaAtendimentoMinutos: number;
   atendimentoAtrasadoMinutos: number;
   confirmacaoClienteMinutos: number;
+  checkoutCooldownSegundos: number;
+  checkoutMaxPedidosAbertos: number;
+  checkoutMaxReservasAtivas: number;
+  checkoutMaxPedidosHora: number;
 }
 
 export type OperationalParamKey = keyof OperationalParams;
@@ -167,7 +171,7 @@ export type OperationalParamKey = keyof OperationalParams;
 /** Limites validados também no banco (`definir_parametro`). */
 export const PARAM_LIMITS: Record<
   OperationalParamKey,
-  { chave: string; label: string; min: number; max: number; hint: string }
+  { chave: string; label: string; min: number; max: number; hint: string; unidade: string }
 > = {
   reservaMinutos: {
     chave: "reserva_peca_unica_minutos",
@@ -175,6 +179,7 @@ export const PARAM_LIMITS: Record<
     min: 5,
     max: 120,
     hint: "Tempo que a peça fica reservada após o pedido.",
+    unidade: "minutos",
   },
   alertaAtendimentoMinutos: {
     chave: "alerta_atendimento_minutos",
@@ -182,6 +187,7 @@ export const PARAM_LIMITS: Record<
     min: 1,
     max: 60,
     hint: "Minutos até destacar o pedido como prioritário na fila.",
+    unidade: "minutos",
   },
   atendimentoAtrasadoMinutos: {
     chave: "atendimento_atrasado_minutos",
@@ -189,6 +195,7 @@ export const PARAM_LIMITS: Record<
     min: 2,
     max: 240,
     hint: "Minutos até marcar o atendimento como atrasado.",
+    unidade: "minutos",
   },
   confirmacaoClienteMinutos: {
     chave: "confirmacao_cliente_minutos",
@@ -196,6 +203,39 @@ export const PARAM_LIMITS: Record<
     min: 5,
     max: 1440,
     hint: "Prazo para o cliente declarar o envio no WhatsApp.",
+    unidade: "minutos",
+  },
+  checkoutCooldownSegundos: {
+    chave: "checkout_cooldown_segundos",
+    label: "Intervalo entre pedidos (mesmo telefone)",
+    min: 10,
+    max: 600,
+    hint: "Tempo mínimo entre dois pedidos do mesmo telefone no checkout público.",
+    unidade: "segundos",
+  },
+  checkoutMaxPedidosAbertos: {
+    chave: "checkout_max_pedidos_abertos",
+    label: "Pedidos em aberto por telefone",
+    min: 1,
+    max: 10,
+    hint: "Máximo de pedidos não finalizados simultâneos por telefone.",
+    unidade: "pedidos",
+  },
+  checkoutMaxReservasAtivas: {
+    chave: "checkout_max_reservas_ativas",
+    label: "Peças reservadas por telefone",
+    min: 1,
+    max: 20,
+    hint: "Máximo de peças únicas reservadas ao mesmo tempo por telefone.",
+    unidade: "peças",
+  },
+  checkoutMaxPedidosHora: {
+    chave: "checkout_max_pedidos_hora",
+    label: "Pedidos por hora (mesmo telefone)",
+    min: 1,
+    max: 30,
+    hint: "Máximo de pedidos criados por telefone em 60 minutos.",
+    unidade: "pedidos",
   },
 };
 
@@ -204,6 +244,10 @@ export const DEFAULT_PARAMS: OperationalParams = {
   alertaAtendimentoMinutos: 5,
   atendimentoAtrasadoMinutos: 10,
   confirmacaoClienteMinutos: 30,
+  checkoutCooldownSegundos: 45,
+  checkoutMaxPedidosAbertos: 3,
+  checkoutMaxReservasAtivas: 5,
+  checkoutMaxPedidosHora: 6,
 };
 
 // ─────────────────────── Notificações persistentes ─────────────────────────
@@ -223,6 +267,28 @@ export interface RemoteNotification {
 }
 
 // ───────────────────────────────── Reservas ────────────────────────────────
+
+/** Tentativa de checkout recusada pela proteção anti-abuso (append-only no banco). */
+export type CheckoutBlockReason =
+  | "cooldown"
+  | "limite_hora"
+  | "pedidos_abertos"
+  | "reservas_ativas";
+
+export interface CheckoutBlock {
+  id: string;
+  telefoneMascarado: string;
+  motivo: CheckoutBlockReason | string;
+  detalhe: Record<string, unknown>;
+  criadoEm: IsoDateTime;
+}
+
+export const CHECKOUT_BLOCK_LABELS: Record<CheckoutBlockReason, string> = {
+  cooldown: "Intervalo entre pedidos",
+  limite_hora: "Limite de pedidos por hora",
+  pedidos_abertos: "Pedidos em aberto",
+  reservas_ativas: "Peças reservadas",
+};
 
 export interface ReservationRow {
   id: string;
