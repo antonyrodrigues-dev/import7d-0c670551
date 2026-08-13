@@ -281,7 +281,8 @@ function ReturnTab({
       </p>
     );
   }
-  if (order.status !== "finalizado" && history.length === 0) {
+  const podeDevolver = order.status === "finalizado" || order.status === "devolvido";
+  if (!podeDevolver && history.length === 0) {
     return (
       <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
         Devolução disponível apenas para pedidos finalizados.
@@ -304,7 +305,7 @@ function ReturnTab({
 
   return (
     <div className="mt-3 flex flex-col gap-3">
-      {order.status === "finalizado" && (
+      {podeDevolver && (
         <>
           <ul className="flex flex-col gap-2">
             {order.itens.map((it, idx) => (
