@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      financeiro_lancamentos: {
+        Row: {
+          competencia: string
+          criado_em: string
+          detalhe: Json
+          id: string
+          metodo: string | null
+          numero_pedido: string
+          origem: string
+          pedido_id: string
+          por_usuario: string | null
+          referencia_id: string | null
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          competencia?: string
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          metodo?: string | null
+          numero_pedido: string
+          origem: string
+          pedido_id: string
+          por_usuario?: string | null
+          referencia_id?: string | null
+          tipo: string
+          valor: number
+        }
+        Update: {
+          competencia?: string
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          metodo?: string | null
+          numero_pedido?: string
+          origem?: string
+          pedido_id?: string
+          por_usuario?: string | null
+          referencia_id?: string | null
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financeiro_lancamentos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_execucoes: {
         Row: {
           criado_em: string
@@ -97,6 +150,21 @@ export type Database = {
           severidade?: string
           tipo?: string
           titulo?: string
+        }
+        Relationships: []
+      }
+      pagamento_transicoes: {
+        Row: {
+          de: string
+          para: string
+        }
+        Insert: {
+          de: string
+          para: string
+        }
+        Update: {
+          de?: string
+          para?: string
         }
         Relationships: []
       }
@@ -1039,6 +1107,17 @@ export type Database = {
         Returns: boolean
       }
       job_expirar_reservas: { Args: never; Returns: number }
+      lancar_financeiro: {
+        Args: {
+          p_detalhe?: Json
+          p_origem: string
+          p_pedido: Database["public"]["Tables"]["pedidos"]["Row"]
+          p_referencia: string
+          p_tipo: string
+          p_valor: number
+        }
+        Returns: undefined
+      }
       liberar_reservas_pedido: {
         Args: { p_motivo: string; p_pedido_id: string }
         Returns: undefined
@@ -1069,12 +1148,12 @@ export type Database = {
       qualidade_catalogo: { Args: never; Returns: Json }
       registrar_devolucao: {
         Args: {
-          p_evidencias: Json
+          p_evidencias?: Json
           p_itens: Json
           p_motivo: string
-          p_observacoes: string
+          p_observacoes?: string
           p_pedido_id: string
-          p_valor_estornado: number
+          p_valor_estornado?: number
         }
         Returns: string
       }
