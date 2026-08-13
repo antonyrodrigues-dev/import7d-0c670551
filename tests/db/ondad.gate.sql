@@ -54,10 +54,8 @@ BEGIN
   SELECT current_setting('gate.admin')::uuid, current_setting('gate.vend')::uuid
     INTO v_admin, v_vend;
 
-  -- Sem cooldown/limites de anti-abuso interferindo nos cenários de kit.
-  PERFORM pg_temp.as_user(v_admin);
-  PERFORM public.definir_parametro('checkout_cooldown_segundos', to_jsonb(0));
-  PERFORM pg_temp.anon_();
+  -- Cada cenário usa um telefone próprio: o cooldown anti-abuso é por
+  -- telefone e não deve interferir nos testes de kit.
 
   v_a      := pg_temp.novo_produto('gate-d-comp-a','multi_variante','M',5);
   v_b      := pg_temp.novo_produto('gate-d-comp-b','multi_variante','M',4);
@@ -136,7 +134,7 @@ BEGIN
   -- D-K11 checkout de kit reserva as peças componentes (nunca o kit)
   SELECT * INTO r FROM public.criar_pedido(
     jsonb_build_array(jsonb_build_object('slug','gate-d-kit','size','M','quantity',1)),
-    v_cli, v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
+    jsonb_set(v_cli,'{telefone}', to_jsonb('(31) 97777-6601'::text)), v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
   v_pedido := r.id;
   SELECT count(*) INTO v_n FROM public.reservas_estoque
    WHERE pedido_id = v_pedido AND produto_id IN (v_a, v_b);
@@ -181,7 +179,7 @@ BEGIN
   BEGIN
     PERFORM public.criar_pedido(
       jsonb_build_array(jsonb_build_object('slug','gate-d-kit','size','M','quantity',1)),
-      v_cli, v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
+      jsonb_set(v_cli,'{telefone}', to_jsonb('(31) 97777-6602'::text)), v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
     PERFORM pg_temp.check_('D-K21 peça sem saldo bloqueia o kit', false, 'permitiu venda do kit');
   EXCEPTION WHEN OTHERS THEN
     PERFORM pg_temp.check_('D-K21 peça sem saldo bloqueia o kit', true, SQLERRM);
@@ -194,11 +192,11 @@ BEGIN
   UPDATE public.produto_variacoes SET tamanho = 'M' WHERE produto_id = v_kit2;
   PERFORM public.criar_pedido(
     jsonb_build_array(jsonb_build_object('slug','gate-d-unica','size','U','quantity',1)),
-    v_cli, v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
+    jsonb_set(v_cli,'{telefone}', to_jsonb('(31) 97777-6603'::text)), v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
   BEGIN
     PERFORM public.criar_pedido(
       jsonb_build_array(jsonb_build_object('slug','gate-d-unica','size','U','quantity',1)),
-      v_cli, v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
+      jsonb_set(v_cli,'{telefone}', to_jsonb('(31) 97777-6604'::text)), v_ent, v_pag, NULL, 'site', 'gate-d-' || gen_random_uuid()::text);
     PERFORM pg_temp.check_('D-K22 peça única não vende duas vezes', false, 'vendeu duas vezes');
   EXCEPTION WHEN OTHERS THEN
     PERFORM pg_temp.check_('D-K22 peça única não vende duas vezes', true, SQLERRM);
