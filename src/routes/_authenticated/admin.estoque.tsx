@@ -40,6 +40,7 @@ import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
 import { KitCompositionDialog } from "@/features/admin/components/KitCompositionDialog";
+import { PriceRuleDialog } from "@/features/admin/components/PriceRuleDialog";
 import { SITUATION_LABEL } from "@/features/admin/lib/catalogLabels";
 import type { InventoryItem, CatalogQualityFilter } from "@/features/admin/types";
 import type { ProductWritePayload } from "@/features/admin/adapters/types";
@@ -86,9 +87,10 @@ function EstoquePage() {
     archive,
     restore,
     remove,
+    refresh,
   } = useInventory();
   const { can, isAdmin } = usePermissions();
-  const { items: diagnostics, summary } = useCatalogQuality();
+  const { items: diagnostics, summary, refresh: refreshQuality } = useCatalogQuality();
   const [qualityFilter, setQualityFilter] = useState<CatalogQualityFilter>("todos");
   const diagBySku = useMemo(() => new Map(diagnostics.map((d) => [d.sku, d])), [diagnostics]);
 
@@ -101,6 +103,7 @@ function EstoquePage() {
   } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [kitDialog, setKitDialog] = useState<InventoryItem | null>(null);
+  const [priceRuleOpen, setPriceRuleOpen] = useState(false);
 
   const runConfirm = async () => {
     if (!confirm) return;
@@ -145,9 +148,16 @@ function EstoquePage() {
         description="Cadastro, quantidade e destaque dos produtos."
         actions={
           canEdit && (
-            <Button onClick={() => setDrawer({ mode: "create" })}>
-              <Plus className="h-4 w-4 mr-1" /> Novo produto
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {isAdmin && (
+                <Button variant="outline" onClick={() => setPriceRuleOpen(true)}>
+                  Regra de preço
+                </Button>
+              )}
+              <Button onClick={() => setDrawer({ mode: "create" })}>
+                <Plus className="h-4 w-4 mr-1" /> Novo produto
+              </Button>
+            </div>
           )
         }
       />
@@ -339,6 +349,18 @@ function EstoquePage() {
           items={items}
           canEdit={canEdit}
           onClose={() => setKitDialog(null)}
+        />
+      )}
+
+      {isAdmin && priceRuleOpen && (
+        <PriceRuleDialog
+          open={priceRuleOpen}
+          categories={categories}
+          onClose={() => setPriceRuleOpen(false)}
+          onApplied={() => {
+            void refresh();
+            void refreshQuality();
+          }}
         />
       )}
 

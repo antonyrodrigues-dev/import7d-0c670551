@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Minus, Plus } from "lucide-react";
-import { formatBRL, type PublicProduct } from "@/features/catalog";
+import { priceLabel, type PublicProduct } from "@/features/catalog";
 import { useReserva } from "@/store/reserva";
 import { track } from "@/lib/analytics";
 import { SafeImage } from "./SafeImage";
@@ -16,6 +16,7 @@ const MAX_QTY = 10;
 
 /** Tamanhos com saldo real; se o catálogo não trouxer saldo, o tamanho é ignorado. */
 function availableSizes(product: PublicProduct): string[] {
+  if (!product.compravel) return [];
   return product.sizes.filter((s) => (product.stockBySize?.[s] ?? 0) > 0);
 }
 
@@ -24,7 +25,7 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
   const [size, setSize] = useState<string>(sizesEmStock[0] ?? "");
   const [qty, setQty] = useState(1);
   const maxQty = Math.max(0, Math.min(MAX_QTY, product.stockBySize?.[size] ?? 0));
-  const canAdd = Boolean(size) && maxQty > 0 && qty >= 1 && qty <= maxQty;
+  const canAdd = product.compravel && Boolean(size) && maxQty > 0 && qty >= 1 && qty <= maxQty;
   const addItem = useReserva((s) => s.addItem);
   const addingRef = useRef(false);
   const dialogRef = useRef<HTMLElement | null>(null);
@@ -181,9 +182,27 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                       <h2 className="mt-2 font-display text-3xl md:text-4xl text-[color:var(--forest-deep)]">
                         {product.name}
                       </h2>
-                      <p className="mt-4 font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">
-                        {formatBRL(product.price)}
+                      <p
+                        className={`mt-4 font-display text-[color:var(--forest-deep)] ${
+                          product.precoConfirmado ? "text-2xl tabular-nums" : "text-lg"
+                        }`}
+                      >
+                        {priceLabel(product)}
                       </p>
+                      {product.precoConfirmado && product.parcelamento ? (
+                        <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
+                          {product.parcelamento}
+                        </p>
+                      ) : null}
+                      {!product.compravel ? (
+                        <p
+                          data-testid="product-preview-note"
+                          className="mt-4 border-l-2 border-[color:var(--gold)] bg-[color:var(--cream-deep)] px-4 py-3 text-xs leading-relaxed text-[color:var(--muted-foreground)]"
+                        >
+                          Peça em conferência final (medidas, preço e disponibilidade). Fale com a
+                          nossa equipe pelo WhatsApp para saber quando ela entra para reserva.
+                        </p>
+                      ) : null}
                     </div>
                     <p className="text-sm leading-relaxed text-[color:var(--muted-foreground)]">
                       {product.description}
@@ -285,7 +304,11 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     disabled={!canAdd}
                     className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {canAdd ? "Adicionar à reserva" : "Indisponível"}
+                    {canAdd
+                      ? "Adicionar à reserva"
+                      : product.compravel
+                        ? "Indisponível"
+                        : "Em conferência"}
                   </button>
                 </div>
               </div>

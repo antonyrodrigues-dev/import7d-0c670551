@@ -19,7 +19,10 @@ import {
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/features/catalog";
+import { ResponsiveDataTable, type DataTableColumn } from "@/features/admin/components/DataTable";
+import { StatusBadge } from "@/features/admin/components/StatusBadge";
 import { useQueue, useTeam, usePermissions } from "@/features/admin/hooks";
+import type { BadgeTone } from "@/features/admin/lib/orderView";
 import type { QueueOrder } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/atendimentos")({
@@ -65,6 +68,10 @@ function FilaView() {
   const emCurso = useMemo(
     () => emAtendimento.filter((o) => o.prioridade !== "atrasado"),
     [emAtendimento],
+  );
+  const meusAtendimentos = useMemo(
+    () => emAtendimento.filter((o) => o.responsavelId === userId),
+    [emAtendimento, userId],
   );
 
   const handleAssumir = async (order: QueueOrder) => {
@@ -133,8 +140,8 @@ function FilaView() {
         title="Aguardando atendimento"
         orders={fila}
         emptyLabel="Nenhum pedido aguardando."
-        render={(o) => (
-          <div className="mt-3 flex flex-wrap gap-2">
+        renderActions={(o) => (
+          <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
               disabled={busyId === o.id || state === "saving"}
@@ -153,10 +160,25 @@ function FilaView() {
       />
 
       <QueueSection
+        title="Meus atendimentos"
+        orders={meusAtendimentos}
+        emptyLabel="Você não possui atendimentos em curso."
+        renderActions={(o) => (
+          <Actions
+            order={o}
+            isAdmin={isAdmin}
+            userId={userId}
+            onTransfer={() => setTransferTarget(o)}
+            onRelease={() => setReleaseTarget(o)}
+          />
+        )}
+      />
+
+      <QueueSection
         title="Atendimento atrasado"
         orders={atrasados}
         emptyLabel="Nenhum atendimento atrasado."
-        render={(o) => (
+        renderActions={(o) => (
           <Actions
             order={o}
             isAdmin={isAdmin}
@@ -171,7 +193,7 @@ function FilaView() {
         title="Em atendimento"
         orders={emCurso}
         emptyLabel="Nenhum atendimento em curso."
-        render={(o) => (
+        renderActions={(o) => (
           <Actions
             order={o}
             isAdmin={isAdmin}
@@ -220,7 +242,7 @@ function Actions({
 }) {
   if (!isAdmin) {
     return (
-      <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+      <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
         {order.responsavelId === userId
           ? "Você é o responsável por este atendimento."
           : "Somente o Administrador Master pode transferir ou devolver este atendimento."}
@@ -228,7 +250,7 @@ function Actions({
     );
   }
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
       <Button size="sm" variant="outline" onClick={onTransfer}>
         Transferir atendimento
       </Button>
@@ -239,17 +261,100 @@ function Actions({
   );
 }
 
+function priorityTone(p: QueueOrder["prioridade"]): BadgeTone {
+  if (p === "atrasado") return "danger";
+  if (p === "alerta") return "warn";
+  return "neutral";
+}
+
+/** Fila e atendimento reutilizam a mesma tabela/card de Pedidos, sem duplicar HTML. */
 function QueueSection({
   title,
   orders,
   emptyLabel,
-  render,
+  renderActions,
 }: {
   title: string;
   orders: QueueOrder[];
   emptyLabel: string;
-  render: (o: QueueOrder) => React.ReactNode;
+  renderActions: (o: QueueOrder) => React.ReactNode;
 }) {
+  const columns: DataTableColumn<QueueOrder>[] = [
+    {
+      key: "numero",
+      header: "Nº do pedido",
+      width: "8%",
+      cell: (o) => <span className="font-display tabular-nums">{o.numero}</span>,
+    },
+    {
+      key: "cliente",
+      header: "Cliente",
+      width: "15%",
+      cell: (o) => (
+        <span>
+          {o.cliente}
+          <span className="block text-[10px] text-[color:var(--muted-foreground)]">
+            {o.telefone}
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: "canal",
+      header: "Modalidade",
+      width: "8%",
+      cell: (o) => (o.modalidade === "entrega" ? "Entrega" : "Retirada"),
+    },
+    {
+      key: "itens",
+      header: "Itens",
+      width: "14%",
+      cell: (o) => `${o.quantidadeItens} item(ns)`,
+    },
+    {
+      key: "valor",
+      header: "Valor",
+      width: "9%",
+      align: "right",
+      cell: (o) => <span className="tabular-nums">{formatBRL(o.valorTotal)}</span>,
+    },
+    {
+      key: "responsavel",
+      header: "Responsável",
+      width: "9%",
+      cell: (o) => o.responsavelNome ?? "—",
+    },
+    {
+      key: "status",
+      header: "Prioridade",
+      width: "12%",
+      noTruncate: true,
+      cell: (o) => (
+        <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
+          {o.prioridade}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: "espera",
+      header: "Aguardando",
+      width: "8%",
+      cell: (o) => (
+        <span className={o.prioridade === "atrasado" ? "font-semibold text-red-700" : ""}>
+          {o.aguardandoMinutos} min
+        </span>
+      ),
+    },
+    {
+      key: "acoes",
+      header: "Ações",
+      width: "17%",
+      align: "right",
+      noTruncate: true,
+      cell: (o) => <div className="flex justify-end">{renderActions(o)}</div>,
+    },
+  ];
+
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <header className="flex items-baseline justify-between gap-3">
@@ -263,40 +368,26 @@ function QueueSection({
           {emptyLabel}
         </p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {orders.map((o) => (
-            <li
-              key={o.id}
-              className="border border-[color:var(--border)] bg-[color:var(--cream)] p-4"
-            >
-              <QueueCardHeader order={o} />
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {o.itens.map((i, idx) => (
-                  <li
-                    key={`${o.id}-${idx}`}
-                    className="border border-[color:var(--border)] px-2 py-1 text-[11px] text-[color:var(--forest-deep)]"
-                  >
-                    {i.name} · Tam {i.size} · {i.quantity}×
-                  </li>
-                ))}
-              </ul>
-              {render(o)}
-            </li>
-          ))}
-        </ul>
+        <ResponsiveDataTable
+          ariaLabel={title}
+          columns={columns}
+          rows={orders}
+          keyFor={(o) => o.id}
+          renderCard={(o) => <QueueCard order={o} actions={renderActions(o)} />}
+        />
       )}
     </section>
   );
 }
 
-function QueueCardHeader({ order: o }: { order: QueueOrder }) {
+function QueueCard({ order: o, actions }: { order: QueueOrder; actions: React.ReactNode }) {
   const reservaExpirada = o.reservaMinutosRestantes !== null && o.reservaMinutosRestantes <= 0;
   const reservaProxima =
     o.reservaMinutosRestantes !== null &&
     o.reservaMinutosRestantes > 0 &&
     o.reservaMinutosRestantes <= 5;
   return (
-    <>
+    <div className="border border-[color:var(--border)] bg-[color:var(--cream)] p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-xl tabular-nums text-[color:var(--forest-deep)]">
@@ -316,62 +407,45 @@ function QueueCardHeader({ order: o }: { order: QueueOrder }) {
         </p>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        <Badge
-          tone={
-            o.prioridade === "atrasado" ? "danger" : o.prioridade === "alerta" ? "warn" : "muted"
-          }
-        >
-          <Clock className="h-3 w-3" aria-hidden="true" />
+        <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
           Prioridade {o.prioridade}
-        </Badge>
-        <Badge tone={o.whatsappDeclarado ? "ok" : "muted"}>
-          <MessageCircle className="h-3 w-3" aria-hidden="true" />
+        </StatusBadge>
+        <StatusBadge
+          tone={o.whatsappDeclarado ? "success" : "neutral"}
+          icon={<MessageCircle className="h-3 w-3" />}
+        >
           {o.whatsappDeclarado ? "WhatsApp declarado" : "Sem declaração do cliente"}
-        </Badge>
+        </StatusBadge>
         {o.reservaMinutosRestantes !== null && (
-          <Badge tone={reservaExpirada ? "danger" : reservaProxima ? "warn" : "ok"}>
-            {reservaExpirada ? (
-              <TimerOff className="h-3 w-3" aria-hidden="true" />
-            ) : (
-              <Clock className="h-3 w-3" aria-hidden="true" />
-            )}
+          <StatusBadge
+            tone={reservaExpirada ? "danger" : reservaProxima ? "warn" : "success"}
+            icon={
+              reservaExpirada ? <TimerOff className="h-3 w-3" /> : <Clock className="h-3 w-3" />
+            }
+          >
             {reservaExpirada
               ? "Reserva expirada — estoque não garantido"
               : `Reserva expira em ${o.reservaMinutosRestantes} min`}
-          </Badge>
+          </StatusBadge>
         )}
         {o.prioridade === "atrasado" && (
-          <Badge tone="danger">
-            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+          <StatusBadge tone="danger" icon={<AlertTriangle className="h-3 w-3" />}>
             Atendimento atrasado
-          </Badge>
+          </StatusBadge>
         )}
       </div>
-    </>
-  );
-}
-
-function Badge({
-  tone,
-  children,
-}: {
-  tone: "ok" | "warn" | "danger" | "muted";
-  children: React.ReactNode;
-}) {
-  const cls =
-    tone === "danger"
-      ? "border-red-300 bg-red-50 text-red-700"
-      : tone === "warn"
-        ? "border-amber-300 bg-amber-50 text-amber-800"
-        : tone === "ok"
-          ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-          : "border-[color:var(--border)] bg-[color:var(--cream-deep)]/40 text-[color:var(--muted-foreground)]";
-  return (
-    <span
-      className={`inline-flex items-center gap-1 border px-2 py-1 text-[10px] tracking-luxe uppercase ${cls}`}
-    >
-      {children}
-    </span>
+      <ul className="mt-3 flex flex-wrap gap-2">
+        {o.itens.map((i, idx) => (
+          <li
+            key={`${o.id}-${idx}`}
+            className="border border-[color:var(--border)] px-2 py-1 text-[11px] text-[color:var(--forest-deep)]"
+          >
+            {i.name} · Tam {i.size} · {i.quantity}×
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3">{actions}</div>
+    </div>
   );
 }
 

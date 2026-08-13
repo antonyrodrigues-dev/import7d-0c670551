@@ -9,3 +9,4 @@ export * from "./dashboard";
 export * from "./finance";
 export * from "./ops";
 export * from "./catalogQuality";
+export * from "./pricing";

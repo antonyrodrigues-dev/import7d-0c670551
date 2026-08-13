@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import { categoriesOf, formatBRL, useCatalog, type PublicProduct } from "@/features/catalog";
+import { categoriesOf, priceLabel, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
 import { SafeImage } from "./SafeImage";
 import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
@@ -38,11 +38,18 @@ const Card = memo(function Card({
           fallback={false}
           className="absolute inset-0 h-full w-full object-contain opacity-0 transition-all duration-[600ms] ease-out group-hover:scale-[1.02] group-hover:opacity-100"
         />
-        {p.stock === 0 && (
+        {!p.compravel ? (
+          <span
+            data-testid="badge-preview"
+            className="pointer-events-none absolute right-4 top-4 bg-[color:var(--cream)]/95 px-3 py-1 text-[9px] tracking-luxe uppercase text-[color:var(--forest-deep)]"
+          >
+            Em conferência
+          </span>
+        ) : p.stock === 0 ? (
           <span className="pointer-events-none absolute right-4 top-4 bg-[color:var(--forest-deep)]/85 px-3 py-1 text-[9px] tracking-luxe uppercase text-[color:var(--cream)]">
             Reservado
           </span>
-        )}
+        ) : null}
         <span
           aria-hidden="true"
           className="pointer-events-none absolute top-4 left-4 font-display text-[11px] tabular-nums text-[color:var(--forest-deep)]/45"
@@ -57,7 +64,7 @@ const Card = memo(function Card({
           aria-hidden="true"
           className="pointer-events-none absolute bottom-4 left-4 inline-flex items-center gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--cream)] opacity-0 translate-y-1 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100"
         >
-          Ver peça
+          {p.compravel ? "Ver peça" : "Ver detalhes"}
           <span className="inline-block h-px w-6 bg-[color:var(--gold)]" />
         </span>
         <span
@@ -74,8 +81,14 @@ const Card = memo(function Card({
             {p.name}
           </h3>
         </div>
-        <span className="shrink-0 font-display text-lg tabular-nums font-medium text-[color:var(--forest-deep)]">
-          {formatBRL(p.price)}
+        <span
+          className={`shrink-0 font-display font-medium text-[color:var(--forest-deep)] ${
+            p.precoConfirmado
+              ? "text-lg tabular-nums"
+              : "text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
+          }`}
+        >
+          {priceLabel(p)}
         </span>
       </div>
     </button>
@@ -90,10 +103,11 @@ export function FullGrid() {
   const activeProduct = openSlug ? (products.find((p) => p.slug === openSlug) ?? null) : null;
 
   const categories = useMemo(() => categoriesOf(products).sort(), [products]);
-  const filtered = useMemo(
-    () => (category === "todas" ? products : products.filter((p) => p.category === category)),
-    [products, category],
-  );
+  const filtered = useMemo(() => {
+    const base = category === "todas" ? products : products.filter((p) => p.category === category);
+    // Peças prontas para reserva vêm primeiro; as em conferência seguem visíveis.
+    return [...base].sort((a, b) => Number(b.compravel) - Number(a.compravel));
+  }, [products, category]);
 
   useEffect(() => setVisible(PAGE_SIZE), [category]);
 

@@ -14,3 +14,4 @@ export { useOrderFinance } from "./data/useOrderFinance";
 export { useRemoteNotifications } from "./data/useRemoteNotifications";
 export { useOpsRealtime } from "./data/useOpsRealtime";
 export { useKitComposition } from "./data/useKitComposition";
+export { usePriceRules } from "./data/usePriceRules";
