@@ -87,7 +87,10 @@ export function KitCompositionDialog({
                   {group && group.components.length > 0 ? (
                     <ul className="mt-2 divide-y divide-[color:var(--border)] border border-[color:var(--border)]">
                       {group.components.map((c) => (
-                        <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                        <li
+                          key={c.id}
+                          className="flex items-center justify-between gap-3 px-3 py-2"
+                        >
                           <span className="min-w-0 text-sm">
                             <span className="tabular-nums">{c.quantity}×</span> {c.componentName}
                             <span className="text-[color:var(--muted-foreground)]">
