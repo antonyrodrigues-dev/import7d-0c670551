@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   Archive,
   ArchiveRestore,
+  Boxes,
   Copy,
   MoreHorizontal,
   PackageSearch,
@@ -38,6 +39,7 @@ import { useInventory, usePermissions } from "@/features/admin/hooks";
 import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality";
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
+import { KitCompositionDialog } from "@/features/admin/components/KitCompositionDialog";
 import { SITUATION_LABEL } from "@/features/admin/lib/catalogLabels";
 import type { InventoryItem, CatalogQualityFilter } from "@/features/admin/types";
 import type { ProductWritePayload } from "@/features/admin/adapters/types";
@@ -98,6 +100,7 @@ function EstoquePage() {
     item: InventoryItem;
   } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
+  const [kitDialog, setKitDialog] = useState<InventoryItem | null>(null);
 
   const runConfirm = async () => {
     if (!confirm) return;
@@ -305,6 +308,7 @@ function EstoquePage() {
                       canDelete={isAdmin}
                       onEdit={() => setDrawer({ mode: "edit", item: i })}
                       onDuplicate={() => duplicate(i)}
+                      onKit={i.stockModel === "kit" ? () => setKitDialog(i) : undefined}
                       onArchive={() => setConfirm({ kind: "archive", item: i })}
                       onRestore={() => setConfirm({ kind: "restore", item: i })}
                       onDelete={() => setConfirm({ kind: "delete", item: i })}
@@ -326,6 +330,15 @@ function EstoquePage() {
             else await create(payload);
             setDrawer(null);
           }}
+        />
+      )}
+
+      {kitDialog && (
+        <KitCompositionDialog
+          kit={kitDialog}
+          items={items}
+          canEdit={canEdit}
+          onClose={() => setKitDialog(null)}
         />
       )}
 
@@ -373,6 +386,7 @@ function RowActions({
   canDelete,
   onEdit,
   onDuplicate,
+  onKit,
   onArchive,
   onRestore,
   onDelete,
@@ -382,6 +396,8 @@ function RowActions({
   canDelete: boolean;
   onEdit: () => void;
   onDuplicate: () => void;
+  /** Só existe quando o produto é um kit. */
+  onKit?: () => void;
   onArchive: () => void;
   onRestore: () => void;
   onDelete: () => void;
@@ -400,6 +416,11 @@ function RowActions({
         <DropdownMenuItem onClick={onDuplicate} disabled={!canEdit}>
           <Copy className="h-4 w-4 mr-2" /> Duplicar
         </DropdownMenuItem>
+        {onKit && (
+          <DropdownMenuItem onClick={onKit}>
+            <Boxes className="h-4 w-4 mr-2" /> Composição do kit
+          </DropdownMenuItem>
+        )}
         {item.active ? (
           <DropdownMenuItem onClick={onArchive} disabled={!canEdit}>
             <Archive className="h-4 w-4 mr-2" /> Arquivar

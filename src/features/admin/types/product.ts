@@ -33,6 +33,34 @@ export interface StockEntry {
 /** Tipos canônicos de movimentação de estoque. */
 export type MovementKind = "entrada" | "saida" | "ajuste" | "reposicao";
 
+/** Modelo de estoque do produto (fonte: `produtos.modelo_estoque`). */
+export type StockModel = "peca_unica" | "multi_variante" | "kit";
+
+/**
+ * Uma peça que compõe um kit, num tamanho específico do kit.
+ * Kit não possui saldo próprio: a disponibilidade nasce daqui.
+ */
+export interface KitComponent {
+  id: string;
+  kitId: string;
+  kitSize: string;
+  componentId: string;
+  componentSku: string;
+  componentName: string;
+  componentSize: string;
+  /** Quantidade da peça consumida por 1 unidade do kit. */
+  quantity: number;
+  /** Saldo disponível da peça (físico − reservado − quarentena). */
+  componentAvailable: number;
+}
+
+/** Disponibilidade derivada de um tamanho do kit. */
+export interface KitAvailability {
+  kitSize: string;
+  available: number;
+  components: KitComponent[];
+}
+
 /** Visão consolidada Produto × Variação × Estoque para a tabela de estoque. */
 export interface InventoryItem {
   id: string;
@@ -52,6 +80,8 @@ export interface InventoryItem {
   price: number;
   active: boolean;
   featured: boolean;
+  /** Como o saldo desse produto é controlado. Kits derivam das peças. */
+  stockModel: StockModel;
   criadoEm: IsoDateTime;
   atualizadoEm: IsoDateTime;
 }

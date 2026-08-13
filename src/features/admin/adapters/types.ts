@@ -6,7 +6,14 @@
  * fila em memória para testes). Trocar a origem só edita este diretório.
  */
 
-import type { AdminOrder, Employee, EmployeeRole, InventoryItem, OrderStatus } from "../types";
+import type {
+  AdminOrder,
+  Employee,
+  EmployeeRole,
+  InventoryItem,
+  KitAvailability,
+  OrderStatus,
+} from "../types";
 
 export interface AdminIdentity {
   userId: string | null;
@@ -34,6 +41,15 @@ export interface ProductWritePayload {
 }
 
 export type MovementKindDB = "entrada" | "saida" | "ajuste" | "reposicao" | "consumo_pedido";
+
+/** Uma linha de composição de kit gravada no banco. */
+export interface KitComponentWritePayload {
+  kitId: string;
+  kitSize: string;
+  componentId: string;
+  componentSize: string;
+  quantity: number;
+}
 
 export interface AdminDataSource {
   // Identidade / autorização
@@ -65,4 +81,10 @@ export interface AdminDataSource {
     kind: MovementKindDB,
     observacao?: string,
   ): Promise<void>;
+
+  // Kits — composição e disponibilidade derivada
+  /** Composição do kit agrupada por tamanho, já com o saldo real das peças. */
+  listKitComposition(kitId: string): Promise<KitAvailability[]>;
+  addKitComponent(p: KitComponentWritePayload): Promise<void>;
+  removeKitComponent(id: string): Promise<void>;
 }
