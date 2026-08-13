@@ -11,6 +11,7 @@ import { createAdminError, handleAdminError } from "../../lib/errors";
 import { logger } from "../../lib/logger";
 import type { OperationalParamKey, OperationalParams } from "../../types";
 import { DEFAULT_PARAMS, PARAM_LIMITS } from "../../types";
+import type { CheckoutBlock } from "../../types";
 
 export async function loadParams(): Promise<OperationalParams> {
   try {
@@ -18,6 +19,20 @@ export async function loadParams(): Promise<OperationalParams> {
   } catch (e) {
     handleAdminError(e, "params.loadParams");
     return { ...DEFAULT_PARAMS };
+  }
+}
+
+/**
+ * Tentativas de checkout recusadas pela proteção anti-abuso.
+ * A RLS libera a leitura apenas ao Admin Master; para os demais a lista
+ * simplesmente volta vazia, sem quebrar a tela.
+ */
+export async function loadCheckoutBlocks(limit = 50): Promise<CheckoutBlock[]> {
+  try {
+    return await opsDataSource.listCheckoutBlocks(limit);
+  } catch (e) {
+    handleAdminError(e, "params.loadCheckoutBlocks");
+    return [];
   }
 }
 
