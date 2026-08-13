@@ -10,6 +10,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type {
   FinancePeriod,
+  LedgerEntry,
   OperationalParams,
   PaymentEntry,
   PaymentInput,
@@ -62,6 +63,9 @@ export interface AdminOpsDataSource {
   // Pagamentos
   listPayments(pedidoId: string): Promise<PaymentEntry[]>;
   registerPayment(input: PaymentInput): Promise<void>;
+
+  // Ledger financeiro (imutável, restrito ao Admin Master pela RLS)
+  listLedger(pedidoId: string): Promise<LedgerEntry[]>;
 
   // Devoluções
   listReturns(pedidoId: string): Promise<ReturnRecord[]>;
@@ -249,6 +253,26 @@ export const opsDataSource: AdminOpsDataSource = {
       p_observacao: input.observacao ?? undefined,
     });
     if (error) throw error;
+  },
+
+  async listLedger(pedidoId) {
+    const { data, error } = await supabase
+      .from("financeiro_lancamentos")
+      .select("id,pedido_id,numero_pedido,tipo,origem,valor,metodo,competencia,criado_em")
+      .eq("pedido_id", pedidoId)
+      .order("criado_em", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      pedidoId: r.pedido_id,
+      numeroPedido: r.numero_pedido,
+      tipo: r.tipo as LedgerEntry["tipo"],
+      origem: r.origem as LedgerEntry["origem"],
+      valor: num(r.valor),
+      metodo: r.metodo,
+      competencia: r.competencia,
+      criadoEm: r.criado_em,
+    }));
   },
 
   async listReturns(pedidoId) {
