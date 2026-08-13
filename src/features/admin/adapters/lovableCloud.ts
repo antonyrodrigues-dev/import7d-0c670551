@@ -115,13 +115,7 @@ function parseAddress(raw: unknown): OrderAddress | undefined {
   const bairro = str("bairro");
   const cidade = str("cidade");
   const cep = str("cep");
-  const linha = [
-    [rua, numero].filter(Boolean).join(", "),
-    complemento,
-    bairro,
-    cidade,
-    cep,
-  ]
+  const linha = [[rua, numero].filter(Boolean).join(", "), complemento, bairro, cidade, cep]
     .filter(Boolean)
     .join(" · ");
   if (!linha) return undefined;

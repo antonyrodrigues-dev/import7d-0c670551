@@ -86,9 +86,10 @@ export function matchesTab(order: AdminOrder, tab: OrdersTabKey): boolean {
 export function countByTab(orders: AdminOrder[]): Record<OrdersTabKey, number> {
   const out = {} as Record<OrdersTabKey, number>;
   for (const tab of ORDERS_TABS) {
-    out[tab.key] = tab.statuses.length === 0
-      ? orders.length
-      : orders.filter((o) => tab.statuses.includes(o.status)).length;
+    out[tab.key] =
+      tab.statuses.length === 0
+        ? orders.length
+        : orders.filter((o) => tab.statuses.includes(o.status)).length;
   }
   return out;
 }
