@@ -92,13 +92,13 @@ function PedidosPage() {
     {
       key: "numero",
       header: "Nº do pedido",
-      width: "9%",
+      width: "8%",
       cell: (o) => <span className="font-display tabular-nums">{o.numero}</span>,
     },
     {
       key: "cliente",
       header: "Cliente",
-      width: "17%",
+      width: "16%",
       cell: (o) => (
         <span>
           {o.cliente.nome}
@@ -111,19 +111,19 @@ function PedidosPage() {
     {
       key: "canal",
       header: "Canal",
-      width: "8%",
+      width: "7%",
       cell: (o) => o.canal ?? deliveryLabel(o),
     },
     {
       key: "itens",
       header: "Itens",
-      width: "15%",
+      width: "14%",
       cell: (o) => itemsSummary(o),
     },
     {
       key: "valor",
       header: "Valor",
-      width: "10%",
+      width: "9%",
       align: "right",
       cell: (o) => <span className="tabular-nums">{formatBRL(netValue(o))}</span>,
     },
@@ -154,7 +154,7 @@ function PedidosPage() {
     {
       key: "tempo",
       header: "Criado",
-      width: "8%",
+      width: "7%",
       cell: (o) => (
         <span title={formatDateTimeSP(o.criadoEm)} className="text-[color:var(--muted-foreground)]">
           {relativeFrom(o.criadoEm)}
@@ -164,7 +164,7 @@ function PedidosPage() {
     {
       key: "acoes",
       header: "Ações",
-      width: "1%",
+      width: "6%",
       align: "right",
       noTruncate: true,
       cell: (o) => (

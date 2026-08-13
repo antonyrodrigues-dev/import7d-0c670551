@@ -283,13 +283,13 @@ function QueueSection({
     {
       key: "numero",
       header: "Nº do pedido",
-      width: "9%",
+      width: "8%",
       cell: (o) => <span className="font-display tabular-nums">{o.numero}</span>,
     },
     {
       key: "cliente",
       header: "Cliente",
-      width: "16%",
+      width: "15%",
       cell: (o) => (
         <span>
           {o.cliente}
@@ -302,13 +302,13 @@ function QueueSection({
     {
       key: "canal",
       header: "Modalidade",
-      width: "9%",
+      width: "8%",
       cell: (o) => (o.modalidade === "entrega" ? "Entrega" : "Retirada"),
     },
     {
       key: "itens",
       header: "Itens",
-      width: "18%",
+      width: "14%",
       cell: (o) => `${o.quantidadeItens} item(ns)`,
     },
     {
@@ -321,13 +321,13 @@ function QueueSection({
     {
       key: "responsavel",
       header: "Responsável",
-      width: "10%",
+      width: "9%",
       cell: (o) => o.responsavelNome ?? "—",
     },
     {
       key: "status",
       header: "Prioridade",
-      width: "13%",
+      width: "12%",
       noTruncate: true,
       cell: (o) => (
         <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
@@ -338,7 +338,7 @@ function QueueSection({
     {
       key: "espera",
       header: "Aguardando",
-      width: "9%",
+      width: "8%",
       cell: (o) => (
         <span className={o.prioridade === "atrasado" ? "font-semibold text-red-700" : ""}>
           {o.aguardandoMinutos} min
@@ -348,7 +348,7 @@ function QueueSection({
     {
       key: "acoes",
       header: "Ações",
-      width: "18%",
+      width: "17%",
       align: "right",
       noTruncate: true,
       cell: (o) => <div className="flex justify-end">{renderActions(o)}</div>,
