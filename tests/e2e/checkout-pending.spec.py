@@ -24,10 +24,10 @@ BASE_URL = "http://localhost:8080"
 SHOTS = Path(__file__).parent / "screenshots"
 SHOTS.mkdir(parents=True, exist_ok=True)
 
-SLUG = "polo-piquet-marfim"
-SIZE = "M"
-OFFICIAL_NAME = "Polo Piquet Marfim"
-OFFICIAL_PRICE = 690
+SLUG = "camiseta-ea7-mini-patch-preta"
+SIZE = "G"
+OFFICIAL_NAME = "Camiseta EA7 Mini Patch — Preta"
+OFFICIAL_PRICE = 105
 ORDER_ID = "11111111-2222-3333-4444-555555555555"
 ORDER_NUMERO = "7D-000123"
 
@@ -59,7 +59,7 @@ RESERVA_STATE = {
                 "price": 1,
                 "image": "",
                 "size": SIZE,
-                "quantity": 2,
+                "quantity": 1,
             }
         ],
         "open": False,
@@ -172,7 +172,7 @@ async def make_harness(
                     body=json.dumps({"message": "estoque insuficiente"}),
                 )
                 return
-            qty = len((payload.get("p_itens") or [])) and payload["p_itens"][0].get("quantity", 2)
+            qty = len((payload.get("p_itens") or [])) and payload["p_itens"][0].get("quantity", 1)
             await route.fulfill(
                 status=200,
                 content_type="application/json",
@@ -272,7 +272,7 @@ async def scenario_happy(browser) -> None:
     body = await page.get_by_test_id("pending-order-panel").inner_text()
     check(
         "payload manipulado não altera dados oficiais",
-        OFFICIAL_NAME in body and "HACK" not in body and "1.380" in body,
+        OFFICIAL_NAME in body and "HACK" not in body and "105,00" in body,
         body.replace("\n", " | ")[:160],
     )
     check("WhatsApp aberto com número oficial", ORDER_NUMERO in (await page.evaluate("() => (window.__opened[0]||'')")))

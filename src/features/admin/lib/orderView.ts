@@ -22,6 +22,7 @@ export type BadgeTone = "neutral" | "info" | "warn" | "success" | "danger";
 export type OrdersTabKey =
   | "todos"
   | "novo"
+  | "atendimento"
   | "pagamento_confirmado"
   | "em_separacao"
   | "a_caminho"
@@ -37,7 +38,12 @@ export interface OrdersTab {
 
 export const ORDERS_TABS: OrdersTab[] = [
   { key: "todos", label: "Todos", statuses: [] },
-  { key: "novo", label: "Novos", statuses: ["novo"] },
+  { key: "novo", label: "Novos", statuses: ["novo", "whatsapp_declarado"] },
+  {
+    key: "atendimento",
+    label: "Atendimento",
+    statuses: ["aguardando_atendimento", "em_atendimento", "aguardando_pagamento"],
+  },
   {
     key: "pagamento_confirmado",
     label: "Pagamento confirmado",
@@ -49,13 +55,17 @@ export const ORDERS_TABS: OrdersTab[] = [
     label: "Retirada e envio",
     statuses: ["aguardando_retirada", "enviado"],
   },
-  { key: "finalizado", label: "Finalizados", statuses: ["finalizado"] },
+  { key: "finalizado", label: "Finalizados", statuses: ["finalizado", "devolvido"] },
   { key: "cancelado", label: "Cancelados", statuses: ["cancelado"] },
 ];
 
 /** Pipeline em andamento — espelha a definição usada pelo Dashboard. */
 export const PENDING_STATUSES: OrderStatus[] = [
   "novo",
+  "whatsapp_declarado",
+  "aguardando_atendimento",
+  "em_atendimento",
+  "aguardando_pagamento",
   "pagamento_confirmado",
   "separado",
   "reservado",
@@ -76,9 +86,10 @@ export function matchesTab(order: AdminOrder, tab: OrdersTabKey): boolean {
 export function countByTab(orders: AdminOrder[]): Record<OrdersTabKey, number> {
   const out = {} as Record<OrdersTabKey, number>;
   for (const tab of ORDERS_TABS) {
-    out[tab.key] = tab.statuses.length === 0
-      ? orders.length
-      : orders.filter((o) => tab.statuses.includes(o.status)).length;
+    out[tab.key] =
+      tab.statuses.length === 0
+        ? orders.length
+        : orders.filter((o) => tab.statuses.includes(o.status)).length;
   }
   return out;
 }
@@ -91,6 +102,12 @@ export function statusLabel(status: OrderStatus | string): string {
 export function statusTone(status: OrderStatus | string): BadgeTone {
   switch (status) {
     case "novo":
+    case "whatsapp_declarado":
+      return "info";
+    case "aguardando_atendimento":
+    case "aguardando_pagamento":
+      return "warn";
+    case "em_atendimento":
       return "info";
     case "pagamento_confirmado":
       return "success";
@@ -103,6 +120,8 @@ export function statusTone(status: OrderStatus | string): BadgeTone {
     case "finalizado":
       return "success";
     case "cancelado":
+      return "danger";
+    case "devolvido":
       return "danger";
     default:
       return "neutral";

@@ -22,6 +22,10 @@ export const ADMIN_NAV: { key: AdminNavKey; label: string; path: string }[] = [
 
 export const ORDER_STATUSES: { key: OrderStatus; label: string }[] = [
   { key: "novo", label: "Novo" },
+  { key: "whatsapp_declarado", label: "WhatsApp enviado" },
+  { key: "aguardando_atendimento", label: "Aguardando atendimento" },
+  { key: "em_atendimento", label: "Em atendimento" },
+  { key: "aguardando_pagamento", label: "Aguardando pagamento" },
   { key: "pagamento_confirmado", label: "Pagamento confirmado" },
   { key: "separado", label: "Separado" },
   { key: "reservado", label: "Reservado" },
@@ -29,6 +33,7 @@ export const ORDER_STATUSES: { key: OrderStatus; label: string }[] = [
   { key: "enviado", label: "Enviado" },
   { key: "finalizado", label: "Finalizado" },
   { key: "cancelado", label: "Cancelado" },
+  { key: "devolvido", label: "Devolvido" },
 ];
 
 export const EMPLOYEE_ROLES: { key: EmployeeRole; label: string }[] = [

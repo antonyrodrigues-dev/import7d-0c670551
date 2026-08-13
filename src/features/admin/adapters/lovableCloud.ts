@@ -48,6 +48,10 @@ interface PedidoRow {
 
 const KNOWN_STATUSES: OrderStatus[] = [
   "novo",
+  "whatsapp_declarado",
+  "aguardando_atendimento",
+  "em_atendimento",
+  "aguardando_pagamento",
   "pagamento_confirmado",
   "separado",
   "reservado",
@@ -55,12 +59,16 @@ const KNOWN_STATUSES: OrderStatus[] = [
   "enviado",
   "finalizado",
   "cancelado",
+  "devolvido",
 ];
 
-/** Aliases legados que já existiram no banco antes da máquina de estados. */
+/**
+ * Aliases legados que já existiram no banco antes da máquina de estados.
+ * `em_atendimento` NÃO é alias — é status canônico do banco desde a Onda 0;
+ * mapeá-lo para "novo" escondia pedidos já assumidos por um atendente.
+ */
 const LEGACY_STATUS: Record<string, OrderStatus> = {
   pendente: "novo",
-  em_atendimento: "novo",
   pago: "pagamento_confirmado",
   confirmado: "finalizado",
 };
@@ -107,13 +115,7 @@ function parseAddress(raw: unknown): OrderAddress | undefined {
   const bairro = str("bairro");
   const cidade = str("cidade");
   const cep = str("cep");
-  const linha = [
-    [rua, numero].filter(Boolean).join(", "),
-    complemento,
-    bairro,
-    cidade,
-    cep,
-  ]
+  const linha = [[rua, numero].filter(Boolean).join(", "), complemento, bairro, cidade, cep]
     .filter(Boolean)
     .join(" · ");
   if (!linha) return undefined;

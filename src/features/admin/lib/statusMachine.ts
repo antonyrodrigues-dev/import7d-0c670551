@@ -7,15 +7,42 @@
 
 import type { OrderStatus } from "../types";
 
+/**
+ * Espelho EXATO da tabela `public.pedido_transicoes` (autoridade final).
+ * Qualquer divergência aqui é bug: o banco rejeita a transição de qualquer
+ * forma — esta cópia existe apenas para a UI não oferecer ação impossível.
+ */
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  novo: ["pagamento_confirmado", "separado", "reservado", "cancelado"],
+  novo: [
+    "whatsapp_declarado",
+    "aguardando_atendimento",
+    "em_atendimento",
+    "pagamento_confirmado",
+    "separado",
+    "reservado",
+    "cancelado",
+  ],
+  whatsapp_declarado: ["aguardando_atendimento", "em_atendimento", "cancelado"],
+  aguardando_atendimento: ["em_atendimento", "cancelado"],
+  em_atendimento: [
+    "aguardando_atendimento",
+    "aguardando_pagamento",
+    "pagamento_confirmado",
+    "separado",
+    "reservado",
+    "cancelado",
+  ],
+  aguardando_pagamento: ["pagamento_confirmado", "cancelado"],
   pagamento_confirmado: ["separado", "reservado", "cancelado"],
   separado: ["reservado", "aguardando_retirada", "enviado", "finalizado", "cancelado"],
   reservado: ["separado", "aguardando_retirada", "enviado", "finalizado", "cancelado"],
   aguardando_retirada: ["finalizado", "cancelado"],
   enviado: ["finalizado", "cancelado"],
+  // Finalizado só sai por devolução, e a devolução tem fluxo próprio no banco
+  // (`registrar_devolucao`) — `transicionar_pedido` recusa este destino.
   finalizado: [],
   cancelado: [],
+  devolvido: [],
 };
 
 export function canTransition(from: OrderStatus, to: OrderStatus): boolean {

@@ -3,13 +3,18 @@ import type { PaymentState } from "./ops";
 
 export type OrderStatus =
   | "novo"
+  | "whatsapp_declarado"
+  | "aguardando_atendimento"
+  | "em_atendimento"
+  | "aguardando_pagamento"
   | "pagamento_confirmado"
   | "separado"
   | "reservado"
   | "aguardando_retirada"
   | "enviado"
   | "finalizado"
-  | "cancelado";
+  | "cancelado"
+  | "devolvido";
 
 export type DeliveryMethod = "entrega" | "retirada";
 
