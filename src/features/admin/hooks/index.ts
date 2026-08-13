@@ -9,7 +9,7 @@ export { useAdminSettings } from "./data/useAdminSettings";
 export { useFinance } from "./data/useFinance";
 export { useQueue } from "./data/useQueue";
 export { useTeam } from "./data/useTeam";
-export { useOperationalParams } from "./data/useOperationalParams";
+export { useOperationalParams, useCheckoutBlocks } from "./data/useOperationalParams";
 export { useOrderFinance } from "./data/useOrderFinance";
 export { useRemoteNotifications } from "./data/useRemoteNotifications";
 export { useOpsRealtime } from "./data/useOpsRealtime";
