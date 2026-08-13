@@ -40,6 +40,7 @@ import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
 import { KitCompositionDialog } from "@/features/admin/components/KitCompositionDialog";
+import { PriceRuleDialog } from "@/features/admin/components/PriceRuleDialog";
 import { SITUATION_LABEL } from "@/features/admin/lib/catalogLabels";
 import type { InventoryItem, CatalogQualityFilter } from "@/features/admin/types";
 import type { ProductWritePayload } from "@/features/admin/adapters/types";
