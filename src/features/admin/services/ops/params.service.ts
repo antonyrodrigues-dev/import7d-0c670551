@@ -23,9 +23,9 @@ export async function loadParams(): Promise<OperationalParams> {
 
 export function validateParam(key: OperationalParamKey, value: number): string | null {
   const limit = PARAM_LIMITS[key];
-  if (!Number.isInteger(value)) return "Informe um número inteiro de minutos.";
+  if (!Number.isInteger(value)) return `Informe um número inteiro de ${limit.unidade}.`;
   if (value < limit.min || value > limit.max)
-    return `${limit.label} deve ficar entre ${limit.min} e ${limit.max} minutos.`;
+    return `${limit.label} deve ficar entre ${limit.min} e ${limit.max} ${limit.unidade}.`;
   return null;
 }
 
