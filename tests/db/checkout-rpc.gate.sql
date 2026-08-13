@@ -151,6 +151,11 @@ DECLARE
   v_pag jsonb := jsonb_build_object('metodo','pix');
   v_admin uuid;
   st text; v_key text; r record;
+  -- Uma peça única por cenário: o catálogo real tem saldo 1 por variação.
+  v_slugs text[] := ARRAY['camiseta-prada-triangulo-cinza-claro',
+                          'camiseta-boss-mini-patch-preta',
+                          'camiseta-boss-minimal-vermelha'];
+  i int := 0;
 BEGIN
   SELECT user_id INTO v_admin FROM public.user_roles WHERE role = 'admin' LIMIT 1;
   IF v_admin IS NULL THEN
@@ -159,9 +164,10 @@ BEGIN
   END IF;
 
   FOREACH st IN ARRAY ARRAY['separado','reservado','enviado'] LOOP
+    i := i + 1;
     v_key := 'gate-' || replace(gen_random_uuid()::text,'-','');
     SELECT * INTO r FROM public.criar_pedido(
-      jsonb_build_array(jsonb_build_object('slug','camiseta-prada-triangulo-cinza-claro','size','G','quantity',1)),
+      jsonb_build_array(jsonb_build_object('slug', v_slugs[i], 'size','G','quantity',1)),
       v_cli, v_ent, v_pag, NULL, 'whatsapp', v_key);
 
     PERFORM set_config('request.jwt.claims',
