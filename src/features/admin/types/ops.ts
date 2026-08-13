@@ -268,6 +268,28 @@ export interface RemoteNotification {
 
 // ───────────────────────────────── Reservas ────────────────────────────────
 
+/** Tentativa de checkout recusada pela proteção anti-abuso (append-only no banco). */
+export type CheckoutBlockReason =
+  | "cooldown"
+  | "limite_hora"
+  | "pedidos_abertos"
+  | "reservas_ativas";
+
+export interface CheckoutBlock {
+  id: string;
+  telefoneMascarado: string;
+  motivo: CheckoutBlockReason | string;
+  detalhe: Record<string, unknown>;
+  criadoEm: IsoDateTime;
+}
+
+export const CHECKOUT_BLOCK_LABELS: Record<CheckoutBlockReason, string> = {
+  cooldown: "Intervalo entre pedidos",
+  limite_hora: "Limite de pedidos por hora",
+  pedidos_abertos: "Pedidos em aberto",
+  reservas_ativas: "Peças reservadas",
+};
+
 export interface ReservationRow {
   id: string;
   pedidoId: string;
