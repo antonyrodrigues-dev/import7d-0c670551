@@ -351,6 +351,15 @@ function EstoquePage() {
         />
       )}
 
+      {isAdmin && priceRuleOpen && (
+        <PriceRuleDialog
+          open={priceRuleOpen}
+          categories={categories}
+          onClose={() => setPriceRuleOpen(false)}
+          onApplied={() => void refresh()}
+        />
+      )}
+
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
