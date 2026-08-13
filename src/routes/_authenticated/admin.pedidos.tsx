@@ -92,7 +92,7 @@ function PedidosPage() {
     {
       key: "numero",
       header: "Nº do pedido",
-      width: "7%",
+      width: "6%",
       cell: (o) => <span className="font-display tabular-nums">{o.numero}</span>,
     },
     {
@@ -164,7 +164,7 @@ function PedidosPage() {
     {
       key: "acoes",
       header: "Ações",
-      width: "8%",
+      width: "9%",
       align: "right",
       noTruncate: true,
       cell: (o) => (
