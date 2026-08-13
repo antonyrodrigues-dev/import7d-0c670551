@@ -930,6 +930,10 @@ export type Database = {
         Returns: undefined
       }
       expirar_reservas: { Args: never; Returns: number }
+      expirar_reservas_variacao: {
+        Args: { p_produto_id: string; p_tamanho: string }
+        Returns: number
+      }
       gerar_numero_pedido: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -961,6 +965,10 @@ export type Database = {
       pedido_snapshot: {
         Args: { p_pedido: Database["public"]["Tables"]["pedidos"]["Row"] }
         Returns: Json
+      }
+      produto_publicavel: {
+        Args: { p: Database["public"]["Tables"]["produtos"]["Row"] }
+        Returns: boolean
       }
       registrar_devolucao: {
         Args: {
@@ -1072,6 +1080,10 @@ export type Database = {
         }
       }
       validar_checkout_key: { Args: { p_key: string }; Returns: undefined }
+      variacao_publicavel: {
+        Args: { v: Database["public"]["Tables"]["produto_variacoes"]["Row"] }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "atendente"
