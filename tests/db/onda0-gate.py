@@ -17,7 +17,9 @@ import uuid
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 DB_URL = os.environ["SUPABASE_DB_URL"]
-SQL = os.path.join(os.path.dirname(__file__), "onda0.gate.sql")
+SQL = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    os.path.dirname(__file__), "onda0.gate.sql"
+)
 
 ROLES = ["adminid", "vendedorid", "vendedor2id", "inativoid", "semcargoid"]
 
