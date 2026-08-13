@@ -55,8 +55,9 @@ BEGIN
     INTO v_admin, v_vend;
 
   -- Sem cooldown/limites de anti-abuso interferindo nos cenários de kit.
-  UPDATE public.parametros_operacionais SET valor = to_jsonb(0)
-   WHERE chave = 'checkout_cooldown_segundos';
+  PERFORM pg_temp.as_user(v_admin);
+  PERFORM public.definir_parametro('checkout_cooldown_segundos', to_jsonb(0));
+  PERFORM pg_temp.anon_();
 
   v_a      := pg_temp.novo_produto('gate-d-comp-a','multi_variante','M',5);
   v_b      := pg_temp.novo_produto('gate-d-comp-b','multi_variante','M',4);
