@@ -28,8 +28,13 @@ def req(method: str, path: str, payload=None, token: str = SERVICE, prefer: str 
     r = urllib.request.Request(f"{URL}{path}", method=method,
                                data=json.dumps(payload).encode() if payload is not None else None,
                                headers=headers)
-    with urllib.request.urlopen(r, timeout=40) as resp:
-        body = resp.read().decode()
+    try:
+        with urllib.request.urlopen(r, timeout=40) as resp:
+            body = resp.read().decode()
+    except urllib.error.HTTPError as exc:
+        exc.detail = exc.read().decode()
+        exc.msg = f"{exc.msg} — {method} {path} — {exc.detail[:300]}"
+        raise
     return json.loads(body) if body else None
 
 
@@ -50,7 +55,7 @@ def expect_error(name: str, fn) -> None:
         fn()
         check(name, False, "não lançou erro")
     except urllib.error.HTTPError as exc:
-        check(name, True, exc.read().decode()[:160])
+        check(name, True, getattr(exc, 'detail', str(exc))[:160])
 
 
 def create_user(tag: str, role: str | None) -> tuple[str, str]:
