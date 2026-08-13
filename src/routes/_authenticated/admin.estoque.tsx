@@ -87,9 +87,10 @@ function EstoquePage() {
     archive,
     restore,
     remove,
+    refresh,
   } = useInventory();
   const { can, isAdmin } = usePermissions();
-  const { items: diagnostics, summary } = useCatalogQuality();
+  const { items: diagnostics, summary, refresh: refreshQuality } = useCatalogQuality();
   const [qualityFilter, setQualityFilter] = useState<CatalogQualityFilter>("todos");
   const diagBySku = useMemo(() => new Map(diagnostics.map((d) => [d.sku, d])), [diagnostics]);
 
@@ -356,7 +357,10 @@ function EstoquePage() {
           open={priceRuleOpen}
           categories={categories}
           onClose={() => setPriceRuleOpen(false)}
-          onApplied={() => void refresh()}
+          onApplied={() => {
+            void refresh();
+            void refreshQuality();
+          }}
         />
       )}
 
