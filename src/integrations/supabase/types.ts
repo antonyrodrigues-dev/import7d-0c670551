@@ -556,6 +556,54 @@ export type Database = {
         }
         Relationships: []
       }
+      produto_kit_itens: {
+        Row: {
+          atualizado_em: string
+          componente_id: string
+          componente_tamanho: string
+          criado_em: string
+          id: string
+          kit_id: string
+          kit_tamanho: string
+          quantidade: number
+        }
+        Insert: {
+          atualizado_em?: string
+          componente_id: string
+          componente_tamanho: string
+          criado_em?: string
+          id?: string
+          kit_id: string
+          kit_tamanho: string
+          quantidade?: number
+        }
+        Update: {
+          atualizado_em?: string
+          componente_id?: string
+          componente_tamanho?: string
+          criado_em?: string
+          id?: string
+          kit_id?: string
+          kit_tamanho?: string
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_kit_itens_componente_id_fkey"
+            columns: ["componente_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_kit_itens_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produto_movimentacoes: {
         Row: {
           criado_em: string
@@ -1129,6 +1177,14 @@ export type Database = {
         Args: { p_produto_id: string; p_tamanho: string }
         Returns: number
       }
+      explodir_item_pedido: {
+        Args: { p_qty: number; p_size: string; p_slug: string }
+        Returns: {
+          produto_id: string
+          quantidade: number
+          tamanho: string
+        }[]
+      }
       gerar_numero_pedido: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -1138,6 +1194,10 @@ export type Database = {
         Returns: boolean
       }
       job_expirar_reservas: { Args: never; Returns: number }
+      kit_disponivel: {
+        Args: { p_kit_id: string; p_tamanho: string }
+        Returns: number
+      }
       lancar_financeiro: {
         Args: {
           p_detalhe?: Json

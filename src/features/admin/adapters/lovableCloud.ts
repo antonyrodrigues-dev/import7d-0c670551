@@ -7,12 +7,20 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "../lib/logger";
-import type { AdminIdentity, AdminDataSource, ProductWritePayload, MovementKindDB } from "./types";
+import type {
+  AdminIdentity,
+  AdminDataSource,
+  KitComponentWritePayload,
+  ProductWritePayload,
+  MovementKindDB,
+} from "./types";
 import type {
   AdminOrder,
   Employee,
   EmployeeRole,
   InventoryItem,
+  KitAvailability,
+  KitComponent,
   OrderAddress,
   OrderItem,
   OrderPayment,
@@ -322,7 +330,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { data, error } = await supabase
       .from("produtos")
       .select(
-        "id, sku, slug, nome, marca, categoria, colecao, cor, descricao, imagens, preco, ativo, destaque, arquivado_em, criado_em, atualizado_em, produto_variacoes ( tamanho, quantidade )",
+        "id, sku, slug, nome, marca, categoria, colecao, cor, descricao, imagens, preco, ativo, destaque, modelo_estoque, arquivado_em, criado_em, atualizado_em, produto_variacoes ( tamanho, quantidade )",
       )
       .order("criado_em", { ascending: false });
     if (error) throw error;
@@ -388,7 +396,87 @@ export const lovableCloudDataSource: AdminDataSource = {
     });
     if (error) throw error;
   },
+
+  async listKitComposition(kitId: string): Promise<KitAvailability[]> {
+    // Composição + saldo real das peças numa consulta só (sem N+1).
+    const { data, error } = await supabase
+      .from("produto_kit_itens")
+      .select(
+        "id, kit_id, kit_tamanho, componente_id, componente_tamanho, quantidade, produtos!produto_kit_itens_componente_id_fkey ( sku, nome )",
+      )
+      .eq("kit_id", kitId)
+      .order("kit_tamanho", { ascending: true });
+    if (error) throw error;
+
+    const rows = (data ?? []) as unknown as KitItemRow[];
+    const componentIds = [...new Set(rows.map((r) => r.componente_id))];
+    const disponivel = new Map<string, number>();
+    if (componentIds.length > 0) {
+      const { data: vars, error: varsError } = await supabase
+        .from("produto_variacoes")
+        .select("produto_id, tamanho, disponivel")
+        .in("produto_id", componentIds);
+      if (varsError) throw varsError;
+      for (const v of vars ?? []) {
+        disponivel.set(`${v.produto_id}||${v.tamanho}`, Math.max(0, v.disponivel ?? 0));
+      }
+    }
+
+    const bySize = new Map<string, KitComponent[]>();
+    for (const r of rows) {
+      const component: KitComponent = {
+        id: r.id,
+        kitId: r.kit_id,
+        kitSize: r.kit_tamanho,
+        componentId: r.componente_id,
+        componentSku: r.produtos?.sku ?? "—",
+        componentName: r.produtos?.nome ?? "Peça removida",
+        componentSize: r.componente_tamanho,
+        quantity: r.quantidade,
+        componentAvailable: disponivel.get(`${r.componente_id}||${r.componente_tamanho}`) ?? 0,
+      };
+      const list = bySize.get(r.kit_tamanho) ?? [];
+      list.push(component);
+      bySize.set(r.kit_tamanho, list);
+    }
+
+    return [...bySize.entries()].map(([kitSize, components]) => ({
+      kitSize,
+      // Mesma regra do banco (`kit_disponivel`): o kit vale o elo mais fraco.
+      available: components.reduce(
+        (min, c) => Math.min(min, Math.floor(c.componentAvailable / c.quantity)),
+        Number.POSITIVE_INFINITY,
+      ),
+      components,
+    }));
+  },
+
+  async addKitComponent(p: KitComponentWritePayload): Promise<void> {
+    const { error } = await supabase.from("produto_kit_itens").insert({
+      kit_id: p.kitId,
+      kit_tamanho: p.kitSize,
+      componente_id: p.componentId,
+      componente_tamanho: p.componentSize,
+      quantidade: p.quantity,
+    });
+    if (error) throw error;
+  },
+
+  async removeKitComponent(id: string): Promise<void> {
+    const { error } = await supabase.from("produto_kit_itens").delete().eq("id", id);
+    if (error) throw error;
+  },
 };
+
+interface KitItemRow {
+  id: string;
+  kit_id: string;
+  kit_tamanho: string;
+  componente_id: string;
+  componente_tamanho: string;
+  quantidade: number;
+  produtos: { sku: string; nome: string } | null;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers de mapeamento produto DB ⇄ domínio.
@@ -411,6 +499,7 @@ interface ProductRow {
   arquivado_em: string | null;
   criado_em: string;
   atualizado_em: string;
+  modelo_estoque?: string | null;
   produto_variacoes: { tamanho: string; quantidade: number }[] | null;
 }
 
@@ -444,6 +533,10 @@ function mapProductRow(row: ProductRow): InventoryItem {
     price: Number(row.preco) || 0,
     active: row.ativo && !row.arquivado_em,
     featured: row.destaque,
+    stockModel:
+      row.modelo_estoque === "kit" || row.modelo_estoque === "multi_variante"
+        ? row.modelo_estoque
+        : "peca_unica",
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
   };
