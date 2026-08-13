@@ -90,10 +90,7 @@ function EstoquePage() {
   const { can, isAdmin } = usePermissions();
   const { items: diagnostics, summary } = useCatalogQuality();
   const [qualityFilter, setQualityFilter] = useState<CatalogQualityFilter>("todos");
-  const diagBySku = useMemo(
-    () => new Map(diagnostics.map((d) => [d.sku, d])),
-    [diagnostics],
-  );
+  const diagBySku = useMemo(() => new Map(diagnostics.map((d) => [d.sku, d])), [diagnostics]);
 
   const [drawer, setDrawer] = useState<
     { mode: "create" } | { mode: "edit"; item: InventoryItem } | null

@@ -7,11 +7,7 @@
  */
 import { catalogQualityAdapter } from "../adapters/catalogQuality";
 import { handleAdminError } from "../lib/errors";
-import type {
-  CatalogDiagnostic,
-  CatalogQualityFilter,
-  CatalogQualitySummary,
-} from "../types";
+import type { CatalogDiagnostic, CatalogQualityFilter, CatalogQualitySummary } from "../types";
 
 export function listCatalogDiagnostics(): Promise<CatalogDiagnostic[]> {
   return catalogQualityAdapter.listDiagnostics().catch((e) => {
@@ -44,7 +40,9 @@ export function matchesQualityFilter(d: CatalogDiagnostic, f: CatalogQualityFilt
     case "semQuantidadeConferida":
       return !d.archived && d.missingFields.includes("quantidade");
     case "vendidos":
-      return !d.archived && d.quantity > 0 && d.available === 0 && d.reserved === 0 && d.quarantine === 0;
+      return (
+        !d.archived && d.quantity > 0 && d.available === 0 && d.reserved === 0 && d.quarantine === 0
+      );
     case "reservados":
       return d.reserved > 0;
     case "quarentena":

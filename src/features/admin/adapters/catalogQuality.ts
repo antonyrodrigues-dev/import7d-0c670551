@@ -46,9 +46,7 @@ export const catalogQualityAdapter = {
       quantityChecked: r.quantidade_conferida,
       cover: r.foto_principal,
       photos: r.fotos ?? 0,
-      sizes: Array.isArray(r.tamanhos)
-        ? (r.tamanhos as unknown as CatalogDiagnostic["sizes"])
-        : [],
+      sizes: Array.isArray(r.tamanhos) ? (r.tamanhos as unknown as CatalogDiagnostic["sizes"]) : [],
       quantity: r.quantidade ?? 0,
       reserved: r.reservada ?? 0,
       quarantine: r.quarentena ?? 0,

@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  getCatalogSummary,
-  listCatalogDiagnostics,
-} from "../../services/catalogQuality.service";
+import { getCatalogSummary, listCatalogDiagnostics } from "../../services/catalogQuality.service";
 import type { CatalogDiagnostic, CatalogQualitySummary } from "../../types";
 import type { AdminAsyncState } from "../../types";
 
