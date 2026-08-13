@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Eye } from "lucide-react";
 import { formatBRL } from "@/features/catalog";
-import { PageHeader, EmptyState, ErrorState, Skeleton } from "@/features/admin/components/PageHeader";
+import {
+  PageHeader,
+  EmptyState,
+  ErrorState,
+  Skeleton,
+} from "@/features/admin/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { ResponsiveDataTable, type DataTableColumn } from "@/features/admin/components/DataTable";
 import { StatusBadge } from "@/features/admin/components/StatusBadge";
@@ -126,7 +131,11 @@ function PedidosPage() {
       key: "pagamento",
       header: "Pagamento",
       width: "11%",
-      cell: (o) => <StatusBadge tone={paymentTone(o.pagamentoEstado)}>{paymentLabel(o.pagamentoEstado)}</StatusBadge>,
+      cell: (o) => (
+        <StatusBadge tone={paymentTone(o.pagamentoEstado)}>
+          {paymentLabel(o.pagamentoEstado)}
+        </StatusBadge>
+      ),
     },
     {
       key: "responsavel",
@@ -286,7 +295,9 @@ function OrderCard({ order: o, onOpen }: { order: AdminOrder; onOpen: () => void
       <p className="mt-2 text-[11px] text-[color:var(--muted-foreground)]">{itemsSummary(o)}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <StatusBadge tone={statusTone(o.status)}>{statusLabel(o.status)}</StatusBadge>
-        <StatusBadge tone={paymentTone(o.pagamentoEstado)}>{paymentLabel(o.pagamentoEstado)}</StatusBadge>
+        <StatusBadge tone={paymentTone(o.pagamentoEstado)}>
+          {paymentLabel(o.pagamentoEstado)}
+        </StatusBadge>
       </div>
       <p className="mt-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
         {relativeFrom(o.criadoEm)}

@@ -1,8 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertTriangle, Clock, Inbox, MessageCircle, RefreshCw, TimerOff, UserCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  Clock,
+  Inbox,
+  MessageCircle,
+  RefreshCw,
+  TimerOff,
+  UserCheck,
+} from "lucide-react";
 import { PageHeader } from "@/features/admin/components/PageHeader";
-import { ConfirmDialog, EmptyState, ErrorState, LoadingState } from "@/features/admin/components/AdminUI";
+import {
+  ConfirmDialog,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/features/admin/components/AdminUI";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/features/catalog";
@@ -32,8 +45,17 @@ function AtendimentosPage() {
 }
 
 function FilaView() {
-  const { state, fila, emAtendimento, params, atualizadoEm, refresh, assumir, transferir, devolverParaFila } =
-    useQueue();
+  const {
+    state,
+    fila,
+    emAtendimento,
+    params,
+    atualizadoEm,
+    refresh,
+    assumir,
+    transferir,
+    devolverParaFila,
+  } = useQueue();
   const { isAdmin, userId } = usePermissions();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [transferTarget, setTransferTarget] = useState<QueueOrder | null>(null);
@@ -74,7 +96,12 @@ function FilaView() {
         title="Atendimentos"
         description="Fila oficial de pedidos aguardando e em atendimento, sincronizada em tempo real."
         actions={
-          <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={state === "loading"}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void refresh()}
+            disabled={state === "loading"}
+          >
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Atualizar
           </Button>
@@ -82,14 +109,19 @@ function FilaView() {
       />
 
       <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-        Alerta em {params.alertaAtendimentoMinutos} min · Atrasado em {params.atendimentoAtrasadoMinutos} min · Reserva
-        de {params.reservaMinutos} min
-        {atualizadoEm ? ` · Atualizado às ${new Date(atualizadoEm).toLocaleTimeString("pt-BR")}` : ""}
+        Alerta em {params.alertaAtendimentoMinutos} min · Atrasado em{" "}
+        {params.atendimentoAtrasadoMinutos} min · Reserva de {params.reservaMinutos} min
+        {atualizadoEm
+          ? ` · Atualizado às ${new Date(atualizadoEm).toLocaleTimeString("pt-BR")}`
+          : ""}
         {state === "saving" ? " · Atualizando…" : ""}
       </p>
 
       {state === "error" && (
-        <ErrorState message="Não foi possível carregar a fila de atendimento." onRetry={() => void refresh()} />
+        <ErrorState
+          message="Não foi possível carregar a fila de atendimento."
+          onRetry={() => void refresh()}
+        />
       )}
 
       {state === "loading" && fila.length + emAtendimento.length === 0 && (
@@ -110,7 +142,11 @@ function FilaView() {
         emptyLabel="Nenhum pedido aguardando."
         renderActions={(o) => (
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" disabled={busyId === o.id || state === "saving"} onClick={() => void handleAssumir(o)}>
+            <Button
+              size="sm"
+              disabled={busyId === o.id || state === "saving"}
+              onClick={() => void handleAssumir(o)}
+            >
               <UserCheck className="mr-2 h-4 w-4" aria-hidden="true" />
               {busyId === o.id ? "Assumindo…" : "Assumir atendimento"}
             </Button>
@@ -257,7 +293,9 @@ function QueueSection({
       cell: (o) => (
         <span>
           {o.cliente}
-          <span className="block text-[10px] text-[color:var(--muted-foreground)]">{o.telefone}</span>
+          <span className="block text-[10px] text-[color:var(--muted-foreground)]">
+            {o.telefone}
+          </span>
         </span>
       ),
     },
@@ -343,12 +381,16 @@ function QueueSection({
 function QueueCard({ order: o, actions }: { order: QueueOrder; actions: React.ReactNode }) {
   const reservaExpirada = o.reservaMinutosRestantes !== null && o.reservaMinutosRestantes <= 0;
   const reservaProxima =
-    o.reservaMinutosRestantes !== null && o.reservaMinutosRestantes > 0 && o.reservaMinutosRestantes <= 5;
+    o.reservaMinutosRestantes !== null &&
+    o.reservaMinutosRestantes > 0 &&
+    o.reservaMinutosRestantes <= 5;
   return (
     <div className="border border-[color:var(--border)] bg-[color:var(--cream)] p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display text-xl tabular-nums text-[color:var(--forest-deep)]">{o.numero}</p>
+          <p className="font-display text-xl tabular-nums text-[color:var(--forest-deep)]">
+            {o.numero}
+          </p>
           <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
             {o.cliente} · {o.telefone} · {o.modalidade === "entrega" ? "Entrega" : "Retirada"}
           </p>
@@ -366,15 +408,22 @@ function QueueCard({ order: o, actions }: { order: QueueOrder; actions: React.Re
         <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
           Prioridade {o.prioridade}
         </StatusBadge>
-        <StatusBadge tone={o.whatsappDeclarado ? "success" : "neutral"} icon={<MessageCircle className="h-3 w-3" />}>
+        <StatusBadge
+          tone={o.whatsappDeclarado ? "success" : "neutral"}
+          icon={<MessageCircle className="h-3 w-3" />}
+        >
           {o.whatsappDeclarado ? "WhatsApp declarado" : "Sem declaração do cliente"}
         </StatusBadge>
         {o.reservaMinutosRestantes !== null && (
           <StatusBadge
             tone={reservaExpirada ? "danger" : reservaProxima ? "warn" : "success"}
-            icon={reservaExpirada ? <TimerOff className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+            icon={
+              reservaExpirada ? <TimerOff className="h-3 w-3" /> : <Clock className="h-3 w-3" />
+            }
           >
-            {reservaExpirada ? "Reserva expirada — estoque não garantido" : `Reserva expira em ${o.reservaMinutosRestantes} min`}
+            {reservaExpirada
+              ? "Reserva expirada — estoque não garantido"
+              : `Reserva expira em ${o.reservaMinutosRestantes} min`}
           </StatusBadge>
         )}
         {o.prioridade === "atrasado" && (
@@ -424,7 +473,9 @@ function TransferDialog({
       }}
     >
       <div className="w-full max-w-md border border-[color:var(--border)] bg-[color:var(--cream)] p-5">
-        <h2 className="font-display text-2xl text-[color:var(--forest-deep)]">Transferir atendimento</h2>
+        <h2 className="font-display text-2xl text-[color:var(--forest-deep)]">
+          Transferir atendimento
+        </h2>
         <p className="mt-1 text-sm text-[color:var(--muted-foreground)]">
           Pedido {order.numero} — responsável atual: {order.responsavelNome ?? "—"}
         </p>
@@ -446,7 +497,9 @@ function TransferDialog({
           ))}
         </select>
         {state === "loading" && (
-          <p className="mt-2 text-[11px] text-[color:var(--muted-foreground)]">Carregando equipe…</p>
+          <p className="mt-2 text-[11px] text-[color:var(--muted-foreground)]">
+            Carregando equipe…
+          </p>
         )}
         <label className="mt-4 block text-[10px] tracking-luxe uppercase" htmlFor="transfer-obs">
           Observação (opcional)

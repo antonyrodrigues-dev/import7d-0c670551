@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  applyPriceRule,
-  listPriceRules,
-  previewPriceRule,
-} from "../../services/pricing.service";
+import { applyPriceRule, listPriceRules, previewPriceRule } from "../../services/pricing.service";
 import type { AdminAsyncState, PriceRule, PriceRuleInput, PriceRulePreview } from "../../types";
 
 /** Ciclo de vida das regras de preço por categoria (Admin Master). */

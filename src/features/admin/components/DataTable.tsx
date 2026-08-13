@@ -45,7 +45,11 @@ export function ResponsiveDataTable<T>({
                   key={c.key}
                   style={c.width ? { width: c.width } : undefined}
                   className={`px-3 py-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] ${
-                    c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : "text-left"
+                    c.align === "right"
+                      ? "text-right"
+                      : c.align === "center"
+                        ? "text-center"
+                        : "text-left"
                   }`}
                 >
                   {c.header}
@@ -66,7 +70,11 @@ export function ResponsiveDataTable<T>({
                   <td
                     key={c.key}
                     className={`min-w-0 truncate px-3 py-3 align-middle text-[color:var(--forest-deep)] ${
-                      c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : "text-left"
+                      c.align === "right"
+                        ? "text-right"
+                        : c.align === "center"
+                          ? "text-center"
+                          : "text-left"
                     }`}
                   >
                     {c.cell(row)}
