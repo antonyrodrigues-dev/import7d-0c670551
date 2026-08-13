@@ -114,8 +114,7 @@ function LedgerTab({
     <div className="mt-3 flex flex-col gap-2">
       <p className="text-[11px] text-[color:var(--muted-foreground)]">
         Livro-razão imutável — receitas nascem da confirmação de pagamento; estornos, de devolução
-        ou estorno. Saldo líquido:{" "}
-        <strong className="tabular-nums">{formatBRL(saldo)}</strong>
+        ou estorno. Saldo líquido: <strong className="tabular-nums">{formatBRL(saldo)}</strong>
       </p>
       {entries.length === 0 ? (
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
