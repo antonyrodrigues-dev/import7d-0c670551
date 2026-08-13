@@ -308,6 +308,7 @@ function EstoquePage() {
                       canDelete={isAdmin}
                       onEdit={() => setDrawer({ mode: "edit", item: i })}
                       onDuplicate={() => duplicate(i)}
+                      onKit={i.stockModel === "kit" ? () => setKitDialog(i) : undefined}
                       onArchive={() => setConfirm({ kind: "archive", item: i })}
                       onRestore={() => setConfirm({ kind: "restore", item: i })}
                       onDelete={() => setConfirm({ kind: "delete", item: i })}
@@ -329,6 +330,15 @@ function EstoquePage() {
             else await create(payload);
             setDrawer(null);
           }}
+        />
+      )}
+
+      {kitDialog && (
+        <KitCompositionDialog
+          kit={kitDialog}
+          items={items}
+          canEdit={canEdit}
+          onClose={() => setKitDialog(null)}
         />
       )}
 
