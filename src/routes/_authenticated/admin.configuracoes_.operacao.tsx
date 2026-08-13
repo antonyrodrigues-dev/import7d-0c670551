@@ -5,9 +5,9 @@ import { PageHeader } from "@/features/admin/components/PageHeader";
 import { LoadingState } from "@/features/admin/components/AdminUI";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { Button } from "@/components/ui/button";
-import { useOperationalParams } from "@/features/admin/hooks";
-import { PARAM_LIMITS } from "@/features/admin/types";
-import type { OperationalParamKey } from "@/features/admin/types";
+import { useCheckoutBlocks, useOperationalParams } from "@/features/admin/hooks";
+import { CHECKOUT_BLOCK_LABELS, PARAM_LIMITS } from "@/features/admin/types";
+import type { CheckoutBlockReason, OperationalParamKey } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes_/operacao")({
   head: () => ({
@@ -112,6 +112,53 @@ function OperacaoView() {
           );
         })}
       </div>
+
+      <CheckoutBlocksPanel />
     </>
+  );
+}
+
+const dateFmt = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "short",
+  timeStyle: "short",
+  timeZone: "America/Sao_Paulo",
+});
+
+/** Registro imutável das tentativas de checkout recusadas pela proteção anti-abuso. */
+function CheckoutBlocksPanel() {
+  const { blocks, loading } = useCheckoutBlocks();
+
+  return (
+    <section className="mt-8 border border-[color:var(--border)] bg-[color:var(--cream)] p-4">
+      <h2 className="text-[10px] tracking-luxe uppercase">Tentativas bloqueadas no checkout</h2>
+      <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
+        Registro imutável das últimas recusas da proteção anti-abuso. O telefone aparece
+        mascarado.
+      </p>
+
+      {loading ? (
+        <p className="mt-4 text-sm text-[color:var(--muted-foreground)]">Carregando registro…</p>
+      ) : blocks && blocks.length > 0 ? (
+        <ul className="mt-4 divide-y divide-[color:var(--border)]">
+          {blocks.map((b) => (
+            <li key={b.id} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
+              <span className="text-sm">
+                <span className="font-medium tabular-nums">{b.telefoneMascarado}</span>{" "}
+                <span className="text-[color:var(--muted-foreground)]">
+                  — {CHECKOUT_BLOCK_LABELS[b.motivo as CheckoutBlockReason] ?? b.motivo}
+                </span>
+              </span>
+              <span className="text-[11px] tabular-nums text-[color:var(--muted-foreground)]">
+                {dateFmt.format(new Date(b.criadoEm))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-sm text-[color:var(--muted-foreground)]">
+          Nenhuma tentativa bloqueada até agora.
+        </p>
+      )}
+    </section>
   );
 }
