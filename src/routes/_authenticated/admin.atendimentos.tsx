@@ -328,6 +328,7 @@ function QueueSection({
       key: "status",
       header: "Prioridade",
       width: "13%",
+      noTruncate: true,
       cell: (o) => (
         <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
           {o.prioridade}
@@ -349,6 +350,7 @@ function QueueSection({
       header: "Ações",
       width: "18%",
       align: "right",
+      noTruncate: true,
       cell: (o) => <div className="flex justify-end">{renderActions(o)}</div>,
     },
   ];
