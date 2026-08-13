@@ -824,6 +824,75 @@ export type Database = {
         }
         Relationships: []
       }
+      regras_preco_aplicacoes: {
+        Row: {
+          afetados: number
+          categoria: string
+          criado_em: string
+          detalhe: Json
+          id: string
+          incluiu_confirmados: boolean
+          parcelamento: string | null
+          por_usuario: string | null
+          preco: number
+          preco_cartao: number | null
+        }
+        Insert: {
+          afetados: number
+          categoria: string
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          incluiu_confirmados?: boolean
+          parcelamento?: string | null
+          por_usuario?: string | null
+          preco: number
+          preco_cartao?: number | null
+        }
+        Update: {
+          afetados?: number
+          categoria?: string
+          criado_em?: string
+          detalhe?: Json
+          id?: string
+          incluiu_confirmados?: boolean
+          parcelamento?: string | null
+          por_usuario?: string | null
+          preco?: number
+          preco_cartao?: number | null
+        }
+        Relationships: []
+      }
+      regras_preco_categoria: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          categoria: string
+          criado_em: string
+          parcelamento: string | null
+          preco: number
+          preco_cartao: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          categoria: string
+          criado_em?: string
+          parcelamento?: string | null
+          preco: number
+          preco_cartao?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          categoria?: string
+          criado_em?: string
+          parcelamento?: string | null
+          preco?: number
+          preco_cartao?: number | null
+        }
+        Relationships: []
+      }
       reservas_estoque: {
         Row: {
           atualizado_em: string
@@ -959,6 +1028,7 @@ export type Database = {
         Row: {
           categoria: string | null
           colecao: string | null
+          compravel: boolean | null
           cor: string | null
           criado_em: string | null
           descricao: string | null
@@ -970,12 +1040,14 @@ export type Database = {
           parcelamento: string | null
           preco: number | null
           preco_cartao: number | null
+          preco_confirmado: boolean | null
           slug: string | null
           variacoes: Json | null
         }
         Insert: {
           categoria?: string | null
           colecao?: string | null
+          compravel?: never
           cor?: string | null
           criado_em?: string | null
           descricao?: string | null
@@ -984,15 +1056,17 @@ export type Database = {
           marca?: string | null
           modelo_estoque?: string | null
           nome?: string | null
-          parcelamento?: string | null
-          preco?: number | null
-          preco_cartao?: number | null
+          parcelamento?: never
+          preco?: never
+          preco_cartao?: never
+          preco_confirmado?: never
           slug?: string | null
           variacoes?: never
         }
         Update: {
           categoria?: string | null
           colecao?: string | null
+          compravel?: never
           cor?: string | null
           criado_em?: string | null
           descricao?: string | null
@@ -1001,9 +1075,10 @@ export type Database = {
           marca?: string | null
           modelo_estoque?: string | null
           nome?: string | null
-          parcelamento?: string | null
-          preco?: number | null
-          preco_cartao?: number | null
+          parcelamento?: never
+          preco?: never
+          preco_cartao?: never
+          preco_confirmado?: never
           slug?: string | null
           variacoes?: never
         }
@@ -1021,6 +1096,16 @@ export type Database = {
           p_tipo: string
         }
         Returns: number
+      }
+      aplicar_regra_preco: {
+        Args: {
+          p_categoria: string
+          p_incluir_confirmados?: boolean
+          p_parcelamento?: string
+          p_preco: number
+          p_preco_cartao?: number
+        }
+        Returns: Json
       }
       assumir_atendimento: {
         Args: { p_pedido_id: string }
@@ -1234,6 +1319,10 @@ export type Database = {
       }
       pedido_snapshot: {
         Args: { p_pedido: Database["public"]["Tables"]["pedidos"]["Row"] }
+        Returns: Json
+      }
+      previsualizar_regra_preco: {
+        Args: { p_categoria: string; p_incluir_confirmados?: boolean }
         Returns: Json
       }
       produto_publicavel: {
