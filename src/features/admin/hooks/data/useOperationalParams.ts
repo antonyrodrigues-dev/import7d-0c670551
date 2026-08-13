@@ -1,8 +1,13 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useParamsStore } from "../../stores/ops";
-import { loadParams, saveParam, validateParam } from "../../services/ops/params.service";
-import type { OperationalParamKey } from "../../types";
+import {
+  loadCheckoutBlocks,
+  loadParams,
+  saveParam,
+  validateParam,
+} from "../../services/ops/params.service";
+import type { CheckoutBlock, OperationalParamKey } from "../../types";
 
 /** Parâmetros operacionais — leitura para todos, escrita só para Admin Master. */
 export function useOperationalParams() {
@@ -29,4 +34,19 @@ export function useOperationalParams() {
   );
 
   return { state, params, refresh, save, validate: validateParam };
+}
+
+/** Tentativas de checkout recusadas pela proteção anti-abuso (Admin Master). */
+export function useCheckoutBlocks(limit = 50) {
+  const [blocks, setBlocks] = useState<CheckoutBlock[] | null>(null);
+
+  const refresh = useCallback(async () => {
+    setBlocks(await loadCheckoutBlocks(limit));
+  }, [limit]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  return { blocks, loading: blocks === null, refresh };
 }
