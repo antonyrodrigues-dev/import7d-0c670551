@@ -15,6 +15,11 @@ export interface DataTableColumn<T> {
   align?: "left" | "right" | "center";
   /** Largura opcional (ex.: "1%" para colunas de ação que não devem esticar). */
   width?: string;
+  /**
+   * Conteúdo que não pode ser cortado (selos, botões). Sem truncate, o
+   * elemento respira dentro da célula em vez de ser fatiado.
+   */
+  noTruncate?: boolean;
   cell: (row: T) => ReactNode;
 }
 
@@ -69,7 +74,9 @@ export function ResponsiveDataTable<T>({
                 {columns.map((c) => (
                   <td
                     key={c.key}
-                    className={`min-w-0 truncate px-3 py-3 align-middle text-[color:var(--forest-deep)] ${
+                    className={`min-w-0 px-3 py-3 align-middle text-[color:var(--forest-deep)] ${
+                      c.noTruncate ? "whitespace-nowrap" : "truncate"
+                    } ${
                       c.align === "right"
                         ? "text-right"
                         : c.align === "center"

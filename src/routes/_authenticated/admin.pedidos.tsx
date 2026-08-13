@@ -98,7 +98,7 @@ function PedidosPage() {
     {
       key: "cliente",
       header: "Cliente",
-      width: "16%",
+      width: "17%",
       cell: (o) => (
         <span>
           {o.cliente.nome}
@@ -111,26 +111,27 @@ function PedidosPage() {
     {
       key: "canal",
       header: "Canal",
-      width: "9%",
+      width: "8%",
       cell: (o) => o.canal ?? deliveryLabel(o),
     },
     {
       key: "itens",
       header: "Itens",
-      width: "18%",
+      width: "15%",
       cell: (o) => itemsSummary(o),
     },
     {
       key: "valor",
       header: "Valor",
-      width: "9%",
+      width: "10%",
       align: "right",
       cell: (o) => <span className="tabular-nums">{formatBRL(netValue(o))}</span>,
     },
     {
       key: "pagamento",
       header: "Pagamento",
-      width: "11%",
+      width: "12%",
+      noTruncate: true,
       cell: (o) => (
         <StatusBadge tone={paymentTone(o.pagamentoEstado)}>
           {paymentLabel(o.pagamentoEstado)}
@@ -140,19 +141,20 @@ function PedidosPage() {
     {
       key: "responsavel",
       header: "Responsável",
-      width: "10%",
+      width: "9%",
       cell: (o) => o.responsavel ?? "—",
     },
     {
       key: "status",
       header: "Status",
-      width: "10%",
+      width: "12%",
+      noTruncate: true,
       cell: (o) => <StatusBadge tone={statusTone(o.status)}>{statusLabel(o.status)}</StatusBadge>,
     },
     {
       key: "tempo",
       header: "Criado",
-      width: "10%",
+      width: "8%",
       cell: (o) => (
         <span title={formatDateTimeSP(o.criadoEm)} className="text-[color:var(--muted-foreground)]">
           {relativeFrom(o.criadoEm)}
@@ -164,6 +166,7 @@ function PedidosPage() {
       header: "Ações",
       width: "1%",
       align: "right",
+      noTruncate: true,
       cell: (o) => (
         <Button size="sm" variant="outline" onClick={() => setSelected(o)}>
           <Eye className="mr-1 h-3.5 w-3.5" /> Ver
