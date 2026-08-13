@@ -15,7 +15,8 @@
     "typecheck": "tsgo --noEmit",
     "test:e2e": "python3 tests/e2e/checkout-gate.spec.py && python3 tests/e2e/checkout-pending.spec.py",
     "test:db:onda0": "python3 tests/db/onda0-gate.py",
-    "test:db": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f tests/db/checkout-rpc.gate.sql"
+    "test:db": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f tests/db/checkout-rpc.gate.sql",
+    "test:db:ondad": "python3 tests/db/onda0-gate.py tests/db/ondad.gate.sql"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
