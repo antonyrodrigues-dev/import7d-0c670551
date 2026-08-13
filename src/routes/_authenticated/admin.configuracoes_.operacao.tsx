@@ -96,7 +96,7 @@ function OperacaoView() {
                 className="h-11 w-full border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm tabular-nums"
               />
               <p className="text-[11px] text-[color:var(--muted-foreground)]">
-                {limit.hint} Entre {limit.min} e {limit.max} minutos.
+                {limit.hint} Entre {limit.min} e {limit.max} {limit.unidade}.
               </p>
               {erro && <p className="text-[11px] text-[color:var(--destructive)]">{erro}</p>}
               <Button
