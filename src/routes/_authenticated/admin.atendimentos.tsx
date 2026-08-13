@@ -1,25 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  Clock,
-  Inbox,
-  MessageCircle,
-  RefreshCw,
-  TimerOff,
-  UserCheck,
-} from "lucide-react";
+import { AlertTriangle, Clock, Inbox, MessageCircle, RefreshCw, TimerOff, UserCheck } from "lucide-react";
 import { PageHeader } from "@/features/admin/components/PageHeader";
-import {
-  ConfirmDialog,
-  EmptyState,
-  ErrorState,
-  LoadingState,
-} from "@/features/admin/components/AdminUI";
+import { ConfirmDialog, EmptyState, ErrorState, LoadingState } from "@/features/admin/components/AdminUI";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/features/catalog";
+import { ResponsiveDataTable, type DataTableColumn } from "@/features/admin/components/DataTable";
+import { StatusBadge } from "@/features/admin/components/StatusBadge";
 import { useQueue, useTeam, usePermissions } from "@/features/admin/hooks";
+import type { BadgeTone } from "@/features/admin/lib/orderView";
 import type { QueueOrder } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/atendimentos")({
@@ -42,17 +32,8 @@ function AtendimentosPage() {
 }
 
 function FilaView() {
-  const {
-    state,
-    fila,
-    emAtendimento,
-    params,
-    atualizadoEm,
-    refresh,
-    assumir,
-    transferir,
-    devolverParaFila,
-  } = useQueue();
+  const { state, fila, emAtendimento, params, atualizadoEm, refresh, assumir, transferir, devolverParaFila } =
+    useQueue();
   const { isAdmin, userId } = usePermissions();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [transferTarget, setTransferTarget] = useState<QueueOrder | null>(null);
@@ -65,6 +46,10 @@ function FilaView() {
   const emCurso = useMemo(
     () => emAtendimento.filter((o) => o.prioridade !== "atrasado"),
     [emAtendimento],
+  );
+  const meusAtendimentos = useMemo(
+    () => emAtendimento.filter((o) => o.responsavelId === userId),
+    [emAtendimento, userId],
   );
 
   const handleAssumir = async (order: QueueOrder) => {
@@ -89,12 +74,7 @@ function FilaView() {
         title="Atendimentos"
         description="Fila oficial de pedidos aguardando e em atendimento, sincronizada em tempo real."
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void refresh()}
-            disabled={state === "loading"}
-          >
+          <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={state === "loading"}>
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Atualizar
           </Button>
@@ -102,19 +82,14 @@ function FilaView() {
       />
 
       <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-        Alerta em {params.alertaAtendimentoMinutos} min · Atrasado em{" "}
-        {params.atendimentoAtrasadoMinutos} min · Reserva de {params.reservaMinutos} min
-        {atualizadoEm
-          ? ` · Atualizado às ${new Date(atualizadoEm).toLocaleTimeString("pt-BR")}`
-          : ""}
+        Alerta em {params.alertaAtendimentoMinutos} min · Atrasado em {params.atendimentoAtrasadoMinutos} min · Reserva
+        de {params.reservaMinutos} min
+        {atualizadoEm ? ` · Atualizado às ${new Date(atualizadoEm).toLocaleTimeString("pt-BR")}` : ""}
         {state === "saving" ? " · Atualizando…" : ""}
       </p>
 
       {state === "error" && (
-        <ErrorState
-          message="Não foi possível carregar a fila de atendimento."
-          onRetry={() => void refresh()}
-        />
+        <ErrorState message="Não foi possível carregar a fila de atendimento." onRetry={() => void refresh()} />
       )}
 
       {state === "loading" && fila.length + emAtendimento.length === 0 && (
@@ -133,13 +108,9 @@ function FilaView() {
         title="Aguardando atendimento"
         orders={fila}
         emptyLabel="Nenhum pedido aguardando."
-        render={(o) => (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              disabled={busyId === o.id || state === "saving"}
-              onClick={() => void handleAssumir(o)}
-            >
+        renderActions={(o) => (
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" disabled={busyId === o.id || state === "saving"} onClick={() => void handleAssumir(o)}>
               <UserCheck className="mr-2 h-4 w-4" aria-hidden="true" />
               {busyId === o.id ? "Assumindo…" : "Assumir atendimento"}
             </Button>
@@ -153,10 +124,25 @@ function FilaView() {
       />
 
       <QueueSection
+        title="Meus atendimentos"
+        orders={meusAtendimentos}
+        emptyLabel="Você não possui atendimentos em curso."
+        renderActions={(o) => (
+          <Actions
+            order={o}
+            isAdmin={isAdmin}
+            userId={userId}
+            onTransfer={() => setTransferTarget(o)}
+            onRelease={() => setReleaseTarget(o)}
+          />
+        )}
+      />
+
+      <QueueSection
         title="Atendimento atrasado"
         orders={atrasados}
         emptyLabel="Nenhum atendimento atrasado."
-        render={(o) => (
+        renderActions={(o) => (
           <Actions
             order={o}
             isAdmin={isAdmin}
@@ -171,7 +157,7 @@ function FilaView() {
         title="Em atendimento"
         orders={emCurso}
         emptyLabel="Nenhum atendimento em curso."
-        render={(o) => (
+        renderActions={(o) => (
           <Actions
             order={o}
             isAdmin={isAdmin}
@@ -220,7 +206,7 @@ function Actions({
 }) {
   if (!isAdmin) {
     return (
-      <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+      <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
         {order.responsavelId === userId
           ? "Você é o responsável por este atendimento."
           : "Somente o Administrador Master pode transferir ou devolver este atendimento."}
@@ -228,7 +214,7 @@ function Actions({
     );
   }
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
       <Button size="sm" variant="outline" onClick={onTransfer}>
         Transferir atendimento
       </Button>
@@ -239,17 +225,96 @@ function Actions({
   );
 }
 
+function priorityTone(p: QueueOrder["prioridade"]): BadgeTone {
+  if (p === "atrasado") return "danger";
+  if (p === "alerta") return "warn";
+  return "neutral";
+}
+
+/** Fila e atendimento reutilizam a mesma tabela/card de Pedidos, sem duplicar HTML. */
 function QueueSection({
   title,
   orders,
   emptyLabel,
-  render,
+  renderActions,
 }: {
   title: string;
   orders: QueueOrder[];
   emptyLabel: string;
-  render: (o: QueueOrder) => React.ReactNode;
+  renderActions: (o: QueueOrder) => React.ReactNode;
 }) {
+  const columns: DataTableColumn<QueueOrder>[] = [
+    {
+      key: "numero",
+      header: "Nº do pedido",
+      width: "9%",
+      cell: (o) => <span className="font-display tabular-nums">{o.numero}</span>,
+    },
+    {
+      key: "cliente",
+      header: "Cliente",
+      width: "16%",
+      cell: (o) => (
+        <span>
+          {o.cliente}
+          <span className="block text-[10px] text-[color:var(--muted-foreground)]">{o.telefone}</span>
+        </span>
+      ),
+    },
+    {
+      key: "canal",
+      header: "Modalidade",
+      width: "9%",
+      cell: (o) => (o.modalidade === "entrega" ? "Entrega" : "Retirada"),
+    },
+    {
+      key: "itens",
+      header: "Itens",
+      width: "18%",
+      cell: (o) => `${o.quantidadeItens} item(ns)`,
+    },
+    {
+      key: "valor",
+      header: "Valor",
+      width: "9%",
+      align: "right",
+      cell: (o) => <span className="tabular-nums">{formatBRL(o.valorTotal)}</span>,
+    },
+    {
+      key: "responsavel",
+      header: "Responsável",
+      width: "10%",
+      cell: (o) => o.responsavelNome ?? "—",
+    },
+    {
+      key: "status",
+      header: "Prioridade",
+      width: "13%",
+      cell: (o) => (
+        <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
+          {o.prioridade}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: "espera",
+      header: "Aguardando",
+      width: "9%",
+      cell: (o) => (
+        <span className={o.prioridade === "atrasado" ? "font-semibold text-red-700" : ""}>
+          {o.aguardandoMinutos} min
+        </span>
+      ),
+    },
+    {
+      key: "acoes",
+      header: "Ações",
+      width: "18%",
+      align: "right",
+      cell: (o) => <div className="flex justify-end">{renderActions(o)}</div>,
+    },
+  ];
+
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <header className="flex items-baseline justify-between gap-3">
@@ -263,45 +328,27 @@ function QueueSection({
           {emptyLabel}
         </p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {orders.map((o) => (
-            <li
-              key={o.id}
-              className="border border-[color:var(--border)] bg-[color:var(--cream)] p-4"
-            >
-              <QueueCardHeader order={o} />
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {o.itens.map((i, idx) => (
-                  <li
-                    key={`${o.id}-${idx}`}
-                    className="border border-[color:var(--border)] px-2 py-1 text-[11px] text-[color:var(--forest-deep)]"
-                  >
-                    {i.name} · Tam {i.size} · {i.quantity}×
-                  </li>
-                ))}
-              </ul>
-              {render(o)}
-            </li>
-          ))}
-        </ul>
+        <ResponsiveDataTable
+          ariaLabel={title}
+          columns={columns}
+          rows={orders}
+          keyFor={(o) => o.id}
+          renderCard={(o) => <QueueCard order={o} actions={renderActions(o)} />}
+        />
       )}
     </section>
   );
 }
 
-function QueueCardHeader({ order: o }: { order: QueueOrder }) {
+function QueueCard({ order: o, actions }: { order: QueueOrder; actions: React.ReactNode }) {
   const reservaExpirada = o.reservaMinutosRestantes !== null && o.reservaMinutosRestantes <= 0;
   const reservaProxima =
-    o.reservaMinutosRestantes !== null &&
-    o.reservaMinutosRestantes > 0 &&
-    o.reservaMinutosRestantes <= 5;
+    o.reservaMinutosRestantes !== null && o.reservaMinutosRestantes > 0 && o.reservaMinutosRestantes <= 5;
   return (
-    <>
+    <div className="border border-[color:var(--border)] bg-[color:var(--cream)] p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display text-xl tabular-nums text-[color:var(--forest-deep)]">
-            {o.numero}
-          </p>
+          <p className="font-display text-xl tabular-nums text-[color:var(--forest-deep)]">{o.numero}</p>
           <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
             {o.cliente} · {o.telefone} · {o.modalidade === "entrega" ? "Entrega" : "Retirada"}
           </p>
@@ -316,62 +363,38 @@ function QueueCardHeader({ order: o }: { order: QueueOrder }) {
         </p>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        <Badge
-          tone={
-            o.prioridade === "atrasado" ? "danger" : o.prioridade === "alerta" ? "warn" : "muted"
-          }
-        >
-          <Clock className="h-3 w-3" aria-hidden="true" />
+        <StatusBadge tone={priorityTone(o.prioridade)} icon={<Clock className="h-3 w-3" />}>
           Prioridade {o.prioridade}
-        </Badge>
-        <Badge tone={o.whatsappDeclarado ? "ok" : "muted"}>
-          <MessageCircle className="h-3 w-3" aria-hidden="true" />
+        </StatusBadge>
+        <StatusBadge tone={o.whatsappDeclarado ? "success" : "neutral"} icon={<MessageCircle className="h-3 w-3" />}>
           {o.whatsappDeclarado ? "WhatsApp declarado" : "Sem declaração do cliente"}
-        </Badge>
+        </StatusBadge>
         {o.reservaMinutosRestantes !== null && (
-          <Badge tone={reservaExpirada ? "danger" : reservaProxima ? "warn" : "ok"}>
-            {reservaExpirada ? (
-              <TimerOff className="h-3 w-3" aria-hidden="true" />
-            ) : (
-              <Clock className="h-3 w-3" aria-hidden="true" />
-            )}
-            {reservaExpirada
-              ? "Reserva expirada — estoque não garantido"
-              : `Reserva expira em ${o.reservaMinutosRestantes} min`}
-          </Badge>
+          <StatusBadge
+            tone={reservaExpirada ? "danger" : reservaProxima ? "warn" : "success"}
+            icon={reservaExpirada ? <TimerOff className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+          >
+            {reservaExpirada ? "Reserva expirada — estoque não garantido" : `Reserva expira em ${o.reservaMinutosRestantes} min`}
+          </StatusBadge>
         )}
         {o.prioridade === "atrasado" && (
-          <Badge tone="danger">
-            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+          <StatusBadge tone="danger" icon={<AlertTriangle className="h-3 w-3" />}>
             Atendimento atrasado
-          </Badge>
+          </StatusBadge>
         )}
       </div>
-    </>
-  );
-}
-
-function Badge({
-  tone,
-  children,
-}: {
-  tone: "ok" | "warn" | "danger" | "muted";
-  children: React.ReactNode;
-}) {
-  const cls =
-    tone === "danger"
-      ? "border-red-300 bg-red-50 text-red-700"
-      : tone === "warn"
-        ? "border-amber-300 bg-amber-50 text-amber-800"
-        : tone === "ok"
-          ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-          : "border-[color:var(--border)] bg-[color:var(--cream-deep)]/40 text-[color:var(--muted-foreground)]";
-  return (
-    <span
-      className={`inline-flex items-center gap-1 border px-2 py-1 text-[10px] tracking-luxe uppercase ${cls}`}
-    >
-      {children}
-    </span>
+      <ul className="mt-3 flex flex-wrap gap-2">
+        {o.itens.map((i, idx) => (
+          <li
+            key={`${o.id}-${idx}`}
+            className="border border-[color:var(--border)] px-2 py-1 text-[11px] text-[color:var(--forest-deep)]"
+          >
+            {i.name} · Tam {i.size} · {i.quantity}×
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3">{actions}</div>
+    </div>
   );
 }
 
@@ -401,9 +424,7 @@ function TransferDialog({
       }}
     >
       <div className="w-full max-w-md border border-[color:var(--border)] bg-[color:var(--cream)] p-5">
-        <h2 className="font-display text-2xl text-[color:var(--forest-deep)]">
-          Transferir atendimento
-        </h2>
+        <h2 className="font-display text-2xl text-[color:var(--forest-deep)]">Transferir atendimento</h2>
         <p className="mt-1 text-sm text-[color:var(--muted-foreground)]">
           Pedido {order.numero} — responsável atual: {order.responsavelNome ?? "—"}
         </p>
@@ -425,9 +446,7 @@ function TransferDialog({
           ))}
         </select>
         {state === "loading" && (
-          <p className="mt-2 text-[11px] text-[color:var(--muted-foreground)]">
-            Carregando equipe…
-          </p>
+          <p className="mt-2 text-[11px] text-[color:var(--muted-foreground)]">Carregando equipe…</p>
         )}
         <label className="mt-4 block text-[10px] tracking-luxe uppercase" htmlFor="transfer-obs">
           Observação (opcional)
