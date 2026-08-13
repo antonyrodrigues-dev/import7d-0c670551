@@ -57,10 +57,13 @@ const KNOWN_STATUSES: OrderStatus[] = [
   "cancelado",
 ];
 
-/** Aliases legados que já existiram no banco antes da máquina de estados. */
+/**
+ * Aliases legados que já existiram no banco antes da máquina de estados.
+ * `em_atendimento` NÃO é alias — é status canônico do banco desde a Onda 0;
+ * mapeá-lo para "novo" escondia pedidos já assumidos por um atendente.
+ */
 const LEGACY_STATUS: Record<string, OrderStatus> = {
   pendente: "novo",
-  em_atendimento: "novo",
   pago: "pagamento_confirmado",
   confirmado: "finalizado",
 };
