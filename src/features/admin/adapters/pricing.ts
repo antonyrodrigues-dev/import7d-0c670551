@@ -43,8 +43,8 @@ export const pricingAdapter = {
     const { data, error } = await supabase.rpc("aplicar_regra_preco", {
       p_categoria: input.category,
       p_preco: input.price,
-      p_preco_cartao: input.cardPrice,
-      p_parcelamento: input.installments,
+      p_preco_cartao: input.cardPrice ?? undefined,
+      p_parcelamento: input.installments ?? undefined,
       p_incluir_confirmados: input.includeConfirmed,
     });
     if (error) throw error;
