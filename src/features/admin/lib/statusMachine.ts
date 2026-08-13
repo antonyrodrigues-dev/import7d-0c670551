@@ -12,35 +12,20 @@ import type { OrderStatus } from "../types";
  * Qualquer divergência aqui é bug: o banco rejeita a transição de qualquer
  * forma — esta cópia existe apenas para a UI não oferecer ação impossível.
  */
-const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  novo: [
-    "whatsapp_declarado",
-    "aguardando_atendimento",
-    "em_atendimento",
-    "pagamento_confirmado",
-    "separado",
-    "reservado",
-    "cancelado",
-  ],
+export const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  novo: ["whatsapp_declarado", "aguardando_atendimento", "em_atendimento", "cancelado"],
   whatsapp_declarado: ["aguardando_atendimento", "em_atendimento", "cancelado"],
   aguardando_atendimento: ["em_atendimento", "cancelado"],
-  em_atendimento: [
-    "aguardando_atendimento",
-    "aguardando_pagamento",
-    "pagamento_confirmado",
-    "separado",
-    "reservado",
-    "cancelado",
-  ],
+  em_atendimento: ["aguardando_atendimento", "aguardando_pagamento", "cancelado"],
   aguardando_pagamento: ["pagamento_confirmado", "cancelado"],
-  pagamento_confirmado: ["separado", "reservado", "cancelado"],
-  separado: ["reservado", "aguardando_retirada", "enviado", "finalizado", "cancelado"],
-  reservado: ["separado", "aguardando_retirada", "enviado", "finalizado", "cancelado"],
+  pagamento_confirmado: ["separado", "cancelado"],
+  separado: ["reservado", "aguardando_retirada", "enviado", "cancelado"],
+  reservado: ["aguardando_retirada", "enviado", "cancelado"],
   aguardando_retirada: ["finalizado", "cancelado"],
   enviado: ["finalizado", "cancelado"],
-  // Finalizado só sai por devolução, e a devolução tem fluxo próprio no banco
-  // (`registrar_devolucao`) — `transicionar_pedido` recusa este destino.
-  finalizado: [],
+  // Finalizado só sai por devolução — a devolução tem fluxo próprio no banco
+  // (`registrar_devolucao`); `transicionar_pedido` recusa este destino direto.
+  finalizado: ["devolvido"],
   cancelado: [],
   devolvido: [],
 };
