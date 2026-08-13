@@ -1,10 +1,11 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X, LogOut, Bell, ChevronDown, KeyRound, UserRound } from "lucide-react";
+import { Menu, X, LogOut, ChevronDown, KeyRound, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_NAV, ADMIN_NAV_PERMISSION } from "../constants";
-import { usePermissions, useRemoteNotifications } from "../hooks";
+import { usePermissions } from "../hooks";
+import { NotificationBell } from "./NotificationBell";
 import { InitialsAvatar } from "../components/AdminUI";
 import {
   DropdownMenu,
@@ -35,11 +36,9 @@ export function AdminShell() {
     displayName: identityName,
     email,
   } = usePermissions();
-  const { naoLidas } = useRemoteNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
-  const unread = naoLidas;
   const canSeeNotifications = can("notifications:view");
 
   useEffect(() => {
@@ -156,20 +155,7 @@ export function AdminShell() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            {canSeeNotifications && (
-              <Link
-                to="/admin/notificacoes"
-                aria-label={`Notificações (${unread} não lidas)`}
-                className="relative flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-[color:var(--cream-deep)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
-              >
-                <Bell className="h-5 w-5" aria-hidden="true" />
-                {unread > 0 && (
-                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--gold)] px-1 text-[9px] font-bold text-[color:var(--forest-deep)]">
-                    {unread > 99 ? "99+" : unread}
-                  </span>
-                )}
-              </Link>
-            )}
+            {canSeeNotifications && <NotificationBell />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
