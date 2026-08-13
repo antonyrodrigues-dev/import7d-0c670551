@@ -54,17 +54,30 @@ BEGIN
     PERFORM pg_temp.check_('04 chave sem entropia rejeitada', false, 'não lançou erro');
   EXCEPTION WHEN OTHERS THEN PERFORM pg_temp.check_('04 chave sem entropia rejeitada', true, SQLERRM); END;
 
-  -- 4. Itens repetidos são agregados em uma única linha.
+  -- 4. Itens repetidos são agregados: duas linhas de 1 un. de uma peça única
+  --    (saldo 1) só podem falhar se a soma for avaliada em conjunto.
+  BEGIN
+    PERFORM public.criar_pedido(
+      jsonb_build_array(
+        jsonb_build_object('slug','camiseta-boss-logo-tonal-preta','size','G','quantity',1),
+        jsonb_build_object('slug','camiseta-boss-logo-tonal-preta','size','G','quantity',1)),
+      v_cli, v_ent, jsonb_build_object('metodo','pix'), NULL, 'whatsapp',
+      'gate-' || replace(gen_random_uuid()::text,'-',''));
+    PERFORM pg_temp.check_('18 itens duplicados agregados antes do saldo', false, 'não lançou erro');
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.check_('18 itens duplicados agregados antes do saldo', true, SQLERRM);
+  END;
+
+  -- 4b. Pedido válido em PIX: parcelas normalizadas para 1 e linha única.
   SELECT * INTO r FROM public.criar_pedido(
     jsonb_build_array(
-      jsonb_build_object('slug','camisa-oxford-azul','size','G','quantity',1),
-      jsonb_build_object('slug','camisa-oxford-azul','size','G','quantity',2)),
-    v_cli, v_ent, jsonb_build_object('metodo','pix'), NULL, 'whatsapp',
+      jsonb_build_object('slug','camiseta-boss-logo-tonal-preta','size','G','quantity',1)),
+    v_cli, v_ent, jsonb_build_object('metodo','pix','parcelas',6), NULL, 'whatsapp',
     'gate-' || replace(gen_random_uuid()::text,'-',''));
   snap := r.snapshot;
-  PERFORM pg_temp.check_('18 itens duplicados agregados em 1 linha',
-    jsonb_array_length(snap->'produtos') = 1 AND (snap->'produtos'->0->>'quantity')::int = 3
-    AND r.valor_total = 890 * 3, format('linhas=%s total=%s', jsonb_array_length(snap->'produtos'), r.valor_total));
+  PERFORM pg_temp.check_('18 pedido PIX gera uma linha oficial',
+    jsonb_array_length(snap->'produtos') = 1 AND (snap->'produtos'->0->>'quantity')::int = 1
+    AND r.valor_total = 105, format('linhas=%s total=%s', jsonb_array_length(snap->'produtos'), r.valor_total));
   PERFORM pg_temp.check_('06 parcelas normalizadas fora do crédito',
     (snap->'pagamento'->>'parcelas')::int = 1);
 
