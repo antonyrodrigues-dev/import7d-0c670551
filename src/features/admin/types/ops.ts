@@ -77,6 +77,22 @@ export interface PaymentInput {
   observacao?: string | null;
 }
 
+// ─────────────────────────── Ledger financeiro ─────────────────────────────
+
+/** Lançamento imutável do livro-razão (`financeiro_lancamentos`). */
+export interface LedgerEntry {
+  id: string;
+  pedidoId: string;
+  numeroPedido: string;
+  tipo: "receita" | "estorno";
+  origem: "pagamento" | "devolucao";
+  /** Positivo em receitas, negativo em estornos. */
+  valor: number;
+  metodo: string | null;
+  competencia: string;
+  criadoEm: IsoDateTime;
+}
+
 // ───────────────────────────────── Devoluções ──────────────────────────────
 
 export type ReturnCondition =

@@ -2,8 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { listPayments, registerPayment, requiresAdmin } from "../../services/ops/payments.service";
 import { listReturns, registerReturn } from "../../services/ops/returns.service";
+import { ledgerBalance, listLedger } from "../../services/ops/ledger.service";
+import { nextPaymentStates } from "../../lib/paymentMachine";
 import type {
   AdminAsyncState,
+  LedgerEntry,
   PaymentEntry,
   PaymentState,
   ReturnInput,
@@ -18,19 +21,26 @@ export function useOrderFinance(pedidoId: string | null) {
   const [state, setState] = useState<AdminAsyncState>("idle");
   const [payments, setPayments] = useState<PaymentEntry[]>([]);
   const [returns, setReturns] = useState<ReturnRecord[]>([]);
+  const [ledger, setLedger] = useState<LedgerEntry[]>([]);
 
   const refresh = useCallback(async () => {
     if (!pedidoId) {
       setPayments([]);
       setReturns([]);
+      setLedger([]);
       setState("idle");
       return;
     }
     setState("loading");
-    const [p, d] = await Promise.all([listPayments(pedidoId), listReturns(pedidoId)]);
+    const [p, d, l] = await Promise.all([
+      listPayments(pedidoId),
+      listReturns(pedidoId),
+      listLedger(pedidoId),
+    ]);
     setPayments(p);
     setReturns(d);
-    setState(p.length + d.length === 0 ? "empty" : "ready");
+    setLedger(l);
+    setState(p.length + d.length + l.length === 0 ? "empty" : "ready");
   }, [pedidoId]);
 
   useEffect(() => {
@@ -66,5 +76,16 @@ export function useOrderFinance(pedidoId: string | null) {
     [pedidoId, refresh],
   );
 
-  return { state, payments, returns, refresh, alterarPagamento, registrarDevolucao, requiresAdmin };
+  return {
+    state,
+    payments,
+    returns,
+    ledger,
+    saldoLedger: ledgerBalance(ledger),
+    refresh,
+    alterarPagamento,
+    registrarDevolucao,
+    requiresAdmin,
+    nextPaymentStates,
+  };
 }
