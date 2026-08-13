@@ -386,6 +386,7 @@ function RowActions({
   canDelete,
   onEdit,
   onDuplicate,
+  onKit,
   onArchive,
   onRestore,
   onDelete,
@@ -395,6 +396,8 @@ function RowActions({
   canDelete: boolean;
   onEdit: () => void;
   onDuplicate: () => void;
+  /** Só existe quando o produto é um kit. */
+  onKit?: () => void;
   onArchive: () => void;
   onRestore: () => void;
   onDelete: () => void;
@@ -413,6 +416,11 @@ function RowActions({
         <DropdownMenuItem onClick={onDuplicate} disabled={!canEdit}>
           <Copy className="h-4 w-4 mr-2" /> Duplicar
         </DropdownMenuItem>
+        {onKit && (
+          <DropdownMenuItem onClick={onKit}>
+            <Boxes className="h-4 w-4 mr-2" /> Composição do kit
+          </DropdownMenuItem>
+        )}
         {item.active ? (
           <DropdownMenuItem onClick={onArchive} disabled={!canEdit}>
             <Archive className="h-4 w-4 mr-2" /> Arquivar
