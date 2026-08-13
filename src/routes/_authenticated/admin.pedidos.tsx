@@ -92,13 +92,13 @@ function PedidosPage() {
     {
       key: "numero",
       header: "Nº do pedido",
-      width: "8%",
+      width: "7%",
       cell: (o) => <span className="font-display tabular-nums">{o.numero}</span>,
     },
     {
       key: "cliente",
       header: "Cliente",
-      width: "16%",
+      width: "15%",
       cell: (o) => (
         <span>
           {o.cliente.nome}
@@ -111,13 +111,13 @@ function PedidosPage() {
     {
       key: "canal",
       header: "Canal",
-      width: "7%",
+      width: "8%",
       cell: (o) => o.canal ?? deliveryLabel(o),
     },
     {
       key: "itens",
       header: "Itens",
-      width: "14%",
+      width: "13%",
       cell: (o) => itemsSummary(o),
     },
     {
@@ -164,7 +164,7 @@ function PedidosPage() {
     {
       key: "acoes",
       header: "Ações",
-      width: "6%",
+      width: "8%",
       align: "right",
       noTruncate: true,
       cell: (o) => (
