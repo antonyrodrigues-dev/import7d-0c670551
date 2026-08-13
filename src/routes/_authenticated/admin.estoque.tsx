@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   Archive,
   ArchiveRestore,
+  Boxes,
   Copy,
   MoreHorizontal,
   PackageSearch,
@@ -38,6 +39,7 @@ import { useInventory, usePermissions } from "@/features/admin/hooks";
 import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality";
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
+import { KitCompositionDialog } from "@/features/admin/components/KitCompositionDialog";
 import { SITUATION_LABEL } from "@/features/admin/lib/catalogLabels";
 import type { InventoryItem, CatalogQualityFilter } from "@/features/admin/types";
 import type { ProductWritePayload } from "@/features/admin/adapters/types";
@@ -98,6 +100,7 @@ function EstoquePage() {
     item: InventoryItem;
   } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
+  const [kitDialog, setKitDialog] = useState<InventoryItem | null>(null);
 
   const runConfirm = async () => {
     if (!confirm) return;
