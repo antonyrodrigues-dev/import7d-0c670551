@@ -48,6 +48,10 @@ interface PedidoRow {
 
 const KNOWN_STATUSES: OrderStatus[] = [
   "novo",
+  "whatsapp_declarado",
+  "aguardando_atendimento",
+  "em_atendimento",
+  "aguardando_pagamento",
   "pagamento_confirmado",
   "separado",
   "reservado",
@@ -55,6 +59,7 @@ const KNOWN_STATUSES: OrderStatus[] = [
   "enviado",
   "finalizado",
   "cancelado",
+  "devolvido",
 ];
 
 /**

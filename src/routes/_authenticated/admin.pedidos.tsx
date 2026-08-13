@@ -16,15 +16,8 @@ import { nextStatuses } from "@/features/admin/lib/statusMachine";
 import type { AdminOrder, DeliveryMethod, OrderStatus } from "@/features/admin/types";
 import type { OrdersFilter } from "@/features/admin/stores/orders";
 
-/** Pipeline "em andamento" — espelha `PENDING_STATUSES` de `lib/selectors`. */
-const PENDING_ORDER_STATUSES: OrderStatus[] = [
-  "novo",
-  "pagamento_confirmado",
-  "separado",
-  "reservado",
-  "aguardando_retirada",
-  "enviado",
-];
+/** Fonte única: `PENDING_STATUSES` de `lib/orderView`. Nunca duplicar aqui. */
+const PENDING_ORDER_STATUSES: OrderStatus[] = PENDING_STATUSES;
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   head: () => ({
