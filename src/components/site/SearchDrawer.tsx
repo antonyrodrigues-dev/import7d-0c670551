@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useReserva } from "@/store/reserva";
-import { formatBRL, useCatalog } from "@/features/catalog";
+import { priceLabel, useCatalog } from "@/features/catalog";
 import { SafeImage } from "./SafeImage";
 
 export function SearchDrawer() {
@@ -108,8 +108,14 @@ export function SearchDrawer() {
                             {p.category}
                           </p>
                         </div>
-                        <span className="font-display tabular-nums text-[color:var(--forest-deep)]">
-                          {formatBRL(p.price)}
+                        <span
+                          className={`font-display text-[color:var(--forest-deep)] ${
+                            p.precoConfirmado
+                              ? "tabular-nums"
+                              : "text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
+                          }`}
+                        >
+                          {priceLabel(p)}
                         </span>
                       </a>
                     </li>

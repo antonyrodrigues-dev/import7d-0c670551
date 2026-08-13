@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
-import { formatBRL, featuredOf, useCatalog, type PublicProduct } from "@/features/catalog";
+import { priceLabel, featuredOf, useCatalog, type PublicProduct } from "@/features/catalog";
 import { ProductSheet } from "./ProductSheet";
 import { SafeImage } from "./SafeImage";
 
@@ -35,7 +35,7 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
           aria-hidden="true"
           className="pointer-events-none absolute bottom-4 left-4 inline-flex items-center gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--cream)] opacity-0 translate-y-1 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100"
         >
-          Ver peça
+          {p.compravel ? "Ver peça" : "Ver detalhes"}
           <span className="inline-block h-px w-6 bg-[color:var(--gold)]" />
         </span>
         <span
@@ -52,8 +52,14 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
             {p.name}
           </h3>
         </div>
-        <span className="shrink-0 font-display text-lg font-medium tabular-nums text-[color:var(--forest-deep)]">
-          {formatBRL(p.price)}
+        <span
+          className={`shrink-0 font-display font-medium text-[color:var(--forest-deep)] ${
+            p.precoConfirmado
+              ? "text-lg tabular-nums"
+              : "text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
+          }`}
+        >
+          {priceLabel(p)}
         </span>
       </div>
     </button>
@@ -62,7 +68,13 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
 
 export function FeaturedCarousel() {
   const { products } = useCatalog();
-  const featured = useMemo(() => featuredOf(products), [products]);
+  const featured = useMemo(() => {
+    const destaques = featuredOf(products);
+    // Destaques prontos para reserva primeiro; a seção nunca fica vazia
+    // enquanto o acervo estiver em conferência.
+    const base = destaques.length > 0 ? destaques : products;
+    return [...base].sort((a, b) => Number(b.compravel) - Number(a.compravel)).slice(0, 12);
+  }, [products]);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
