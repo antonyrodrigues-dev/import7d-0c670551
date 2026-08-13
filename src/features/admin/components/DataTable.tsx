@@ -49,7 +49,7 @@ export function ResponsiveDataTable<T>({
                 <th
                   key={c.key}
                   style={c.width ? { width: c.width } : undefined}
-                  className={`px-3 py-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] ${
+                  className={`truncate px-3 py-2 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] ${
                     c.align === "right"
                       ? "text-right"
                       : c.align === "center"
