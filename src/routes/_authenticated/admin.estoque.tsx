@@ -101,6 +101,7 @@ function EstoquePage() {
   } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [kitDialog, setKitDialog] = useState<InventoryItem | null>(null);
+  const [priceRuleOpen, setPriceRuleOpen] = useState(false);
 
   const runConfirm = async () => {
     if (!confirm) return;
@@ -145,9 +146,16 @@ function EstoquePage() {
         description="Cadastro, quantidade e destaque dos produtos."
         actions={
           canEdit && (
-            <Button onClick={() => setDrawer({ mode: "create" })}>
-              <Plus className="h-4 w-4 mr-1" /> Novo produto
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {isAdmin && (
+                <Button variant="outline" onClick={() => setPriceRuleOpen(true)}>
+                  Regra de preço
+                </Button>
+              )}
+              <Button onClick={() => setDrawer({ mode: "create" })}>
+                <Plus className="h-4 w-4 mr-1" /> Novo produto
+              </Button>
+            </div>
           )
         }
       />
