@@ -10,16 +10,32 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/features/catalog";
 import { useOrderFinance, usePermissions } from "../hooks";
+import { nextPaymentStates } from "../lib/paymentMachine";
 import { PAYMENT_STATES, RETURN_CONDITIONS } from "../types";
-import type { AdminOrder, PaymentState, ReturnCondition, ReturnItemInput } from "../types";
+import type {
+  AdminOrder,
+  LedgerEntry,
+  PaymentState,
+  ReturnCondition,
+  ReturnItemInput,
+} from "../types";
 
 export function OrderFinancePanel({ order }: { order: AdminOrder }) {
   const { isAdmin } = usePermissions();
-  const { state, payments, returns, alterarPagamento, registrarDevolucao, requiresAdmin } =
-    useOrderFinance(order.id);
-  const [aba, setAba] = useState<"pagamento" | "devolucao">("pagamento");
+  const {
+    state,
+    payments,
+    returns,
+    ledger,
+    saldoLedger,
+    alterarPagamento,
+    registrarDevolucao,
+    requiresAdmin,
+  } = useOrderFinance(order.id);
+  const [aba, setAba] = useState<"pagamento" | "devolucao" | "extrato">("pagamento");
 
-  const atual = payments[0]?.estado ?? "pendente";
+  // Fonte única: estado canônico gravado no pedido pelo servidor.
+  const atual: PaymentState = order.pagamentoEstado ?? "pendente";
 
   return (
     <section
@@ -27,7 +43,7 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
       aria-label="Financeiro do pedido"
     >
       <div className="flex flex-wrap gap-2">
-        {(["pagamento", "devolucao"] as const).map((k) => (
+        {(["pagamento", "devolucao", "extrato"] as const).map((k) => (
           <button
             key={k}
             onClick={() => setAba(k)}
@@ -39,7 +55,9 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
           >
             {k === "pagamento"
               ? `Pagamento (${payments.length})`
-              : `Devoluções (${returns.length})`}
+              : k === "devolucao"
+                ? `Devoluções (${returns.length})`
+                : `Extrato (${ledger.length})`}
           </button>
         ))}
         <span className="self-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -61,7 +79,7 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
           onApply={alterarPagamento}
           history={payments}
         />
-      ) : (
+      ) : aba === "devolucao" ? (
         <ReturnTab
           order={order}
           isAdmin={isAdmin}
@@ -69,8 +87,55 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
           onSubmit={registrarDevolucao}
           history={returns}
         />
+      ) : (
+        <LedgerTab isAdmin={isAdmin} entries={ledger} saldo={saldoLedger} />
       )}
     </section>
+  );
+}
+
+function LedgerTab({
+  isAdmin,
+  entries,
+  saldo,
+}: {
+  isAdmin: boolean;
+  entries: LedgerEntry[];
+  saldo: number;
+}) {
+  if (!isAdmin) {
+    return (
+      <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        Extrato financeiro visível apenas para o Administrador Master.
+      </p>
+    );
+  }
+  return (
+    <div className="mt-3 flex flex-col gap-2">
+      <p className="text-[11px] text-[color:var(--muted-foreground)]">
+        Livro-razão imutável — receitas nascem da confirmação de pagamento; estornos, de devolução
+        ou estorno. Saldo líquido:{" "}
+        <strong className="tabular-nums">{formatBRL(saldo)}</strong>
+      </p>
+      {entries.length === 0 ? (
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Nenhum lançamento para este pedido.
+        </p>
+      ) : (
+        <ol className="space-y-1">
+          {entries.map((l) => (
+            <li key={l.id} className="text-[11px] text-[color:var(--forest-deep)]">
+              <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                {new Date(l.criadoEm).toLocaleString("pt-BR")}
+              </span>{" "}
+              · {l.tipo === "receita" ? "Receita" : "Estorno"} ({l.origem}) ·{" "}
+              <span className="tabular-nums">{formatBRL(l.valor)}</span>
+              {l.metodo ? ` · ${l.metodo}` : ""}
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 
@@ -131,14 +196,19 @@ function PaymentTab({
       <div className="flex flex-wrap gap-2">
         {PAYMENT_STATES.map((s) => {
           const bloqueado = requiresAdmin(s.key) && !isAdmin;
+          const permitido = nextPaymentStates(atual).includes(s.key);
           return (
             <Button
               key={s.key}
               size="sm"
               variant={s.key === atual ? "default" : "outline"}
-              disabled={disabled || bloqueado || s.key === atual}
+              disabled={disabled || bloqueado || s.key === atual || !permitido}
               title={
-                bloqueado ? "Somente o Administrador Master pode aplicar este estado." : undefined
+                bloqueado
+                  ? "Somente o Administrador Master pode aplicar este estado."
+                  : !permitido && s.key !== atual
+                    ? `Transição não permitida a partir de "${atual}".`
+                    : undefined
               }
               onClick={() =>
                 void onApply(s.key, {
