@@ -182,9 +182,7 @@ export function PriceRuleDialog({
               checked={includeConfirmed}
               onChange={(e) => setIncludeConfirmed(e.target.checked)}
             />
-            <span>
-              Sobrescrever também os preços já confirmados manualmente nesta categoria.
-            </span>
+            <span>Sobrescrever também os preços já confirmados manualmente nesta categoria.</span>
           </label>
 
           <div className="border border-[color:var(--border)] bg-[color:var(--cream-deep)] px-4 py-3 text-sm">
