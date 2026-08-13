@@ -132,8 +132,7 @@ function CheckoutBlocksPanel() {
     <section className="mt-8 border border-[color:var(--border)] bg-[color:var(--cream)] p-4">
       <h2 className="text-[10px] tracking-luxe uppercase">Tentativas bloqueadas no checkout</h2>
       <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
-        Registro imutável das últimas recusas da proteção anti-abuso. O telefone aparece
-        mascarado.
+        Registro imutável das últimas recusas da proteção anti-abuso. O telefone aparece mascarado.
       </p>
 
       {loading ? (
