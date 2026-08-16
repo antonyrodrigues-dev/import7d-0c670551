@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { listPayments, registerPayment, requiresAdmin } from "../../services/ops/payments.service";
 import { listReturns, registerReturn } from "../../services/ops/returns.service";
 import { ledgerBalance, listLedger } from "../../services/ops/ledger.service";
+import { setShippingCost } from "../../services/ops/shipping.service";
 import { nextPaymentStates } from "../../lib/paymentMachine";
 import type {
   AdminAsyncState,
@@ -76,6 +77,18 @@ export function useOrderFinance(pedidoId: string | null) {
     [pedidoId, refresh],
   );
 
+  const definirFrete = useCallback(
+    async (valor: number) => {
+      if (!pedidoId) return false;
+      setState("saving");
+      const ok = await setShippingCost(pedidoId, valor);
+      if (ok) toast.success("Frete definido. Total do pedido recalculado.");
+      await refresh();
+      return ok;
+    },
+    [pedidoId, refresh],
+  );
+
   return {
     state,
     payments,
@@ -85,6 +98,7 @@ export function useOrderFinance(pedidoId: string | null) {
     refresh,
     alterarPagamento,
     registrarDevolucao,
+    definirFrete,
     requiresAdmin,
     nextPaymentStates,
   };
