@@ -139,6 +139,7 @@ function parseItens(raw: unknown) {
     entrega: "retirada" as "entrega" | "retirada",
     endereco: undefined as OrderAddress | undefined,
     frete: undefined as string | undefined,
+    freteValor: null as number | null,
     pagamento: { metodo: "—" } as OrderPayment,
     observacoes: undefined as string | undefined,
   };
