@@ -10,7 +10,18 @@ import { Label } from "@/components/ui/label";
 
 const REMEMBER_KEY = "7d-admin-remember-email";
 
+type AccessReason = "inativo" | "sem_cargo";
+
+const REASON_MESSAGE: Record<AccessReason, string> = {
+  inativo: "Seu acesso está inativo. Fale com o Administrador Master para reativar.",
+  sem_cargo: "Sua conta ainda não tem cargo atribuído. Aguarde a liberação do Administrador Master.",
+};
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { motivo?: AccessReason } => {
+    const motivo = search["motivo"];
+    return motivo === "inativo" || motivo === "sem_cargo" ? { motivo } : {};
+  },
   head: () => ({
     meta: [
       { title: "Acesso restrito — 7D IMPORTS" },
@@ -22,6 +33,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { motivo } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,10 +43,16 @@ function AuthPage() {
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Quem chegou aqui por bloqueio de acesso não deve ser reenviado ao painel.
+    if (motivo) return;
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) navigate({ to: "/admin" });
     });
-  }, [navigate]);
+  }, [navigate, motivo]);
+
+  useEffect(() => {
+    if (motivo) toast.error(REASON_MESSAGE[motivo]);
+  }, [motivo]);
 
   useEffect(() => {
     // Restaura apenas o e-mail (nunca a senha).

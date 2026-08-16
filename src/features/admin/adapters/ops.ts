@@ -64,6 +64,8 @@ export interface AdminOpsDataSource {
   // Pagamentos
   listPayments(pedidoId: string): Promise<PaymentEntry[]>;
   registerPayment(input: PaymentInput): Promise<void>;
+  /** Frete oficial do pedido — calculado e gravado pelo servidor. */
+  setShippingCost(pedidoId: string, valor: number): Promise<void>;
 
   // Ledger financeiro (imutável, restrito ao Admin Master pela RLS)
   listLedger(pedidoId: string): Promise<LedgerEntry[]>;
@@ -255,6 +257,14 @@ export const opsDataSource: AdminOpsDataSource = {
       p_estado: input.estado,
       p_comprovante_url: input.comprovanteUrl ?? undefined,
       p_observacao: input.observacao ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async setShippingCost(pedidoId, valor) {
+    const { error } = await supabase.rpc("definir_frete_pedido", {
+      p_pedido_id: pedidoId,
+      p_valor: valor,
     });
     if (error) throw error;
   },
