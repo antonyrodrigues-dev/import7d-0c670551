@@ -80,6 +80,10 @@ export interface AdminOrder {
   endereco?: string;
   enderecoDetalhe?: OrderAddress;
   frete?: string;
+  /** Estado oficial do frete: pendente, definido ou não se aplica (retirada). */
+  freteStatus?: "pendente" | "definido" | "nao_aplica";
+  /** Valor oficial do frete. `null` significa AINDA NÃO DEFINIDO — nunca 0. */
+  freteValor?: number | null;
   retirada?: OrderPickupSlot;
   pagamento: OrderPayment;
   status: OrderStatus;
