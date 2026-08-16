@@ -43,6 +43,7 @@ interface PedidoRow {
   atribuido_em?: string | null;
   pagamento_estado?: string | null;
   valor_devolvido?: number | string | null;
+  frete_status?: string | null;
   pedido_status_historico?:
     | {
         de: string | null;
