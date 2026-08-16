@@ -154,7 +154,7 @@ function parseItens(raw: unknown) {
     (o.entrega as {
       metodo?: string;
       endereco?: unknown;
-      frete?: { label?: string } | string | null;
+      frete?: { label?: string; cost?: number | null } | string | null;
     }) ?? {};
   // `pagamento` já foi gravado como string ("cartao") e como objeto.
   const pagamentoObj =
@@ -166,6 +166,10 @@ function parseItens(raw: unknown) {
     typeof entregaObj.frete === "string"
       ? entregaObj.frete
       : (entregaObj.frete?.label ?? undefined);
+  const freteValor =
+    typeof entregaObj.frete === "object" && entregaObj.frete !== null
+      ? (entregaObj.frete.cost ?? null)
+      : null;
   return {
     itens: produtos,
     nome: cliente.nome ?? "—",
@@ -174,6 +178,7 @@ function parseItens(raw: unknown) {
     entrega: entregaObj.metodo === "entrega" ? ("entrega" as const) : ("retirada" as const),
     endereco,
     frete,
+    freteValor,
     pagamento: {
       metodo: pagamentoObj.metodo ?? "—",
       parcelas: pagamentoObj.parcelas,
@@ -198,6 +203,8 @@ function mapRow(row: PedidoRow): AdminOrder {
     endereco: parsed.endereco?.linha,
     enderecoDetalhe: parsed.endereco,
     frete: parsed.frete,
+    freteStatus: (row.frete_status as AdminOrder["freteStatus"]) ?? "pendente",
+    freteValor: parsed.freteValor,
     pagamento: parsed.pagamento,
     status,
     pagamentoEstado: mapPaymentState(row.pagamento_estado),
@@ -249,7 +256,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { data, error } = await supabase
       .from("pedidos")
       .select(
-        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, atendente_nome, responsavel_id, atribuido_em, pagamento_estado, valor_devolvido, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
+        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, atendente_nome, responsavel_id, atribuido_em, pagamento_estado, valor_devolvido, frete_status, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
       )
       .order("criado_em", { ascending: false });
     if (error) throw error;
