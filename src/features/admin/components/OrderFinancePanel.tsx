@@ -113,6 +113,14 @@ function LedgerTab({
   entries: LedgerEntry[];
   saldo: number;
 }) {
+  isAdmin,
+  entries,
+  saldo,
+}: {
+  isAdmin: boolean;
+  entries: LedgerEntry[];
+  saldo: number;
+}) {
   if (!isAdmin) {
     return (
       <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
