@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/features/catalog";
 import { useOrderFinance, usePermissions } from "../hooks";
 import { nextPaymentStates } from "../lib/paymentMachine";
@@ -30,6 +31,7 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
     saldoLedger,
     alterarPagamento,
     registrarDevolucao,
+    definirFrete,
     requiresAdmin,
   } = useOrderFinance(order.id);
   const [aba, setAba] = useState<"pagamento" | "devolucao" | "extrato">("pagamento");
@@ -70,15 +72,23 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
       </div>
 
       {aba === "pagamento" ? (
-        <PaymentTab
-          order={order}
-          isAdmin={isAdmin}
-          atual={atual}
-          disabled={state === "saving" || state === "loading"}
-          requiresAdmin={requiresAdmin}
-          onApply={alterarPagamento}
-          history={payments}
-        />
+        <>
+          <ShippingBlock
+            order={order}
+            isAdmin={isAdmin}
+            disabled={state === "saving" || state === "loading"}
+            onSubmit={definirFrete}
+          />
+          <PaymentTab
+            order={order}
+            isAdmin={isAdmin}
+            atual={atual}
+            disabled={state === "saving" || state === "loading"}
+            requiresAdmin={requiresAdmin}
+            onApply={alterarPagamento}
+            history={payments}
+          />
+        </>
       ) : aba === "devolucao" ? (
         <ReturnTab
           order={order}
@@ -91,6 +101,64 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
         <LedgerTab isAdmin={isAdmin} entries={ledger} saldo={saldoLedger} />
       )}
     </section>
+  );
+}
+
+/**
+ * Frete oficial. Só o Admin Master define, e apenas antes da confirmação do
+ * pagamento. O total é recalculado no banco — nunca no navegador.
+ */
+function ShippingBlock({
+  order,
+  isAdmin,
+  disabled,
+  onSubmit,
+}: {
+  order: AdminOrder;
+  isAdmin: boolean;
+  disabled: boolean;
+  onSubmit: (valor: number) => Promise<boolean>;
+}) {
+  const [valor, setValor] = useState("");
+  if (order.entrega !== "entrega") return null;
+  const definido = order.freteStatus === "definido";
+  const editavel = isAdmin && !definido && order.pagamentoEstado !== "confirmado";
+  return (
+    <div className="mt-3 rounded-md border border-[color:var(--border)] p-3">
+      <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        Frete
+      </p>
+      <p className="mt-1 text-[11px] text-[color:var(--forest-deep)]">
+        {definido
+          ? `Definido: ${formatBRL(order.freteValor ?? 0)}`
+          : "Pendente — a combinar com o cliente."}
+      </p>
+      {editavel ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="0,00"
+            aria-label="Valor do frete"
+            className="h-8 w-32"
+          />
+          <Button
+            size="sm"
+            disabled={disabled || valor.trim() === ""}
+            onClick={async () => {
+              const ok = await onSubmit(Number(valor));
+              if (ok) setValor("");
+            }}
+          >
+            Definir frete
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
