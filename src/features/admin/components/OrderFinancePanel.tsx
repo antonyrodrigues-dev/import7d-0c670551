@@ -104,15 +104,65 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
   );
 }
 
-function LedgerTab({
+/**
+ * Frete oficial. Só o Admin Master define, e apenas antes da confirmação do
+ * pagamento. O total é recalculado no banco — nunca no navegador.
+ */
+function ShippingBlock({
+  order,
   isAdmin,
-  entries,
-  saldo,
+  disabled,
+  onSubmit,
 }: {
+  order: AdminOrder;
   isAdmin: boolean;
-  entries: LedgerEntry[];
-  saldo: number;
+  disabled: boolean;
+  onSubmit: (valor: number) => Promise<boolean>;
 }) {
+  const [valor, setValor] = useState("");
+  if (order.entrega !== "entrega") return null;
+  const definido = order.freteStatus === "definido";
+  const editavel = isAdmin && !definido && order.pagamentoEstado !== "confirmado";
+  return (
+    <div className="mt-3 rounded-md border border-[color:var(--border)] p-3">
+      <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        Frete
+      </p>
+      <p className="mt-1 text-[11px] text-[color:var(--forest-deep)]">
+        {definido
+          ? `Definido: ${formatBRL(order.freteValor ?? 0)}`
+          : "Pendente — a combinar com o cliente."}
+      </p>
+      {editavel ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="0,00"
+            aria-label="Valor do frete"
+            className="h-8 w-32"
+          />
+          <Button
+            size="sm"
+            disabled={disabled || valor.trim() === ""}
+            onClick={async () => {
+              const ok = await onSubmit(Number(valor));
+              if (ok) setValor("");
+            }}
+          >
+            Definir frete
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function LedgerTab({
   isAdmin,
   entries,
   saldo,
