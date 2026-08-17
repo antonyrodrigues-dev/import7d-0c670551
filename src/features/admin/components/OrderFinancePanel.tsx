@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/features/catalog";
 import { useOrderFinance, usePermissions } from "../hooks";
 import { nextPaymentStates } from "../lib/paymentMachine";
@@ -30,6 +31,7 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
     saldoLedger,
     alterarPagamento,
     registrarDevolucao,
+    definirFrete,
     requiresAdmin,
   } = useOrderFinance(order.id);
   const [aba, setAba] = useState<"pagamento" | "devolucao" | "extrato">("pagamento");
@@ -70,15 +72,23 @@ export function OrderFinancePanel({ order }: { order: AdminOrder }) {
       </div>
 
       {aba === "pagamento" ? (
-        <PaymentTab
-          order={order}
-          isAdmin={isAdmin}
-          atual={atual}
-          disabled={state === "saving" || state === "loading"}
-          requiresAdmin={requiresAdmin}
-          onApply={alterarPagamento}
-          history={payments}
-        />
+        <>
+          <ShippingBlock
+            order={order}
+            isAdmin={isAdmin}
+            disabled={state === "saving" || state === "loading"}
+            onSubmit={definirFrete}
+          />
+          <PaymentTab
+            order={order}
+            isAdmin={isAdmin}
+            atual={atual}
+            disabled={state === "saving" || state === "loading"}
+            requiresAdmin={requiresAdmin}
+            onApply={alterarPagamento}
+            history={payments}
+          />
+        </>
       ) : aba === "devolucao" ? (
         <ReturnTab
           order={order}
