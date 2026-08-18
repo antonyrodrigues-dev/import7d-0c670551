@@ -79,7 +79,12 @@ export function OrderDetailSheet({
             </div>
 
             <OrderTimeline order={order} />
-            <StatusActions order={order} canEdit={canEdit} onStatus={onStatus} />
+            <StatusActions
+              order={order}
+              canEdit={canEdit}
+              onStatus={onStatus}
+              onCancelWithRefund={onCancelWithRefund}
+            />
 
             <section className="mt-6 border-t border-[color:var(--border)] pt-4">
               <h3 className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -218,12 +223,15 @@ function StatusActions({
   order,
   canEdit,
   onStatus,
+  onCancelWithRefund,
 }: {
   order: AdminOrder;
   canEdit: boolean;
   onStatus: (id: string, status: OrderStatus) => Promise<void>;
+  onCancelWithRefund?: (id: string, motivo?: string) => Promise<void>;
 }) {
-  const next = nextStatuses(order.status);
+  const next = operationalNextStatuses(order.status);
+  const pago = order.pagamentoEstado === "confirmado";
   if (!canEdit) {
     return (
       <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -238,16 +246,17 @@ function StatusActions({
       </p>
     );
   }
-  const primaries = next.filter((s) => s !== "cancelado");
+  const primaries = next.filter((s: OrderStatus) => s !== "cancelado");
   const canCancel = next.includes("cancelado");
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      {primaries.map((s) => (
+    <div className="mt-3 space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+      {primaries.map((s: OrderStatus) => (
         <Button key={s} size="sm" onClick={() => void onStatus(order.id, s)}>
           Avançar para {statusLabel(s)}
         </Button>
       ))}
-      {canCancel && (
+      {canCancel && !pago && (
         <Button
           size="sm"
           variant="outline"
@@ -258,6 +267,30 @@ function StatusActions({
         >
           Cancelar pedido
         </Button>
+      )}
+      {canCancel && pago && onCancelWithRefund && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-red-600 hover:text-red-700"
+          onClick={() => {
+            if (
+              confirm(
+                `Cancelar o pedido ${order.numero} e estornar ${formatBRL(order.total)}?`,
+              )
+            ) {
+              void onCancelWithRefund(order.id, "Cancelamento administrativo");
+            }
+          }}
+        >
+          Cancelar com estorno
+        </Button>
+      )}
+      </div>
+      {order.status === "aguardando_pagamento" && (
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Confirmação de pagamento só pelo painel financeiro deste pedido.
+        </p>
       )}
     </div>
   );
