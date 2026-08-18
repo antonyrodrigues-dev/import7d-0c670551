@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { OrderFinancePanel } from "./OrderFinancePanel";
 import { StatusBadge } from "./StatusBadge";
-import { nextStatuses } from "../lib/statusMachine";
+import { operationalNextStatuses } from "../lib/statusMachine";
 import {
   deliveryLabel,
   formatDateTimeSP,
@@ -44,12 +44,14 @@ export function OrderDetailSheet({
   onOpenChange,
   canEdit,
   onStatus,
+  onCancelWithRefund,
 }: {
   order: AdminOrder | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canEdit: boolean;
   onStatus: (id: string, status: OrderStatus) => Promise<void>;
+  onCancelWithRefund?: (id: string, motivo?: string) => Promise<void>;
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
