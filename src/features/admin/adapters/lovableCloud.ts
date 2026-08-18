@@ -277,6 +277,16 @@ export const lovableCloudDataSource: AdminDataSource = {
     if (error) throw error;
   },
 
+  async cancelOrderWithRefund(id: string, motivo?: string): Promise<void> {
+    // Estorno no ledger + devolução de estoque + status cancelado numa única
+    // transação no banco. Exclusivo do Admin Master (validado no servidor).
+    const { error } = await supabase.rpc("cancelar_pedido_com_estorno", {
+      p_pedido_id: id,
+      p_motivo: motivo,
+    });
+    if (error) throw error;
+  },
+
   async listEmployees(): Promise<Employee[]> {
     const { data, error } = await supabase
       .from("user_roles")

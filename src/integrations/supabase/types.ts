@@ -1146,6 +1146,35 @@ export type Database = {
           valor_total: number
         }[]
       }
+      cancelar_pedido_com_estorno: {
+        Args: { p_motivo?: string; p_pedido_id: string }
+        Returns: {
+          atendente_nome: string | null
+          atribuido_em: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          pagamento_estado: string
+          responsavel_id: string | null
+          status: string
+          valor_devolvido: number
+          valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       checkout_guard_antiabuso: {
         Args: { p_telefone: string }
         Returns: undefined

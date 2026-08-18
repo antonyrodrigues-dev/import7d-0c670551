@@ -38,3 +38,15 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
 export function nextStatuses(from: OrderStatus): OrderStatus[] {
   return TRANSITIONS[from] ?? [];
 }
+
+/**
+ * Status que NÃO podem ser alcançados por ação operacional de status.
+ * `pagamento_confirmado` tem autoridade única: a RPC `registrar_pagamento`
+ * (módulo financeiro) — o banco recusa qualquer outro caminho.
+ */
+export const PAYMENT_ONLY_STATUSES: OrderStatus[] = ["pagamento_confirmado"];
+
+/** Próximos status oferecíveis na UI de operação (sem bypass de pagamento). */
+export function operationalNextStatuses(from: OrderStatus): OrderStatus[] {
+  return nextStatuses(from).filter((s) => !PAYMENT_ONLY_STATUSES.includes(s));
+}

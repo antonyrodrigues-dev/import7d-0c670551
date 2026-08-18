@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useOrdersStore } from "../../stores/orders";
-import { transitionOrderStatus } from "../../services/orders.service";
+import { cancelOrderWithRefund, transitionOrderStatus } from "../../services/orders.service";
 import type { OrderStatus } from "../../types";
 
 /**
@@ -18,5 +18,10 @@ export function useOrders(options: { auto?: boolean } = { auto: true }) {
   }, []);
   const setStatus = (id: string, status: OrderStatus, by?: string) =>
     transitionOrderStatus(id, status, by);
-  return { ...store, setStatus };
+  const cancelWithRefund = (id: string, motivo?: string) =>
+    cancelOrderWithRefund(id, motivo).then(
+      () => toast.success("Pedido cancelado e valor estornado."),
+      (e: Error) => toast.error(e.message),
+    );
+  return { ...store, setStatus, cancelWithRefund };
 }

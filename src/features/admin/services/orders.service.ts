@@ -9,6 +9,7 @@ import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
 import { notify } from "./notifications.service";
 import { validateStatusTransition } from "../lib/validators";
+import { PAYMENT_ONLY_STATUSES } from "../lib/statusMachine";
 import { ORDER_STATUSES } from "../constants";
 import { runAdminTransaction } from "../lib/transaction";
 import { createAdminError, handleAdminError } from "../lib/errors";
@@ -58,6 +59,28 @@ export async function transitionOrderStatus(
     return;
   }
   if (order.status === status) return;
+  if (PAYMENT_ONLY_STATUSES.includes(status)) {
+    handleAdminError(
+      createAdminError(
+        "validation",
+        "Confirmação de pagamento só pelo módulo financeiro do pedido.",
+        "orders.service.transition",
+      ),
+      "orders.service.transition",
+    );
+    return;
+  }
+  if (status === "cancelado" && order.pagamentoEstado === "confirmado") {
+    handleAdminError(
+      createAdminError(
+        "validation",
+        "Pedido pago exige estorno: use “Cancelar com estorno”.",
+        "orders.service.transition",
+      ),
+      "orders.service.transition",
+    );
+    return;
+  }
   inFlight.add(id);
 
   try {
@@ -135,6 +158,26 @@ export async function transitionOrderStatus(
         }
       },
     );
+  } finally {
+    inFlight.delete(id);
+  }
+}
+
+/**
+ * Cancelamento canônico de pedido PAGO: estorno no ledger + devolução de
+ * estoque + status, tudo numa transação do banco (Admin Master).
+ */
+export async function cancelOrderWithRefund(id: string, motivo?: string): Promise<void> {
+  if (inFlight.has(id)) return;
+  inFlight.add(id);
+  try {
+    await adminDataSource.cancelOrderWithRefund(id, motivo);
+    await useOrdersStore.getState().refresh();
+    void useInventoryStore.getState().refresh();
+    logger.security(`Pedido cancelado com estorno`, { orderId: id });
+    emit("order.cancelled", { orderId: id, numero: id, by: undefined });
+  } catch (e) {
+    throw handleAdminError(e, "orders.service.cancelWithRefund");
   } finally {
     inFlight.delete(id);
   }
