@@ -282,7 +282,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     // transação no banco. Exclusivo do Admin Master (validado no servidor).
     const { error } = await supabase.rpc("cancelar_pedido_com_estorno", {
       p_pedido_id: id,
-      p_motivo: motivo ?? null,
+      p_motivo: motivo,
     });
     if (error) throw error;
   },
