@@ -63,6 +63,8 @@ export interface AdminDataSource {
    * histórico. Ver RPC `transicionar_pedido` em migrations/2026-07-23.
    */
   transitionOrder(id: string, status: OrderStatus): Promise<void>;
+  /** Cancela pedido pago estornando o ledger na mesma transação (Admin Master). */
+  cancelOrderWithRefund(id: string, motivo?: string): Promise<void>;
 
   // Funcionários
   listEmployees(): Promise<Employee[]>;
