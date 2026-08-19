@@ -270,6 +270,7 @@ function PedidosPage() {
         onOpenChange={(open) => !open && setSelected(null)}
         canEdit={canEdit}
         onStatus={(id, next) => setStatus(id, next, responsavel)}
+        onCancelWithRefund={(id, motivo) => cancelWithRefund(id, motivo)}
       />
     </>
   );
