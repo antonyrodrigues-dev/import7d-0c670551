@@ -18,10 +18,11 @@ export function useOrders(options: { auto?: boolean } = { auto: true }) {
   }, []);
   const setStatus = (id: string, status: OrderStatus, by?: string) =>
     transitionOrderStatus(id, status, by);
-  const cancelWithRefund = (id: string, motivo?: string) =>
-    cancelOrderWithRefund(id, motivo).then(
+  const cancelWithRefund = async (id: string, motivo?: string): Promise<void> => {
+    await cancelOrderWithRefund(id, motivo).then(
       () => toast.success("Pedido cancelado e valor estornado."),
       (e: Error) => toast.error(e.message),
     );
+  };
   return { ...store, setStatus, cancelWithRefund };
 }

@@ -14,7 +14,8 @@ type AccessReason = "inativo" | "sem_cargo";
 
 const REASON_MESSAGE: Record<AccessReason, string> = {
   inativo: "Seu acesso está inativo. Fale com o Administrador Master para reativar.",
-  sem_cargo: "Sua conta ainda não tem cargo atribuído. Aguarde a liberação do Administrador Master.",
+  sem_cargo:
+    "Sua conta ainda não tem cargo atribuído. Aguarde a liberação do Administrador Master.",
 };
 
 export const Route = createFileRoute("/auth")({
