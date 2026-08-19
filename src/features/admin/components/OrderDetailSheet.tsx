@@ -276,7 +276,7 @@ function StatusActions({
           onClick={() => {
             if (
               confirm(
-                `Cancelar o pedido ${order.numero} e estornar ${formatBRL(order.total)}?`,
+                `Cancelar o pedido ${order.numero} e estornar ${formatBRL(order.valorTotal)}?`,
               )
             ) {
               void onCancelWithRefund(order.id, "Cancelamento administrativo");
