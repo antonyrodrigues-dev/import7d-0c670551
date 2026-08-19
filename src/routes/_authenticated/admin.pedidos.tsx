@@ -53,7 +53,7 @@ function withinPeriod(iso: string, period: PeriodFilter): boolean {
 }
 
 function PedidosPage() {
-  const { orders, state, error, refresh, setStatus } = useOrders();
+  const { orders, state, error, refresh, setStatus, cancelWithRefund } = useOrders();
   const { can, displayName, email } = usePermissions();
   const responsavel = (displayName ?? email ?? "").trim() || undefined;
   const canEdit = can("orders:edit");
