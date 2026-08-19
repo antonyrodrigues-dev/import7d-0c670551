@@ -251,41 +251,42 @@ function StatusActions({
   return (
     <div className="mt-3 space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-      {primaries.map((s: OrderStatus) => (
-        <Button key={s} size="sm" onClick={() => void onStatus(order.id, s)}>
-          Avançar para {statusLabel(s)}
-        </Button>
-      ))}
-      {canCancel && !pago && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-red-600 hover:text-red-700"
-          onClick={() => {
-            if (confirm(`Cancelar o pedido ${order.numero}?`)) void onStatus(order.id, "cancelado");
-          }}
-        >
-          Cancelar pedido
-        </Button>
-      )}
-      {canCancel && pago && onCancelWithRefund && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-red-600 hover:text-red-700"
-          onClick={() => {
-            if (
-              confirm(
-                `Cancelar o pedido ${order.numero} e estornar ${formatBRL(order.valorTotal)}?`,
-              )
-            ) {
-              void onCancelWithRefund(order.id, "Cancelamento administrativo");
-            }
-          }}
-        >
-          Cancelar com estorno
-        </Button>
-      )}
+        {primaries.map((s: OrderStatus) => (
+          <Button key={s} size="sm" onClick={() => void onStatus(order.id, s)}>
+            Avançar para {statusLabel(s)}
+          </Button>
+        ))}
+        {canCancel && !pago && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-red-600 hover:text-red-700"
+            onClick={() => {
+              if (confirm(`Cancelar o pedido ${order.numero}?`))
+                void onStatus(order.id, "cancelado");
+            }}
+          >
+            Cancelar pedido
+          </Button>
+        )}
+        {canCancel && pago && onCancelWithRefund && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-red-600 hover:text-red-700"
+            onClick={() => {
+              if (
+                confirm(
+                  `Cancelar o pedido ${order.numero} e estornar ${formatBRL(order.valorTotal)}?`,
+                )
+              ) {
+                void onCancelWithRefund(order.id, "Cancelamento administrativo");
+              }
+            }}
+          >
+            Cancelar com estorno
+          </Button>
+        )}
       </div>
       {order.status === "aguardando_pagamento" && (
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
