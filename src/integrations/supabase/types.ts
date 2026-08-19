@@ -1434,6 +1434,10 @@ export type Database = {
         }
       }
       reserva_minutos: { Args: never; Returns: number }
+      sincronizar_variacoes: {
+        Args: { p_observacao?: string; p_produto_id: string; p_variacoes: Json }
+        Returns: undefined
+      }
       status_job_reservas: { Args: never; Returns: Json }
       transferir_atendimento: {
         Args: {
