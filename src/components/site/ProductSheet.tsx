@@ -1,7 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Minus, Plus } from "lucide-react";
-import { priceLabel, type PublicProduct } from "@/features/catalog";
+import {
+  priceLabel,
+  productPublicState,
+  buildConsultaUrl,
+  type PublicProduct,
+} from "@/features/catalog";
+import { useStoreSettings } from "@/features/admin/hooks";
 import { useReserva } from "@/store/reserva";
 import { track } from "@/lib/analytics";
 import { SafeImage } from "./SafeImage";
