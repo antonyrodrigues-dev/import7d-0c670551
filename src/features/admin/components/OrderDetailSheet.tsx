@@ -6,6 +6,7 @@
  * passa pelo `setStatus` já mediado pelo hook `useOrders`.
  */
 
+import { useState } from "react";
 import { Check, XCircle } from "lucide-react";
 import { formatBRL } from "@/features/catalog";
 import {
@@ -16,7 +17,18 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { OrderFinancePanel } from "./OrderFinancePanel";
+import { OrderAuditTrail } from "./OrderAuditTrail";
 import { StatusBadge } from "./StatusBadge";
 import { operationalNextStatuses } from "../lib/statusMachine";
 import {
@@ -232,6 +244,7 @@ function StatusActions({
   onStatus: (id: string, status: OrderStatus) => Promise<void>;
   onCancelWithRefund?: (id: string, motivo?: string) => Promise<void>;
 }) {
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const next = operationalNextStatuses(order.status);
   const pago = order.pagamentoEstado === "confirmado";
   if (!canEdit) {
@@ -258,35 +271,15 @@ function StatusActions({
             Avançar para {statusLabel(s)}
           </Button>
         ))}
-        {canCancel && !pago && (
+        {canCancel && (
           <Button
             size="sm"
             variant="outline"
             className="text-red-600 hover:text-red-700"
-            onClick={() => {
-              if (confirm(`Cancelar o pedido ${order.numero}?`))
-                void onStatus(order.id, "cancelado");
-            }}
+            onClick={() => setConfirmCancel(true)}
+            disabled={pago && !onCancelWithRefund}
           >
-            Cancelar pedido
-          </Button>
-        )}
-        {canCancel && pago && onCancelWithRefund && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-red-600 hover:text-red-700"
-            onClick={() => {
-              if (
-                confirm(
-                  `Cancelar o pedido ${order.numero} e estornar ${formatBRL(order.valorTotal)}?`,
-                )
-              ) {
-                void onCancelWithRefund(order.id, "Cancelamento administrativo");
-              }
-            }}
-          >
-            Cancelar com estorno
+            {pago ? "Cancelar com estorno" : "Cancelar pedido"}
           </Button>
         )}
       </div>
@@ -295,6 +288,33 @@ function StatusActions({
           Confirmação de pagamento só pelo painel financeiro deste pedido.
         </p>
       )}
+      <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar o pedido {order.numero}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pago
+                ? `O pagamento confirmado de ${formatBRL(order.valorTotal)} será estornado no extrato e o estoque devolvido, tudo na mesma operação.`
+                : "As reservas de estoque deste pedido serão liberadas. A ação fica registrada na trilha de auditoria."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Manter pedido</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmCancel(false);
+                if (pago && onCancelWithRefund) {
+                  void onCancelWithRefund(order.id, "Cancelamento administrativo");
+                } else if (!pago) {
+                  void onStatus(order.id, "cancelado");
+                }
+              }}
+            >
+              {pago ? "Cancelar e estornar" : "Cancelar pedido"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
