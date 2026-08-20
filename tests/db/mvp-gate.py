@@ -66,6 +66,12 @@ def expect_error(name: str, fn) -> None:
         check(name, True, getattr(exc, "detail", str(exc))[:160])
 
 
+def fone(n: int) -> str:
+    """Telefone único por execução — o guard anti-abuso limita pedidos por cliente."""
+    base = int(uuid.UUID(TAG_UUID).int % 10000)
+    return f"(31) 9{base:04d}-{n:04d}"
+
+
 def create_user(tag: str, role: str | None) -> tuple[str, str]:
     """Operadores fixos do gate.
 
@@ -157,7 +163,7 @@ def run() -> int:
         produtos += [prod_a, prod_b, prod_c]
 
         # ───────────── Onda 1 — dinheiro ─────────────
-        p1 = rpc("criar_pedido", pedido_args(slug_a, "M", 1, "(31) 96666-0101"), ANON)[0]
+        p1 = rpc("criar_pedido", pedido_args(slug_a, "M", 1, fone(1)), ANON)[0]
         orders.append(p1["id"])
         rpc("transicionar_pedido", {"p_pedido_id": p1["id"], "p_novo_status": "em_atendimento"}, admin_tk)
         rpc("transicionar_pedido", {"p_pedido_id": p1["id"], "p_novo_status": "aguardando_pagamento"}, admin_tk)
@@ -226,7 +232,7 @@ def run() -> int:
         check("M-15 ajuste de estoque gera trilha de movimentação", len(mov) > 0, str(mov))
 
         # Reserva temporária existe para peça única (regra oficial da Onda 0).
-        p2 = rpc("criar_pedido", pedido_args(slug_c, "U", 1, "(31) 96666-0202"), ANON)[0]
+        p2 = rpc("criar_pedido", pedido_args(slug_c, "U", 1, fone(2)), ANON)[0]
         orders.append(p2["id"])
         vc = variacao(prod_c, "U")
         check("M-16 reserva do checkout reduz o disponível",
