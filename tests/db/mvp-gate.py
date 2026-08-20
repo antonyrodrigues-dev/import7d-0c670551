@@ -13,6 +13,7 @@ Todo dado criado é removido ao final.
 """
 import json
 import os
+import subprocess
 import sys
 import urllib.error
 import urllib.request
