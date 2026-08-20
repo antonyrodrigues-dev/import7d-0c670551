@@ -52,9 +52,7 @@ export function OrderAuditTrail({ orderId, open }: { orderId: string; open: bool
         <p className="mt-2 text-sm text-[color:var(--muted-foreground)]">Carregando registros…</p>
       )}
       {state === "error" && (
-        <p className="mt-2 text-sm text-red-600">
-          Não foi possível carregar a auditoria. {error}
-        </p>
+        <p className="mt-2 text-sm text-red-600">Não foi possível carregar a auditoria. {error}</p>
       )}
       {state === "success" && events.length === 0 && (
         <p className="mt-2 text-sm text-[color:var(--muted-foreground)]">
