@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArchiveRestore,
@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LOW_STOCK_THRESHOLD } from "@/features/admin/constants";
 import { useInventory, usePermissions } from "@/features/admin/hooks";
+import { useInventoryRealtime } from "@/features/admin/hooks/data/useInventoryRealtime";
+import { uploadProductImage } from "@/features/admin/services/inventory.service";
 import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality";
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
@@ -543,6 +545,8 @@ function ProductFormDrawer({
     initial ? draftFromItem(initial) : emptyDraft(),
   );
   const [imageInput, setImageInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [sizeInput, setSizeInput] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -560,6 +564,19 @@ function ProductFormDrawer({
     if (draft.imagens.includes(url)) return;
     patch({ imagens: [...draft.imagens, url] });
     setImageInput("");
+  };
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const url = await uploadProductImage(file, draft.slug || slugify(draft.nome));
+      patch({ imagens: [...draft.imagens, url] });
+      toast.success("Foto enviada.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeImage = (url: string) => patch({ imagens: draft.imagens.filter((i) => i !== url) });
