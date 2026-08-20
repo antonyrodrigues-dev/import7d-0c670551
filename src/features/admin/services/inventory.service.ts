@@ -18,6 +18,26 @@ export function listInventory(): Promise<InventoryItem[]> {
   });
 }
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+
+/** Envia uma foto de produto para o armazenamento e devolve a URL final. */
+export async function uploadProductImage(file: File, slug: string): Promise<string> {
+  try {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      throw new Error("Formato inválido. Use JPG, PNG, WEBP ou AVIF.");
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      throw new Error("Imagem acima de 5 MB.");
+    }
+    const url = await adminDataSource.uploadProductImage(file, slug);
+    logger.info(`Imagem enviada para o produto ${slug}`, { kind: "stock.adjust" });
+    return url;
+  } catch (e) {
+    throw handleAdminError(e, "inventory.service.uploadImage");
+  }
+}
+
 export async function createProduct(p: ProductWritePayload): Promise<string> {
   try {
     const id = await adminDataSource.createProduct(p);
