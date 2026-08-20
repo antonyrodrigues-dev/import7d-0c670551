@@ -91,6 +91,11 @@ function EstoquePage() {
   } = useInventory();
   const { can, isAdmin } = usePermissions();
   const { items: diagnostics, summary, refresh: refreshQuality } = useCatalogQuality();
+  // Estoque ao vivo: qualquer alteração no catálogo recarrega a lista.
+  useInventoryRealtime(() => {
+    void refresh();
+    void refreshQuality();
+  });
   const [qualityFilter, setQualityFilter] = useState<CatalogQualityFilter>("todos");
   const diagBySku = useMemo(() => new Map(diagnostics.map((d) => [d.sku, d])), [diagnostics]);
 
