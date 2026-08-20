@@ -185,7 +185,8 @@ def run() -> int:
         check("M-10 cancelamento lança estorno no ledger",
               any(l["tipo"] == "estorno" for l in lanc), str(lanc))
         check("M-11 saldo financeiro do pedido zera",
-              abs(sum(float(l["valor"]) * (1 if l["tipo"] == "receita" else -1) for l in lanc)) < 0.005, str(lanc))
+              abs(sum(float(l["valor"]) for l in lanc)) < 0.005, str(lanc))
+
         check("M-12 estoque volta para a prateleira",
               depois["disponivel"] >= antes["disponivel"], f"antes={antes} depois={depois}")
 
