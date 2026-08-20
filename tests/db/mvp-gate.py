@@ -67,19 +67,33 @@ def expect_error(name: str, fn) -> None:
 
 
 def create_user(tag: str, role: str | None) -> tuple[str, str]:
-    email = f"gate-mvp-{tag}-{TAG}@mvp.test"
-    password = uuid.uuid4().hex + "Aa1!"
-    uid = req("POST", "/auth/v1/admin/users",
-              {"email": email, "password": password, "email_confirm": True})["id"]
+    """Operadores fixos do gate.
+
+    Reutiliza sempre o mesmo e-mail: pedidos com lançamento financeiro imutável
+    referenciam o operador e impedem a exclusão do usuário, então reaproveitar
+    evita acúmulo de resíduo a cada execução.
+    """
+    email = f"gate-mvp-{tag}@mvp.test"
+    password = "GateMvp!" + uuid.uuid5(uuid.NAMESPACE_DNS, email).hex[:12]
+    existentes = req("GET", f"/auth/v1/admin/users?filter={email}").get("users", [])
+    atual = next((u for u in existentes if u.get("email") == email), None)
+    if atual:
+        uid = atual["id"]
+        req("PUT", f"/auth/v1/admin/users/{uid}", {"password": password, "email_confirm": True})
+    else:
+        uid = req("POST", "/auth/v1/admin/users",
+                  {"email": email, "password": password, "email_confirm": True})["id"]
     rest("POST", "/profiles?on_conflict=user_id",
          [{"user_id": uid, "nome": f"Gate MVP {tag}", "telefone": "31999990000", "status": "ativo"}],
          prefer="resolution=merge-duplicates")
+    rest("DELETE", f"/user_roles?user_id=eq.{uid}", prefer="return=minimal")
     if role:
         rest("POST", "/user_roles?on_conflict=user_id,role", [{"user_id": uid, "role": role}],
              prefer="resolution=merge-duplicates")
     token = req("POST", "/auth/v1/token?grant_type=password",
                 {"email": email, "password": password}, token=ANON)["access_token"]
     return uid, token
+
 
 
 def novo_produto(slug: str, tamanho: str, qtd: int, preco: float = 300,
