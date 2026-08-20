@@ -272,53 +272,40 @@ def run() -> int:
 
 
 def limpar(orders: list[str], produtos: list[str], users: list[str]) -> None:
-    """Limpeza profunda dos dados do gate.
+    """Limpeza dos dados do gate, via service role (RLS não se aplica).
 
-    O ledger financeiro é imutável por trigger — nem a API nem a conexão direta
-    apagam lançamentos. Por isso os pedidos do gate são cancelados com estorno
-    (saldo zero, fora de qualquer métrica) e apenas o restante é removido.
+    O ledger financeiro é imutável por trigger: pedidos com lançamento ficam
+    registrados como cancelados com estorno (saldo zero e fora das métricas).
+    Os operadores do gate são fixos e reaproveitados, então não são removidos.
     """
-    if not (orders or produtos or users):
-        return
+    del users  # operadores fixos permanecem entre execuções
 
-    def ids(xs: list[str]) -> str:
-        return ", ".join(f"'{x}'::uuid" for x in xs)
+    def apagar(path: str) -> None:
+        try:
+            rest("DELETE", path, prefer="return=minimal")
+        except urllib.error.HTTPError as exc:
+            print(f"AVISO limpeza: {path} -> {exc}", file=sys.stderr)
 
-    stmts: list[str] = []
     if orders:
+        lista = ",".join(orders)
         for table in ("reservas_estoque", "produto_movimentacoes", "pedido_eventos",
                       "pedido_status_historico", "pedido_pagamentos", "pedido_atendimentos"):
-            stmts.append(f"delete from public.{table} where pedido_id in ({ids(orders)});")
-        stmts.append("update public.pedidos set responsavel_id = null "
-                     f"where id in ({ids(orders)});")
-        stmts.append("delete from public.pedidos p "
-                     f"where p.id in ({ids(orders)}) and not exists ("
-                     "select 1 from public.financeiro_lancamentos f where f.pedido_id = p.id);")
+            apagar(f"/{table}?pedido_id=in.({lista})")
+        com_ledger = {
+            row["pedido_id"]
+            for row in rest("GET", f"/financeiro_lancamentos?select=pedido_id&pedido_id=in.({lista})")
+        }
+        removiveis = [o for o in orders if o not in com_ledger]
+        if removiveis:
+            apagar(f"/pedidos?id=in.({','.join(removiveis)})")
     if produtos:
-        stmts.append(f"delete from public.produto_kit_itens where kit_id in ({ids(produtos)}) "
-                     f"or componente_id in ({ids(produtos)});")
+        lista = ",".join(produtos)
+        apagar(f"/produto_kit_itens?kit_id=in.({lista})")
+        apagar(f"/produto_kit_itens?componente_id=in.({lista})")
         for table in ("produto_movimentacoes", "reservas_estoque", "produto_variacoes"):
-            stmts.append(f"delete from public.{table} where produto_id in ({ids(produtos)});")
-        stmts.append(f"delete from public.produtos where id in ({ids(produtos)});")
-    if users:
-        stmts.append(f"delete from public.user_roles where user_id in ({ids(users)});")
+            apagar(f"/{table}?produto_id=in.({lista})")
+        apagar(f"/produtos?id=in.({lista})")
 
-    db = os.environ.get("SUPABASE_DB_URL")
-    if db:
-        for stmt in stmts:
-            proc = subprocess.run([
-                "psql", db, "-v", "ON_ERROR_STOP=1", "-q", "-c", stmt,
-            ], capture_output=True, text=True)
-            if proc.returncode != 0:
-                print(f"AVISO limpeza: {proc.stderr.strip()[:200]}", file=sys.stderr)
-    else:
-        print("AVISO: SUPABASE_DB_URL ausente — limpeza parcial.", file=sys.stderr)
-
-    for uid in users:
-        try:
-            req("DELETE", f"/auth/v1/admin/users/{uid}")
-        except urllib.error.HTTPError as exc:
-            print(f"AVISO limpeza usuário: {exc}", file=sys.stderr)
 
 
 
