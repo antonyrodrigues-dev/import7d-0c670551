@@ -41,6 +41,27 @@ export type Database = {
         }
         Relationships: []
       }
+      configuracoes_loja: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          dados: Json
+          id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          dados?: Json
+          id?: string
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          dados?: Json
+          id?: string
+        }
+        Relationships: []
+      }
       financeiro_lancamentos: {
         Row: {
           competencia: string
@@ -1434,6 +1455,21 @@ export type Database = {
         }
       }
       reserva_minutos: { Args: never; Returns: number }
+      salvar_configuracoes_loja: {
+        Args: { p_dados: Json }
+        Returns: {
+          atualizado_em: string
+          atualizado_por: string | null
+          dados: Json
+          id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "configuracoes_loja"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       sincronizar_variacoes: {
         Args: { p_observacao?: string; p_produto_id: string; p_variacoes: Json }
         Returns: undefined
