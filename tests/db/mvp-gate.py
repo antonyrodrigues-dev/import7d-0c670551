@@ -82,12 +82,13 @@ def create_user(tag: str, role: str | None) -> tuple[str, str]:
     return uid, token
 
 
-def novo_produto(slug: str, tamanho: str, qtd: int, preco: float = 300) -> str:
+def novo_produto(slug: str, tamanho: str, qtd: int, preco: float = 300,
+                 modelo: str = "multi_variante") -> str:
     prod = rest("POST", "/produtos", [{
         "sku": slug.upper(), "slug": slug, "nome": slug.replace("-", " ").title(),
         "marca": "7D", "categoria": "Testes", "descricao": "gate mvp",
         "imagens": ["/gate.jpg"], "preco": preco, "ativo": True, "destaque": False,
-        "modelo_estoque": "multi_variante", "preco_status": "confirmado",
+        "modelo_estoque": modelo, "preco_status": "confirmado",
         "status_publicacao": "publicado", "quantidade_conferida": True,
     }])[0]
     rest("POST", "/produto_variacoes", [{
@@ -137,7 +138,9 @@ def run() -> int:
         prod_a = novo_produto(slug_a, "M", 5)
         slug_b = f"gate-mvp-b-{TAG}"
         prod_b = novo_produto(slug_b, "M", 4)
-        produtos += [prod_a, prod_b]
+        slug_c = f"gate-mvp-c-{TAG}"
+        prod_c = novo_produto(slug_c, "U", 1, modelo="peca_unica")
+        produtos += [prod_a, prod_b, prod_c]
 
         # ───────────── Onda 1 — dinheiro ─────────────
         p1 = rpc("criar_pedido", pedido_args(slug_a, "M", 1, "(31) 96666-0101"), ANON)[0]
