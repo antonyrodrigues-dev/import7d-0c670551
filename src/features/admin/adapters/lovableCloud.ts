@@ -600,52 +600,60 @@ function toProductInsert(p: ProductWritePayload) {
 }
 
 /**
- * Sincroniza a lista de variações desejada com o estado atual do banco:
- * upsert nas presentes, delete nas ausentes.
+ * Sincroniza as variações do produto numa ÚNICA transação do banco
+ * (`sincronizar_variacoes`): cria tamanhos novos, remove ausentes — recusando
+ * remoção com reserva ativa — e ajusta quantidades pela rotina auditada.
+ * Nada é calculado no cliente: sem produto salvo "pela metade".
  */
 async function syncVariations(
   productId: string,
   desired: { tamanho: string; quantidade: number }[],
 ): Promise<void> {
-  const { data: existing, error: readErr } = await supabase
-    .from("produto_variacoes")
-    .select("id, tamanho, quantidade")
-    .eq("produto_id", productId);
-  if (readErr) throw readErr;
+  const payload = desired.map((d) => ({
+    tamanho: d.tamanho.trim().toUpperCase(),
+    quantidade: Math.max(0, Math.floor(d.quantidade)),
+  }));
+  const { error } = await supabase.rpc("sincronizar_variacoes", {
+    p_produto_id: productId,
+    p_variacoes: payload as unknown as never,
+    p_observacao: "Ajuste via edição de produto",
+  });
+  if (error) throw error;
+}
 
-  const existingBySize = new Map(existing?.map((e) => [e.tamanho, e]) ?? []);
-  const desiredSizes = new Set(desired.map((d) => d.tamanho));
+/**
+ * Realtime de catálogo/estoque: um canal por sessão com contagem de
+ * referências, no mesmo padrão do canal operacional.
+ */
+const INVENTORY_TABLES = ["produtos", "produto_variacoes", "produto_movimentacoes"];
+const inventoryListeners = new Set<() => void>();
+let inventoryChannel: ReturnType<typeof supabase.channel> | null = null;
 
-  // Deletar tamanhos removidos.
-  const toDelete = (existing ?? []).filter((e) => !desiredSizes.has(e.tamanho)).map((e) => e.id);
-  if (toDelete.length > 0) {
-    const { error } = await supabase.from("produto_variacoes").delete().in("id", toDelete);
-    if (error) throw error;
+function subscribeSharedInventory(onChange: () => void): () => void {
+  inventoryListeners.add(onChange);
+  if (!inventoryChannel) {
+    let ch = supabase.channel("7d-admin-inventory");
+    for (const table of INVENTORY_TABLES) {
+      ch = ch.on("postgres_changes", { event: "*", schema: "public", table }, () =>
+        inventoryListeners.forEach((l) => l()),
+      );
+    }
+    inventoryChannel = ch.subscribe();
   }
+  return () => {
+    inventoryListeners.delete(onChange);
+    if (inventoryListeners.size === 0 && inventoryChannel) {
+      void supabase.removeChannel(inventoryChannel);
+      inventoryChannel = null;
+    }
+  };
+}
 
-  // Upsert tamanhos desejados.
-  for (const d of desired) {
-    const current = existingBySize.get(d.tamanho);
-    const qty = Math.max(0, Math.floor(d.quantidade));
-    if (!current) {
-      // Cria a variação com estoque zero — quantidade > 0 vai via RPC abaixo,
-      // que registra a movimentação de auditoria.
-      const { error } = await supabase
-        .from("produto_variacoes")
-        .insert({ produto_id: productId, tamanho: d.tamanho, quantidade: 0 });
-      if (error) throw error;
-    }
-    // Ajusta o estoque via RPC (idempotente: se já está no valor desejado,
-    // o delta é zero e nada é gravado em movimentações).
-    if (!current || current.quantidade !== qty) {
-      const { error } = await supabase.rpc("ajustar_estoque", {
-        p_produto_id: productId,
-        p_tamanho: d.tamanho,
-        p_tipo: "ajuste",
-        p_qty: qty,
-        p_observacao: "Ajuste via edição de produto",
-      });
-      if (error) throw error;
-    }
+/** Encerra o canal de estoque em troca de conta / logout. */
+export function teardownInventoryRealtime(): void {
+  inventoryListeners.clear();
+  if (inventoryChannel) {
+    void supabase.removeChannel(inventoryChannel);
+    inventoryChannel = null;
   }
 }
