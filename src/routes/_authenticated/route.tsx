@@ -29,6 +29,12 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/auth", search: { motivo: "sem_cargo" } });
     }
 
+    // Último acesso: carimbo de presença do operador (não bloqueia a entrada).
+    void supabase
+      .from("profiles")
+      .update({ ultimo_acesso: new Date().toISOString() })
+      .eq("user_id", userId);
+
     return { user: data.user, roles: cargos.map((c) => c.role) };
   },
   component: () => <Outlet />,
