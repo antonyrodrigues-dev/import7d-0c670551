@@ -730,11 +730,11 @@ function ProductFormDrawer({
 
             <fieldset className="md:col-span-2">
               <legend className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Imagens (URLs)
+                Imagens
               </legend>
               <p className="text-[11px] text-[color:var(--muted-foreground)]">
-                Cole a URL pública da imagem. Upload direto será liberado quando o workspace
-                habilitar buckets públicos.
+                Envie a foto do arquivo (JPG, PNG, WEBP ou AVIF · até 5 MB) ou cole uma URL
+                existente.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {draft.imagens.map((url) => (
