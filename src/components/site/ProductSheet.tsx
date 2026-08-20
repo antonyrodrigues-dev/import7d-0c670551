@@ -340,7 +340,6 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                     </a>
                   )}
                 </div>
-
               </div>
             </div>
           </motion.aside>

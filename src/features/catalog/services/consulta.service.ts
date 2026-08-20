@@ -112,11 +112,7 @@ export function buildConsultaMessage(p: PublicProduct, size?: string | null): st
 }
 
 /** Link de consulta no WhatsApp OFICIAL da loja (número vem das Configurações). */
-export function buildConsultaUrl(
-  whatsapp: string,
-  p: PublicProduct,
-  size?: string | null,
-): string {
+export function buildConsultaUrl(whatsapp: string, p: PublicProduct, size?: string | null): string {
   const digits = String(whatsapp ?? "").replace(/\D/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(buildConsultaMessage(p, size))}`;
 }
