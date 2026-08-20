@@ -244,34 +244,48 @@ def run() -> int:
             rest("DELETE", "/configuracoes_loja?dados->>_gate_mvp=eq." + TAG, prefer="return=minimal")
             check("M-22 configuração restaurada sem resíduo do gate", True)
     finally:
-        for oid in orders:
-            for table in ("reservas_estoque", "produto_movimentacoes", "pedido_eventos",
-                          "pedido_status_historico", "pedido_pagamentos", "pedido_atendimentos",
-                          "financeiro_lancamentos"):
-                try:
-                    rest("DELETE", f"/{table}?pedido_id=eq.{oid}", prefer="return=minimal")
-                except urllib.error.HTTPError as exc:
-                    print(f"AVISO limpeza {table}: {exc}", file=sys.stderr)
-            try:
-                rest("DELETE", f"/pedidos?id=eq.{oid}", prefer="return=minimal")
-            except urllib.error.HTTPError as exc:
-                print(f"AVISO limpeza pedidos: {exc}", file=sys.stderr)
-        for pid in produtos:
-            for table in ("produto_movimentacoes", "reservas_estoque", "produto_variacoes"):
-                try:
-                    rest("DELETE", f"/{table}?produto_id=eq.{pid}", prefer="return=minimal")
-                except urllib.error.HTTPError as exc:
-                    print(f"AVISO limpeza {table}: {exc}", file=sys.stderr)
-            try:
-                rest("DELETE", f"/produtos?id=eq.{pid}", prefer="return=minimal")
-            except urllib.error.HTTPError as exc:
-                print(f"AVISO limpeza produtos: {exc}", file=sys.stderr)
-        for uid in users:
-            try:
-                req("DELETE", f"/auth/v1/admin/users/{uid}")
-            except urllib.error.HTTPError as exc:
-                print(f"AVISO limpeza usuário: {exc}", file=sys.stderr)
+        limpar(orders, produtos, users)
 
+    return 0
+
+
+def limpar(orders: list[str], produtos: list[str], users: list[str]) -> None:
+    """Limpeza profunda. O ledger é imutável pela API, então usa conexão direta."""
+    if not (orders or produtos or users):
+        return
+    ids = lambda xs: ", ".join(f"'{x}'::uuid" for x in xs) or "null"
+    stmts = ["set session_replication_role = replica;"]
+    if orders:
+        for table in ("reservas_estoque", "produto_movimentacoes", "pedido_eventos",
+                      "pedido_status_historico", "pedido_pagamentos", "pedido_atendimentos",
+                      "pedido_devolucao_itens", "financeiro_lancamentos"):
+            col = "devolucao_id" if table == "pedido_devolucao_itens" else "pedido_id"
+            if col == "pedido_id":
+                stmts.append(f"delete from public.{table} where pedido_id in ({ids(orders)});")
+        stmts.append(f"delete from public.pedido_devolucoes where pedido_id in ({ids(orders)});")
+        stmts.append(f"delete from public.pedidos where id in ({ids(orders)});")
+    if produtos:
+        for table in ("produto_kit_itens",):
+            stmts.append(f"delete from public.{table} where kit_id in ({ids(produtos)}) "
+                         f"or componente_id in ({ids(produtos)});")
+        for table in ("produto_movimentacoes", "reservas_estoque", "produto_variacoes"):
+            stmts.append(f"delete from public.{table} where produto_id in ({ids(produtos)});")
+        stmts.append(f"delete from public.produtos where id in ({ids(produtos)});")
+    if users:
+        stmts.append(f"delete from public.user_roles where user_id in ({ids(users)});")
+        stmts.append(f"delete from public.profiles where user_id in ({ids(users)});")
+        stmts.append(f"delete from auth.users where id in ({ids(users)});")
+    db = os.environ.get("SUPABASE_DB_URL")
+    if not db:
+        print("AVISO: SUPABASE_DB_URL ausente — limpeza parcial.", file=sys.stderr)
+        return
+    proc = subprocess.run(["psql", db, "-v", "ON_ERROR_STOP=1", "-q", "-c", " ".join(stmts)],
+                          capture_output=True, text=True)
+    if proc.returncode != 0:
+        print(f"AVISO limpeza: {proc.stderr[:400]}", file=sys.stderr)
+
+
+def report() -> int:
     falhas = 0
     for nome, ok, detalhe in results:
         print(f"{'PASS' if ok else 'FAIL'}  {nome}  {detalhe if not ok else ''}".rstrip())
@@ -283,4 +297,9 @@ def run() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(run())
+    try:
+        run()
+    except Exception as exc:  # falha dura também precisa reprovar o gate com relatório
+        check("ERRO FATAL", False, str(exc)[:300])
+    sys.exit(report())
+
