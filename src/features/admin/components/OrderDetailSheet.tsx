@@ -156,6 +156,8 @@ export function OrderDetailSheet({
                 ))}
               </ol>
             </section>
+
+            <OrderAuditTrail orderId={order.id} open={open} />
           </>
         )}
       </SheetContent>
