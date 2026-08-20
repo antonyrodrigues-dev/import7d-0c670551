@@ -298,31 +298,49 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                 </div>
 
                 <div className="shrink-0 border-t border-[color:var(--border)]/60 bg-[color:var(--cream)] px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:px-12 lg:py-6">
-                  <button
-                    onClick={() => {
-                      if (addingRef.current || !canAdd) return;
-                      addingRef.current = true;
-                      addItem(product, size, qty);
-                      track({
-                        name: "reserve_add",
-                        slug: product.slug,
-                        size,
-                        quantity: qty,
-                        price: product.price,
-                      });
-                      onOpenChange(false);
-                    }}
-                    data-testid="product-add"
-                    disabled={!canAdd}
-                    className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {canAdd
-                      ? "Adicionar à reserva"
-                      : product.compravel
-                        ? "Indisponível"
-                        : "Em conferência"}
-                  </button>
+                  {canAdd ? (
+                    <button
+                      onClick={() => {
+                        if (addingRef.current) return;
+                        addingRef.current = true;
+                        addItem(product, size, qty);
+                        track({
+                          name: "reserve_add",
+                          slug: product.slug,
+                          size,
+                          quantity: qty,
+                          price: product.price,
+                        });
+                        onOpenChange(false);
+                      }}
+                      data-testid="product-add"
+                      className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98]"
+                    >
+                      Adicionar à reserva
+                    </button>
+                  ) : status.state === "esgotado" ? (
+                    <button
+                      type="button"
+                      disabled
+                      data-testid="product-add"
+                      className="inline-flex h-14 w-full cursor-not-allowed items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] opacity-50"
+                    >
+                      Indisponível
+                    </button>
+                  ) : (
+                    <a
+                      href={consultaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="product-consulta"
+                      onClick={() => track({ name: "consulta_whatsapp", slug: product.slug })}
+                      className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98]"
+                    >
+                      {status.cta}
+                    </a>
+                  )}
                 </div>
+
               </div>
             </div>
           </motion.aside>
