@@ -83,6 +83,10 @@ export interface AdminDataSource {
     kind: MovementKindDB,
     observacao?: string,
   ): Promise<void>;
+  /** Envia a foto para o armazenamento privado e devolve a URL utilizável. */
+  uploadProductImage(file: File, slug: string): Promise<string>;
+  /** Assina mudanças de catálogo/estoque em tempo real. Devolve o cancelador. */
+  subscribeInventory(onChange: () => void): () => void;
 
   // Kits — composição e disponibilidade derivada
   /** Composição do kit agrupada por tamanho, já com o saldo real das peças. */
