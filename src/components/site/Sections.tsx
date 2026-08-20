@@ -4,6 +4,12 @@ import { FeaturedCarousel } from "./FeaturedCarousel";
 import catalogBg from "@/assets/catalog-bg.asset.json";
 import { useReserva } from "@/store/reserva";
 import { BRAND } from "@/config/attendants";
+import { useStoreSettings } from "@/features/admin/hooks";
+import {
+  buildStoreWhatsAppUrl,
+  formatBusinessHoursSummary,
+} from "@/features/admin/services/settings.service";
+import { formatPhoneBR } from "@/lib/masks";
 import { Instagram, MapPin, MessageCircle, Clock, ArrowUpRight } from "lucide-react";
 
 export function FeaturedSection() {
@@ -127,29 +133,38 @@ export function DiferenciaisSection() {
 
 export function AtendimentoSection() {
   const setOpen = useReserva((s) => s.setOpen);
+  // Contatos, endereço e horário vêm das Configurações da loja (banco).
+  const settings = useStoreSettings();
+  const endereco = settings.endereco || BRAND.address.line;
   const channels = [
     {
       icon: MessageCircle,
       label: "WhatsApp",
-      value: BRAND.whatsapp.label,
-      href: BRAND.whatsapp.url,
+      value: formatPhoneBR(settings.whatsapp) || BRAND.whatsapp.label,
+      href: buildStoreWhatsAppUrl(settings.whatsapp),
       external: true,
     },
     {
       icon: Instagram,
       label: "Instagram",
-      value: BRAND.instagram.handle,
-      href: BRAND.instagram.url,
+      value: settings.instagram || BRAND.instagram.handle,
+      href: `https://instagram.com/${(settings.instagram || BRAND.instagram.handle).replace("@", "")}`,
       external: true,
     },
     {
       icon: MapPin,
       label: "Atelier",
-      value: BRAND.address.line,
-      href: BRAND.address.mapsUrl,
+      value: endereco,
+      href: `https://maps.google.com/?q=${encodeURIComponent(endereco)}`,
       external: true,
     },
-    { icon: Clock, label: "Horário", value: BRAND.hours, href: null, external: false },
+    {
+      icon: Clock,
+      label: "Horário",
+      value: formatBusinessHoursSummary(settings.businessHours) || BRAND.hours,
+      href: null,
+      external: false,
+    },
   ];
 
   return (
