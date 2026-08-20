@@ -11,7 +11,8 @@ export type AnalyticsEvent =
   | { name: "reserve_qty_change"; slug: string; size: string; from: number; to: number }
   | { name: "reserve_remove"; slug: string; size: string }
   | { name: "checkout_step"; step: number }
-  | { name: "checkout_whatsapp"; total: number; items: number };
+  | { name: "checkout_whatsapp"; total: number; items: number }
+  | { name: "consulta_whatsapp"; slug: string };
 
 interface WithDataLayer {
   dataLayer?: Array<Record<string, unknown>>;
