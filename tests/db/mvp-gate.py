@@ -258,39 +258,54 @@ def run() -> int:
 
 
 def limpar(orders: list[str], produtos: list[str], users: list[str]) -> None:
-    """Limpeza profunda. O ledger é imutável pela API, então usa conexão direta."""
+    """Limpeza profunda dos dados do gate.
+
+    O ledger financeiro é imutável por trigger — nem a API nem a conexão direta
+    apagam lançamentos. Por isso os pedidos do gate são cancelados com estorno
+    (saldo zero, fora de qualquer métrica) e apenas o restante é removido.
+    """
     if not (orders or produtos or users):
         return
-    ids = lambda xs: ", ".join(f"'{x}'::uuid" for x in xs) or "null"
-    stmts = ["set session_replication_role = replica;"]
+
+    def ids(xs: list[str]) -> str:
+        return ", ".join(f"'{x}'::uuid" for x in xs)
+
+    stmts: list[str] = []
     if orders:
         for table in ("reservas_estoque", "produto_movimentacoes", "pedido_eventos",
-                      "pedido_status_historico", "pedido_pagamentos", "pedido_atendimentos",
-                      "pedido_devolucao_itens", "financeiro_lancamentos"):
-            col = "devolucao_id" if table == "pedido_devolucao_itens" else "pedido_id"
-            if col == "pedido_id":
-                stmts.append(f"delete from public.{table} where pedido_id in ({ids(orders)});")
-        stmts.append(f"delete from public.pedido_devolucoes where pedido_id in ({ids(orders)});")
-        stmts.append(f"delete from public.pedidos where id in ({ids(orders)});")
+                      "pedido_status_historico", "pedido_pagamentos", "pedido_atendimentos"):
+            stmts.append(f"delete from public.{table} where pedido_id in ({ids(orders)});")
+        stmts.append("update public.pedidos set responsavel_id = null "
+                     f"where id in ({ids(orders)});")
+        stmts.append("delete from public.pedidos p "
+                     f"where p.id in ({ids(orders)}) and not exists ("
+                     "select 1 from public.financeiro_lancamentos f where f.pedido_id = p.id);")
     if produtos:
-        for table in ("produto_kit_itens",):
-            stmts.append(f"delete from public.{table} where kit_id in ({ids(produtos)}) "
-                         f"or componente_id in ({ids(produtos)});")
+        stmts.append(f"delete from public.produto_kit_itens where kit_id in ({ids(produtos)}) "
+                     f"or componente_id in ({ids(produtos)});")
         for table in ("produto_movimentacoes", "reservas_estoque", "produto_variacoes"):
             stmts.append(f"delete from public.{table} where produto_id in ({ids(produtos)});")
         stmts.append(f"delete from public.produtos where id in ({ids(produtos)});")
     if users:
         stmts.append(f"delete from public.user_roles where user_id in ({ids(users)});")
-        stmts.append(f"delete from public.profiles where user_id in ({ids(users)});")
-        stmts.append(f"delete from auth.users where id in ({ids(users)});")
+
     db = os.environ.get("SUPABASE_DB_URL")
-    if not db:
+    if db:
+        for stmt in stmts:
+            proc = subprocess.run([
+                "psql", db, "-v", "ON_ERROR_STOP=1", "-q", "-c", stmt,
+            ], capture_output=True, text=True)
+            if proc.returncode != 0:
+                print(f"AVISO limpeza: {proc.stderr.strip()[:200]}", file=sys.stderr)
+    else:
         print("AVISO: SUPABASE_DB_URL ausente — limpeza parcial.", file=sys.stderr)
-        return
-    proc = subprocess.run(["psql", db, "-v", "ON_ERROR_STOP=1", "-q", "-c", " ".join(stmts)],
-                          capture_output=True, text=True)
-    if proc.returncode != 0:
-        print(f"AVISO limpeza: {proc.stderr[:400]}", file=sys.stderr)
+
+    for uid in users:
+        try:
+            req("DELETE", f"/auth/v1/admin/users/{uid}")
+        except urllib.error.HTTPError as exc:
+            print(f"AVISO limpeza usuário: {exc}", file=sys.stderr)
+
 
 
 def report() -> int:
