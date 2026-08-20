@@ -46,7 +46,7 @@ describe("mensagem e link de WhatsApp — fonte única do pedido", () => {
 
   it("o número oficial da loja substitui o atendente padrão", () => {
     const url = buildWhatsAppUrl(buildOrder(baseInput), "(54) 98888-7777");
-    expect(url.startsWith("https://wa.me/5498887777?text=")).toBe(true);
+    expect(url.startsWith("https://wa.me/54988887777?text=")).toBe(true);
   });
 
   it("número inválido cai no fallback e nunca gera link quebrado", () => {
