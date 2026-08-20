@@ -15,6 +15,16 @@ import type {
   OrderStatus,
 } from "../types";
 
+/** Um evento da trilha imutável do pedido (`pedido_eventos`). */
+export interface OrderAuditEntry {
+  id: string;
+  tipo: string;
+  origem: string;
+  criadoEm: string;
+  porUsuario?: string;
+  detalhe: Record<string, unknown>;
+}
+
 export interface AdminIdentity {
   userId: string | null;
   roles: EmployeeRole[];
