@@ -104,7 +104,7 @@ const INPUT_CLASS =
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ConfiguracoesPage() {
-  const { settings, dirty, patch, reset, commit } = useAdminSettings();
+  const { settings, dirty, patch, reset, save: persist, saving } = useAdminSettings();
   const { can } = usePermissions();
 
   // Validação por campo — reflete no botão Salvar e nas mensagens inline.
@@ -127,13 +127,17 @@ function ConfiguracoesPage() {
 
   const canEdit = can("settings:edit");
 
-  const save = () => {
+  const save = async () => {
     if (hasErrors) {
       toast.error("Corrija os campos destacados antes de salvar.");
       return;
     }
-    commit();
-    toast.success("Configurações salvas.");
+    try {
+      await persist();
+      toast.success("Configurações salvas para toda a loja.");
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível salvar as configurações.");
+    }
   };
 
   return (
@@ -144,11 +148,14 @@ function ConfiguracoesPage() {
         description="Centro operacional da loja. Identidade visual (Hero, tipografia, cores) permanece intocada por design."
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={reset} disabled={!dirty}>
+            <Button variant="outline" onClick={reset} disabled={saving}>
               Restaurar padrão
             </Button>
-            <Button onClick={save} disabled={!dirty || !canEdit || hasErrors}>
-              Salvar
+            <Button
+              onClick={() => void save()}
+              disabled={!dirty || !canEdit || hasErrors || saving}
+            >
+              {saving ? "Salvando…" : "Salvar"}
             </Button>
           </div>
         }
@@ -158,7 +165,7 @@ function ConfiguracoesPage() {
         className="flex flex-col gap-5"
         onSubmit={(e) => {
           e.preventDefault();
-          save();
+          void save();
         }}
       >
         <ContactSection settings={settings} errors={errors} patch={patch} disabled={!canEdit} />

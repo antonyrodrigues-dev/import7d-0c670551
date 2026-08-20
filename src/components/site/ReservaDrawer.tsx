@@ -1541,9 +1541,17 @@ function StepRevisao({
           </div>
         )}
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-[10px] tracking-luxe uppercase">Valor total</span>
+          <span className="text-[10px] tracking-luxe uppercase">
+            {freight.cost == null ? "Valor total (sem frete)" : "Valor total"}
+          </span>
           <span className="font-display text-xl tabular-nums">{formatBRL(total)}</span>
         </div>
+        {freight.cost == null && (
+          <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
+            O frete ainda não está definido — será combinado no atendimento e somado ao total
+            oficial do pedido.
+          </p>
+        )}
         {installmentInfo && installmentInfo.count > 1 && (
           <div className="mt-1 flex items-baseline justify-between text-[color:var(--muted-foreground)]">
             <span className="text-[10px] tracking-luxe uppercase">Valor por parcela</span>
