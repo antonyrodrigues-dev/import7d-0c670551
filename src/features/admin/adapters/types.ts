@@ -65,6 +65,8 @@ export interface AdminDataSource {
   transitionOrder(id: string, status: OrderStatus): Promise<void>;
   /** Cancela pedido pago estornando o ledger na mesma transação (Admin Master). */
   cancelOrderWithRefund(id: string, motivo?: string): Promise<void>;
+  /** Trilha imutável de eventos do pedido (somente leitura, gravada pelo banco). */
+  listOrderEvents(orderId: string): Promise<OrderAuditEntry[]>;
 
   // Funcionários
   listEmployees(): Promise<Employee[]>;
