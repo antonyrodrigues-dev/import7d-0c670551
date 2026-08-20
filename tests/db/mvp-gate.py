@@ -208,18 +208,21 @@ def run() -> int:
         mov = rest("GET", f"/produto_movimentacoes?produto_id=eq.{prod_b}&select=tipo,quantidade")
         check("M-15 ajuste de estoque gera trilha de movimentação", len(mov) > 0, str(mov))
 
-        p2 = rpc("criar_pedido", pedido_args(slug_b, "M", 1, "(31) 96666-0202"), ANON)[0]
+        # Reserva temporária existe para peça única (regra oficial da Onda 0).
+        p2 = rpc("criar_pedido", pedido_args(slug_c, "U", 1, "(31) 96666-0202"), ANON)[0]
         orders.append(p2["id"])
+        vc = variacao(prod_c, "U")
         check("M-16 reserva do checkout reduz o disponível",
-              variacao(prod_b, "M")["disponivel"] == 5, str(variacao(prod_b, "M")))
+              vc["disponivel"] == 0 and vc["quantidade_reservada"] == 1, str(vc))
 
         expect_error("M-17 tamanho com reserva ativa não pode ser removido",
                      lambda: rpc("sincronizar_variacoes", {
-                         "p_produto_id": prod_b,
+                         "p_produto_id": prod_c,
                          "p_variacoes": [{"tamanho": "G", "quantidade": 2}],
                          "p_observacao": "gate"}, admin_tk))
         check("M-18 tentativa recusada não altera o estoque",
-              variacao(prod_b, "M")["quantidade"] == 6, str(variacao(prod_b, "M")))
+              variacao(prod_c, "U")["quantidade"] == 1, str(variacao(prod_c, "U")))
+
 
         expect_error("M-19 estoque nunca fica negativo",
                      lambda: rpc("ajustar_estoque", {
