@@ -68,7 +68,7 @@ def expect_error(name: str, fn) -> None:
 
 def fone(n: int) -> str:
     """Telefone único por execução — o guard anti-abuso limita pedidos por cliente."""
-    base = int(uuid.UUID(TAG_UUID).int % 10000)
+    base = int(TAG, 16) % 10000
     return f"(31) 9{base:04d}-{n:04d}"
 
 
