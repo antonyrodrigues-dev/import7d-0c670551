@@ -8,6 +8,7 @@
 
 import type { QueryClient } from "@tanstack/react-query";
 import { teardownOpsRealtime } from "../adapters/ops";
+import { teardownInventoryRealtime } from "../adapters/lovableCloud";
 import { resetOpsStores } from "../stores/ops";
 import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
@@ -23,6 +24,7 @@ import { useNotificationsStore } from "../stores/notifications";
  */
 export function resetAdminSession(queryClient?: QueryClient): void {
   teardownOpsRealtime();
+  teardownInventoryRealtime();
 
   resetOpsStores();
   useOrdersStore.setState({ orders: [], state: "idle", error: null });

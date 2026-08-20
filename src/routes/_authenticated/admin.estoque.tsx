@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArchiveRestore,
@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LOW_STOCK_THRESHOLD } from "@/features/admin/constants";
 import { useInventory, usePermissions } from "@/features/admin/hooks";
+import { useInventoryRealtime } from "@/features/admin/hooks/data/useInventoryRealtime";
+import { uploadProductImage } from "@/features/admin/services/inventory.service";
 import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality";
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
@@ -91,6 +93,11 @@ function EstoquePage() {
   } = useInventory();
   const { can, isAdmin } = usePermissions();
   const { items: diagnostics, summary, refresh: refreshQuality } = useCatalogQuality();
+  // Estoque ao vivo: qualquer alteração no catálogo recarrega a lista.
+  useInventoryRealtime(() => {
+    void refresh();
+    void refreshQuality();
+  });
   const [qualityFilter, setQualityFilter] = useState<CatalogQualityFilter>("todos");
   const diagBySku = useMemo(() => new Map(diagnostics.map((d) => [d.sku, d])), [diagnostics]);
 
@@ -538,6 +545,8 @@ function ProductFormDrawer({
     initial ? draftFromItem(initial) : emptyDraft(),
   );
   const [imageInput, setImageInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [sizeInput, setSizeInput] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -555,6 +564,19 @@ function ProductFormDrawer({
     if (draft.imagens.includes(url)) return;
     patch({ imagens: [...draft.imagens, url] });
     setImageInput("");
+  };
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const url = await uploadProductImage(file, draft.slug || slugify(draft.nome));
+      patch({ imagens: [...draft.imagens, url] });
+      toast.success("Foto enviada.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeImage = (url: string) => patch({ imagens: draft.imagens.filter((i) => i !== url) });
@@ -730,11 +752,11 @@ function ProductFormDrawer({
 
             <fieldset className="md:col-span-2">
               <legend className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Imagens (URLs)
+                Imagens
               </legend>
               <p className="text-[11px] text-[color:var(--muted-foreground)]">
-                Cole a URL pública da imagem. Upload direto será liberado quando o workspace
-                habilitar buckets públicos.
+                Envie a foto do arquivo (JPG, PNG, WEBP ou AVIF · até 5 MB) ou cole uma URL
+                existente.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {draft.imagens.map((url) => (
@@ -755,6 +777,28 @@ function ProductFormDrawer({
                   </div>
                 ))}
               </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) void handleUpload(file);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {uploading ? "Enviando…" : "Enviar foto"}
+                </Button>
+              </div>
               <div className="mt-2 flex gap-2">
                 <input
                   className={INPUT}
@@ -763,7 +807,7 @@ function ProductFormDrawer({
                   onChange={(e) => setImageInput(e.target.value)}
                 />
                 <Button type="button" variant="outline" onClick={addImage}>
-                  <Plus className="h-4 w-4 mr-1" /> Adicionar
+                  <Plus className="h-4 w-4 mr-1" /> Adicionar URL
                 </Button>
               </div>
               {imageInput.trim().startsWith("http") && (
