@@ -333,7 +333,7 @@ export function ReservaDrawer() {
       const { order: officialOrder, pending } = applyOfficialSnapshot(localOrder, row);
       const preview = buildReservaMessage(officialOrder);
       if (!preview || preview.length < 20) throw new Error("Mensagem inválida.");
-      const url = buildWhatsAppUrl(officialOrder);
+      const url = buildWhatsAppUrl(officialOrder, adminSettings.whatsapp);
 
       setPendingOrder({ ...pending, url, idempotencyKey: key });
       setFlowState("created_pending_whatsapp");

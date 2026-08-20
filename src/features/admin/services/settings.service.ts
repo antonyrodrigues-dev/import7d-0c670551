@@ -113,3 +113,33 @@ export async function saveStoreSettings(settings: AdminSettings): Promise<AdminS
   await saveStoreSettingsRaw(normalized as unknown as Record<string, unknown>);
   return normalized;
 }
+
+const WEEKDAY_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+/** Resumo textual do horário oficial (agrupa dias iguais e consecutivos). */
+export function formatBusinessHoursSummary(hours: BusinessDayHours[]): string {
+  const ordered: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
+  const groups: { from: Weekday; to: Weekday; text: string }[] = [];
+  for (const weekday of ordered) {
+    const day = hours.find((h) => h.weekday === weekday);
+    const text = !day || !day.open ? "Fechado" : `${day.from}–${day.to}`;
+    const last = groups[groups.length - 1];
+    if (last && last.text === text) last.to = weekday;
+    else groups.push({ from: weekday, to: weekday, text });
+  }
+  return groups
+    .filter((g) => g.text !== "Fechado")
+    .map((g) =>
+      g.from === g.to
+        ? `${WEEKDAY_LABEL[g.from]} ${g.text}`
+        : `${WEEKDAY_LABEL[g.from]} a ${WEEKDAY_LABEL[g.to]} ${g.text}`,
+    )
+    .join(" · ");
+}
+
+/** Link oficial de WhatsApp da loja, sempre derivado das configurações. */
+export function buildStoreWhatsAppUrl(whatsapp: string, text?: string): string {
+  const digits = sanitizePhoneBR(whatsapp);
+  const query = text ? `?text=${encodeURIComponent(text)}` : "";
+  return `https://wa.me/${digits}${query}`;
+}

@@ -95,7 +95,19 @@ export function buildReservaMessage(order: Order): string {
   ]);
 }
 
-export function buildWhatsAppUrl(order: Order, attendant: Attendant = DEFAULT_ATTENDANT): string {
+/**
+ * Link de WhatsApp do pedido. O número oficial vem das Configurações da loja
+ * (banco); o atendente default é apenas fallback quando ainda não há config.
+ */
+export function buildWhatsAppUrl(
+  order: Order,
+  attendantOrPhone: Attendant | string = DEFAULT_ATTENDANT,
+): string {
   const msg = buildReservaMessage(order);
-  return `https://wa.me/${attendant.phone}?text=${encodeURIComponent(msg)}`;
+  const phone =
+    typeof attendantOrPhone === "string"
+      ? attendantOrPhone.replace(/\D/g, "")
+      : attendantOrPhone.phone;
+  const target = phone.length >= 10 ? phone : DEFAULT_ATTENDANT.phone;
+  return `https://wa.me/${target}?text=${encodeURIComponent(msg)}`;
 }

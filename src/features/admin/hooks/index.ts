@@ -5,7 +5,7 @@ export { useEmployees } from "./data/useEmployees";
 export { useCustomers } from "./data/useCustomers";
 export { useDashboard } from "./data/useDashboard";
 export { useAdminNotifications } from "./data/useAdminNotifications";
-export { useAdminSettings } from "./data/useAdminSettings";
+export { useAdminSettings, useStoreSettings } from "./data/useAdminSettings";
 export { useFinance } from "./data/useFinance";
 export { useQueue } from "./data/useQueue";
 export { useTeam } from "./data/useTeam";
