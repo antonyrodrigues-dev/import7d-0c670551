@@ -15,6 +15,16 @@ import type {
   OrderStatus,
 } from "../types";
 
+/** Um evento da trilha imutável do pedido (`pedido_eventos`). */
+export interface OrderAuditEntry {
+  id: string;
+  tipo: string;
+  origem: string;
+  criadoEm: string;
+  porUsuario?: string;
+  detalhe: Record<string, unknown>;
+}
+
 export interface AdminIdentity {
   userId: string | null;
   roles: EmployeeRole[];
@@ -65,6 +75,8 @@ export interface AdminDataSource {
   transitionOrder(id: string, status: OrderStatus): Promise<void>;
   /** Cancela pedido pago estornando o ledger na mesma transação (Admin Master). */
   cancelOrderWithRefund(id: string, motivo?: string): Promise<void>;
+  /** Trilha imutável de eventos do pedido (somente leitura, gravada pelo banco). */
+  listOrderEvents(orderId: string): Promise<OrderAuditEntry[]>;
 
   // Funcionários
   listEmployees(): Promise<Employee[]>;

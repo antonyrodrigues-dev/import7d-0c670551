@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { NetworkStatusWatcher } from "@/components/site/NetworkStatusWatcher";
+import { supabase } from "@/integrations/supabase/client";
+import { resetAdminSession } from "@/features/admin/lib/session";
 
 function NotFoundComponent() {
   return (
@@ -133,8 +135,31 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Assinante ÚNICO de mudanças de identidade. Nenhuma outra tela pode
+ * assinar auth: aqui garantimos que sair da conta derruba Realtime, zera
+ * stores e limpa o cache antes de qualquer refetch.
+ */
+function useAuthLifecycle(queryClient: QueryClient) {
+  const router = useRouter();
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      if (event === "SIGNED_OUT") {
+        resetAdminSession(queryClient);
+        void router.invalidate();
+        return;
+      }
+      void router.invalidate();
+      void queryClient.invalidateQueries();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient, router]);
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useAuthLifecycle(queryClient);
 
   return (
     <QueryClientProvider client={queryClient}>

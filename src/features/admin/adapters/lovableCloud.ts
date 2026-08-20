@@ -13,6 +13,7 @@ import type {
   KitComponentWritePayload,
   ProductWritePayload,
   MovementKindDB,
+  OrderAuditEntry,
 } from "./types";
 import type {
   AdminOrder,
@@ -285,6 +286,24 @@ export const lovableCloudDataSource: AdminDataSource = {
       p_motivo: motivo,
     });
     if (error) throw error;
+  },
+
+  async listOrderEvents(orderId: string): Promise<OrderAuditEntry[]> {
+    // Trilha somente-leitura: a tabela é imutável por trigger no banco.
+    const { data, error } = await supabase
+      .from("pedido_eventos")
+      .select("id, tipo, origem, criado_em, por_usuario, detalhe")
+      .eq("pedido_id", orderId)
+      .order("criado_em", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: String(r.id),
+      tipo: String(r.tipo),
+      origem: String(r.origem),
+      criadoEm: String(r.criado_em),
+      porUsuario: r.por_usuario ? String(r.por_usuario) : undefined,
+      detalhe: (r.detalhe ?? {}) as Record<string, unknown>,
+    }));
   },
 
   async listEmployees(): Promise<Employee[]> {

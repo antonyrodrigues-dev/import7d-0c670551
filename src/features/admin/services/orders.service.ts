@@ -182,3 +182,13 @@ export async function cancelOrderWithRefund(id: string, motivo?: string): Promis
     inFlight.delete(id);
   }
 }
+
+/**
+ * Trilha imutável de eventos do pedido — leitura pura, sem cache em store:
+ * é sempre o banco quem dita a verdade da auditoria.
+ */
+export function listOrderAudit(orderId: string) {
+  return adminDataSource.listOrderEvents(orderId).catch((e) => {
+    throw handleAdminError(e, "orders.service.listOrderAudit");
+  });
+}

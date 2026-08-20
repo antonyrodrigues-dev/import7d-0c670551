@@ -8,4 +8,4 @@ import { lovableCloudDataSource } from "./lovableCloud";
  */
 export const adminDataSource: AdminDataSource = lovableCloudDataSource;
 
-export type { AdminDataSource, AdminIdentity } from "./types";
+export type { AdminDataSource, AdminIdentity, OrderAuditEntry } from "./types";
