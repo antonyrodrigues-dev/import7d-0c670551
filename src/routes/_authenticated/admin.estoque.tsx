@@ -755,6 +755,28 @@ function ProductFormDrawer({
                   </div>
                 ))}
               </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) void handleUpload(file);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {uploading ? "Enviando…" : "Enviar foto"}
+                </Button>
+              </div>
               <div className="mt-2 flex gap-2">
                 <input
                   className={INPUT}
@@ -763,7 +785,7 @@ function ProductFormDrawer({
                   onChange={(e) => setImageInput(e.target.value)}
                 />
                 <Button type="button" variant="outline" onClick={addImage}>
-                  <Plus className="h-4 w-4 mr-1" /> Adicionar
+                  <Plus className="h-4 w-4 mr-1" /> Adicionar URL
                 </Button>
               </div>
               {imageInput.trim().startsWith("http") && (
