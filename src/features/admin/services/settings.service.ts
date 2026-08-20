@@ -96,7 +96,10 @@ export function normalizeSettings(raw: Record<string, unknown> | null): AdminSet
         : fallback.slots;
       return { weekday, slots: [...slots].sort() };
     }),
-    parcelamentoMax: Math.min(12, Math.max(1, Math.round(pickNumber("parcelamentoMax", defaults.parcelamentoMax)))),
+    parcelamentoMax: Math.min(
+      12,
+      Math.max(1, Math.round(pickNumber("parcelamentoMax", defaults.parcelamentoMax))),
+    ),
     parcelaMinima: Math.max(0, pickNumber("parcelaMinima", defaults.parcelaMinima)),
   };
 }
