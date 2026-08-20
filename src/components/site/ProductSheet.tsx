@@ -32,6 +32,12 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
   const [qty, setQty] = useState(1);
   const maxQty = Math.max(0, Math.min(MAX_QTY, product.stockBySize?.[size] ?? 0));
   const canAdd = product.compravel && Boolean(size) && maxQty > 0 && qty >= 1 && qty <= maxQty;
+  const status = useMemo(() => productPublicState(product), [product]);
+  const { settings } = useStoreSettings();
+  const consultaUrl = useMemo(
+    () => buildConsultaUrl(settings.whatsapp, product, size || null),
+    [settings.whatsapp, product, size],
+  );
   const addItem = useReserva((s) => s.addItem);
   const addingRef = useRef(false);
   const dialogRef = useRef<HTMLElement | null>(null);
