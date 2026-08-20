@@ -373,6 +373,27 @@ export const lovableCloudDataSource: AdminDataSource = {
     await syncVariations(id, p.variacoes);
   },
 
+  async uploadProductImage(file: File, slug: string): Promise<string> {
+    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `${slug || "sem-slug"}/${crypto.randomUUID()}.${ext || "jpg"}`;
+    const { error } = await supabase.storage
+      .from("produtos")
+      .upload(path, file, { contentType: file.type || undefined, upsert: false });
+    if (error) throw error;
+    // Bucket privado: geramos uma URL assinada de longa duração (10 anos).
+    // A política de leitura já autoriza o público; a assinatura só evita
+    // listagem do bucket.
+    const { data, error: signError } = await supabase.storage
+      .from("produtos")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    if (signError) throw signError;
+    return data.signedUrl;
+  },
+
+  subscribeInventory(onChange: () => void): () => void {
+    return subscribeSharedInventory(onChange);
+  },
+
   async archiveProduct(id: string): Promise<void> {
     const { error } = await supabase
       .from("produtos")
