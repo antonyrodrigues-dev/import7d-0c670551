@@ -17,3 +17,4 @@ export { useKitComposition } from "./data/useKitComposition";
 export { usePriceRules } from "./data/usePriceRules";
 export { useInventoryRealtime } from "./data/useInventoryRealtime";
 export { useOrderAudit } from "./data/useOrderAudit";
+export { useOrderPendencies } from "./data/useOrderPendencies";

@@ -91,6 +91,10 @@ export interface AdminOrder {
   pagamentoEstado: PaymentState;
   /** Total já devolvido/estornado. */
   valorDevolvido: number;
+  /** Pedido criado com peça(s) sem preço oficial — bloqueia pagamento. */
+  pendenciaPreco: boolean;
+  /** Pedido criado com peça(s) sem tamanho definido — bloqueia pagamento. */
+  pendenciaTamanho: boolean;
   observacoes?: string;
   criadoEm: IsoDateTime;
   atualizadoEm: IsoDateTime;

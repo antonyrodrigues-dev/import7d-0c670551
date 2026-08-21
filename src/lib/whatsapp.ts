@@ -3,6 +3,7 @@ import { formatBRL } from "@/features/catalog";
 import { DELIVERY_LABEL, PAYMENT_LABEL } from "@/lib/checkout";
 import type { Order } from "@/lib/order";
 import { formatPickupSlot } from "@/lib/pickup";
+import { hasPendencias, itemPriceLabel, itemSizeLabel } from "@/lib/reserva-format";
 
 function formatDateBR(iso: string): string {
   const d = new Date(iso);
@@ -77,7 +78,7 @@ export function buildReservaMessage(order: Order): string {
     "*Peças*",
     ...itens.map(
       (it, i) =>
-        `${i + 1}. ${it.name} — Tam ${it.size} — ${it.quantity}× — ${formatBRL(it.price * it.quantity)}`,
+        `${i + 1}. ${it.name} — Tam ${itemSizeLabel(it)} — ${it.quantity}× — ${itemPriceLabel(it)}`,
     ),
     "",
     "*Pagamento*",
@@ -89,6 +90,9 @@ export function buildReservaMessage(order: Order): string {
     `Subtotal ${formatBRL(totais.subtotal)}`,
     freteTexto ? `Frete ${freteTexto}` : null,
     `*Total ${formatBRL(totais.total)}*`,
+    hasPendencias(itens)
+      ? "Há peças sob consulta: tamanho e/ou valor serão confirmados pela equipe antes de qualquer cobrança."
+      : null,
     "",
     "Obrigado pela preferência.",
     "7D Imports.",

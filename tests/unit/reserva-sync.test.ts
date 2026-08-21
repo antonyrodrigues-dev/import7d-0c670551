@@ -15,6 +15,11 @@ const produto = (over: Partial<PublicProduct> = {}): PublicProduct =>
     brand: "7D",
     category: "polos",
     description: "",
+    stock: 2,
+    compravel: true,
+    reservavel: true,
+    tamanhoConfirmado: true,
+    precoConfirmado: true,
     ...over,
   }) as PublicProduct;
 
@@ -26,7 +31,18 @@ beforeEach(() => {
 describe("carrinho × catálogo oficial", () => {
   it("descarta item cujo produto não existe mais", () => {
     useReserva.setState({
-      items: [{ slug: "fantasma", name: "X", price: 10, image: "", size: "M", quantity: 1 }],
+      items: [
+        {
+          slug: "fantasma",
+          name: "X",
+          price: 10,
+          image: "",
+          size: "M",
+          quantity: 1,
+          precoPendente: false,
+          tamanhoPendente: false,
+        },
+      ],
     });
     useReserva.getState().syncWithCatalog();
     expect(useReserva.getState().items).toHaveLength(0);
@@ -35,8 +51,26 @@ describe("carrinho × catálogo oficial", () => {
   it("descarta tamanho esgotado e corrige preço/nome defasados", () => {
     useReserva.setState({
       items: [
-        { slug: "polo-x", name: "Nome Velho", price: 1, image: "", size: "M", quantity: 1 },
-        { slug: "polo-x", name: "Nome Velho", price: 1, image: "", size: "G", quantity: 1 },
+        {
+          slug: "polo-x",
+          name: "Nome Velho",
+          price: 1,
+          image: "",
+          size: "M",
+          quantity: 1,
+          precoPendente: false,
+          tamanhoPendente: false,
+        },
+        {
+          slug: "polo-x",
+          name: "Nome Velho",
+          price: 1,
+          image: "",
+          size: "G",
+          quantity: 1,
+          precoPendente: false,
+          tamanhoPendente: false,
+        },
       ],
     });
     useReserva.getState().syncWithCatalog();
@@ -55,6 +89,8 @@ describe("carrinho × catálogo oficial", () => {
           image: "a.jpg",
           size: "M",
           quantity: 9,
+          precoPendente: false,
+          tamanhoPendente: false,
         },
       ],
     });
@@ -65,5 +101,29 @@ describe("carrinho × catálogo oficial", () => {
   it("nunca adiciona tamanho sem estoque", () => {
     useReserva.getState().addItem(produto(), "G", 1);
     expect(useReserva.getState().items).toHaveLength(0);
+  });
+
+  it("peça sob consulta entra no mesmo funil, com pendências marcadas", () => {
+    const sobConsulta = produto({
+      slug: "sob-consulta",
+      sizes: [],
+      stockBySize: {},
+      stock: 0,
+      tamanhoConfirmado: false,
+      precoConfirmado: false,
+      compravel: false,
+      price: 0,
+    });
+    useCatalogStore.setState({ products: [sobConsulta] });
+    useReserva.getState().addItem(sobConsulta, "", 3);
+    const [item] = useReserva.getState().items;
+    expect(item).toMatchObject({
+      slug: "sob-consulta",
+      size: "",
+      quantity: 1,
+      price: 0,
+      precoPendente: true,
+      tamanhoPendente: true,
+    });
   });
 });

@@ -22,7 +22,7 @@ const MAX_QTY = 10;
 
 /** Tamanhos com saldo real; se o catálogo não trouxer saldo, o tamanho é ignorado. */
 function availableSizes(product: PublicProduct): string[] {
-  if (!product.compravel) return [];
+  if (!product.reservavel) return [];
   return product.sizes.filter((s) => (product.stockBySize?.[s] ?? 0) > 0);
 }
 
@@ -30,9 +30,18 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
   const sizesEmStock = useMemo(() => availableSizes(product), [product]);
   const [size, setSize] = useState<string>(sizesEmStock[0] ?? "");
   const [qty, setQty] = useState(1);
-  const maxQty = Math.max(0, Math.min(MAX_QTY, product.stockBySize?.[size] ?? 0));
-  const canAdd = product.compravel && Boolean(size) && maxQty > 0 && qty >= 1 && qty <= maxQty;
   const status = useMemo(() => productPublicState(product), [product]);
+  // Peça sob consulta (sem tamanho confirmado) entra no funil com 1 unidade.
+  const tamanhoPendente = !product.tamanhoConfirmado || sizesEmStock.length === 0;
+  const maxQty = tamanhoPendente
+    ? 1
+    : Math.max(0, Math.min(MAX_QTY, product.stockBySize?.[size] ?? 0));
+  const canAdd =
+    status.reservavel &&
+    (tamanhoPendente || Boolean(size)) &&
+    maxQty > 0 &&
+    qty >= 1 &&
+    qty <= maxQty;
   const settings = useStoreSettings();
   const consultaUrl = useMemo(
     () => buildConsultaUrl(settings.whatsapp, product, size || null),
@@ -206,13 +215,12 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                           {product.parcelamento}
                         </p>
                       ) : null}
-                      {!product.compravel ? (
+                      {status.nota ? (
                         <p
                           data-testid="product-preview-note"
                           className="mt-4 border-l-2 border-[color:var(--gold)] bg-[color:var(--cream-deep)] px-4 py-3 text-xs leading-relaxed text-[color:var(--muted-foreground)]"
                         >
-                          Peça em conferência final (medidas, preço e disponibilidade). Fale com a
-                          nossa equipe pelo WhatsApp para saber quando ela entra para reserva.
+                          {status.nota}
                         </p>
                       ) : null}
                     </div>
@@ -253,7 +261,9 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                       </div>
                       {sizesEmStock.length === 0 ? (
                         <p className="mt-3 text-xs text-[color:var(--muted-foreground)]">
-                          Todas as numerações desta peça estão esgotadas.
+                          {status.state === "esgotado"
+                            ? "Todas as numerações desta peça estão esgotadas."
+                            : "Tamanho a confirmar — a equipe mede a peça e confirma com você no atendimento."}
                         </p>
                       ) : null}
                     </fieldset>
@@ -303,29 +313,29 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
                       onClick={() => {
                         if (addingRef.current) return;
                         addingRef.current = true;
-                        addItem(product, size, qty);
+                        addItem(product, tamanhoPendente ? "" : size, qty);
                         track({
                           name: "reserve_add",
                           slug: product.slug,
-                          size,
+                          size: tamanhoPendente ? "" : size,
                           quantity: qty,
-                          price: product.price,
+                          price: product.precoConfirmado ? product.price : 0,
                         });
                         onOpenChange(false);
                       }}
                       data-testid="product-add"
                       className="inline-flex h-14 w-full items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 hover:bg-[color:var(--forest)] active:scale-[0.98]"
                     >
-                      Adicionar à reserva
+                      {status.cta}
                     </button>
-                  ) : status.state === "esgotado" ? (
+                  ) : status.reservavel ? (
                     <button
                       type="button"
                       disabled
                       data-testid="product-add"
                       className="inline-flex h-14 w-full cursor-not-allowed items-center justify-center bg-[color:var(--forest-deep)] text-[11px] tracking-luxe uppercase text-[color:var(--cream)] opacity-50"
                     >
-                      Indisponível
+                      Selecione um tamanho
                     </button>
                   ) : (
                     <a

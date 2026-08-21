@@ -124,7 +124,6 @@ export const RETURN_REASONS: { key: string; label: string }[] = [
   { key: "outro", label: "Outro (descrever)" },
 ];
 
-
 export interface ReturnItemInput {
   slug: string;
   size: string;
@@ -311,4 +310,10 @@ export interface ReservationRow {
   quantidade: number;
   estado: string;
   expiraEm: IsoDateTime | null;
+}
+
+/** Entrada de resolução de pendência de um item do pedido (ordem preservada). */
+export interface PendencyItemInput {
+  size: string;
+  price: number;
 }

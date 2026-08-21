@@ -370,9 +370,7 @@ function ReturnTab({
 
   const valorNum = Number(valor.replace(",", "."));
   const motivoFinal = motivoKey === "outro" ? motivo.trim() : motivoKey;
-  const invalido =
-    itens.length === 0 || !motivoFinal || !Number.isFinite(valorNum) || valorNum < 0;
-
+  const invalido = itens.length === 0 || !motivoFinal || !Number.isFinite(valorNum) || valorNum < 0;
 
   return (
     <div className="mt-3 flex flex-col gap-3">
@@ -482,7 +480,6 @@ function ReturnTab({
                 setValor("0");
                 setObs("");
               }
-
             }}
           >
             Registrar devolução

@@ -67,18 +67,25 @@ export function CatalogSection() {
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[color:var(--gold)]/40"
       />
       <div className="relative mx-auto max-w-[1280px] px-6 md:px-12">
-        <Reveal className="mb-14 text-center">
-          <p className="inline-flex items-center gap-4 text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
-            Acervo
-            <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
-          </p>
-          <h2 className="mt-4 font-display type-section text-[color:var(--forest-deep)]">
-            O acervo, por inteiro
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl font-display italic text-lg text-[color:var(--muted-foreground)]">
-            Cada peça é numerada e reservada individualmente. Toque para abrir a ficha.
-          </p>
+        <Reveal className="mb-14">
+          <div className="grid gap-8 border-b border-[color:var(--forest-deep)]/15 pb-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-4 text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+                <span aria-hidden="true" className="h-px w-8 bg-[color:var(--gold)]/60" />
+                Acervo · Edição corrente
+              </p>
+              <h2 className="mt-5 font-display type-section leading-[0.95] text-[color:var(--forest-deep)]">
+                O acervo,
+                <span className="block italic text-[color:var(--forest-vivid)]">por inteiro</span>
+              </h2>
+            </div>
+            <p className="max-w-sm text-sm leading-relaxed text-[color:var(--muted-foreground)] md:text-right">
+              Cada peça é numerada e reservada individualmente. Peças ainda em conferência entram na
+              mesma reserva, como
+              <span className="text-[color:var(--forest-deep)]"> sob consulta</span> — tamanho e
+              valor são confirmados pela equipe no atendimento.
+            </p>
+          </div>
         </Reveal>
         <FullGrid />
       </div>
