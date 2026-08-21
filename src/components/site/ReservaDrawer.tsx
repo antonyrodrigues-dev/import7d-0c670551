@@ -16,6 +16,12 @@ import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { useCheckout, type CheckoutStep, type PendingOrder } from "@/store/checkout";
 import { formatBRL } from "@/features/catalog";
+import {
+  hasPendencias,
+  itemPriceLabel,
+  itemSizeLabel,
+  totalLabel,
+} from "@/lib/reserva-format";
 import { buildReservaMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { buildOrder, type OrderPickup } from "@/lib/order";
 import { applyOfficialSnapshot } from "@/lib/official-order";
@@ -606,7 +612,7 @@ export function ReservaDrawer() {
                           {i.name}
                         </p>
                         <p className="mt-1 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                          Tam. {i.size}
+                          Tam. {itemSizeLabel(i)}
                         </p>
                         <div className="mt-2 inline-flex items-center border border-[color:var(--border)]">
                           <button
@@ -655,7 +661,7 @@ export function ReservaDrawer() {
                       </div>
                       <div className="flex flex-col items-end justify-between">
                         <span className="font-display tabular-nums text-[color:var(--forest-deep)]">
-                          {formatBRL(i.price * i.quantity)}
+                          {itemPriceLabel(i)}
                         </span>
                         <button
                           aria-label={`Remover ${i.name}`}
@@ -720,7 +726,7 @@ export function ReservaDrawer() {
                   {footerLabel}
                 </span>
                 <span className="font-display text-2xl tabular-nums text-[color:var(--forest-deep)]">
-                  {formatBRL(footerAmount)}
+                  {totalLabel(footerAmount, items)}
                 </span>
               </div>
 
@@ -910,11 +916,11 @@ function PendingOrderPanel({
                   {item.name}
                 </p>
                 <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                  Tam. {item.size} · {item.quantity}×
+                  Tam. {itemSizeLabel(item)} · {item.quantity}×
                 </p>
               </div>
               <span className="shrink-0 font-display tabular-nums text-[color:var(--forest-deep)]">
-                {formatBRL(item.price * item.quantity)}
+                {itemPriceLabel(item)}
               </span>
             </li>
           ))}
@@ -1437,7 +1443,15 @@ function StepRevisao({
   total,
   config,
 }: {
-  items: { slug: string; name: string; size: string; quantity: number; price: number }[];
+  items: {
+    slug: string;
+    name: string;
+    size: string;
+    quantity: number;
+    price: number;
+    precoPendente?: boolean;
+    tamanhoPendente?: boolean;
+  }[];
   delivery: DeliveryMethod;
   address: Address;
   pickup: OrderPickup | null;
@@ -1463,9 +1477,11 @@ function StepRevisao({
             <li key={`${i.slug}-${i.size}`} className="flex items-baseline justify-between gap-3">
               <span className="truncate">
                 {i.quantity}× {i.name}{" "}
-                <span className="text-[color:var(--muted-foreground)]">· Tam {i.size}</span>
+                <span className="text-[color:var(--muted-foreground)]">
+                  · Tam {itemSizeLabel(i)}
+                </span>
               </span>
-              <span className="tabular-nums">{formatBRL(i.price * i.quantity)}</span>
+              <span className="tabular-nums">{itemPriceLabel(i)}</span>
             </li>
           ))}
         </ul>
@@ -1544,8 +1560,14 @@ function StepRevisao({
           <span className="text-[10px] tracking-luxe uppercase">
             {freight.cost == null ? "Valor total (sem frete)" : "Valor total"}
           </span>
-          <span className="font-display text-xl tabular-nums">{formatBRL(total)}</span>
+          <span className="font-display text-xl tabular-nums">{totalLabel(total, items)}</span>
         </div>
+        {hasPendencias(items) && (
+          <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
+            Há peças sob consulta nesta reserva — tamanho e/ou valor são confirmados pela equipe no
+            atendimento antes de qualquer cobrança.
+          </p>
+        )}
         {freight.cost == null && (
           <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
             O frete ainda não está definido — será combinado no atendimento e somado ao total
