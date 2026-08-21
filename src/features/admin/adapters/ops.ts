@@ -66,6 +66,8 @@ export interface AdminOpsDataSource {
   registerPayment(input: PaymentInput): Promise<void>;
   /** Frete oficial do pedido — calculado e gravado pelo servidor. */
   setShippingCost(pedidoId: string, valor: number): Promise<void>;
+  /** Resolve pendências de tamanho/preço de um pedido (reserva + total no banco). */
+  resolvePendencies(pedidoId: string, itens: PendencyItemInput[]): Promise<void>;
 
   // Ledger financeiro (imutável, restrito ao Admin Master pela RLS)
   listLedger(pedidoId: string): Promise<LedgerEntry[]>;
@@ -257,6 +259,14 @@ export const opsDataSource: AdminOpsDataSource = {
       p_estado: input.estado,
       p_comprovante_url: input.comprovanteUrl ?? undefined,
       p_observacao: input.observacao ?? undefined,
+    });
+    if (error) throw error;
+  },
+
+  async resolvePendencies(pedidoId, itens) {
+    const { error } = await supabase.rpc("resolver_pendencias_pedido", {
+      p_pedido_id: pedidoId,
+      p_itens: itens.map((i) => ({ size: i.size, price: i.price })),
     });
     if (error) throw error;
   },

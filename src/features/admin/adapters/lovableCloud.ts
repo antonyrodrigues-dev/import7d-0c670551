@@ -44,6 +44,8 @@ interface PedidoRow {
   atribuido_em?: string | null;
   pagamento_estado?: string | null;
   valor_devolvido?: number | string | null;
+  pendencia_preco?: boolean | null;
+  pendencia_tamanho?: boolean | null;
   frete_status?: string | null;
   pedido_status_historico?:
     | {
@@ -212,6 +214,8 @@ function mapRow(row: PedidoRow): AdminOrder {
     status,
     pagamentoEstado: mapPaymentState(row.pagamento_estado),
     valorDevolvido: Number(row.valor_devolvido ?? 0) || 0,
+    pendenciaPreco: Boolean(row.pendencia_preco),
+    pendenciaTamanho: Boolean(row.pendencia_tamanho),
     observacoes: parsed.observacoes,
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em,
@@ -259,7 +263,7 @@ export const lovableCloudDataSource: AdminDataSource = {
     const { data, error } = await supabase
       .from("pedidos")
       .select(
-        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, atendente_nome, responsavel_id, atribuido_em, pagamento_estado, valor_devolvido, frete_status, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
+        "id, numero_pedido, itens, valor_total, status, canal, criado_em, atualizado_em, atendente_nome, responsavel_id, atribuido_em, pagamento_estado, valor_devolvido, pendencia_preco, pendencia_tamanho, frete_status, pedido_status_historico ( de, para, criado_em, observacao, por_usuario )",
       )
       .order("criado_em", { ascending: false });
     if (error) throw error;
