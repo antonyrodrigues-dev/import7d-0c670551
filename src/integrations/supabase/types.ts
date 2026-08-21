@@ -1265,6 +1265,7 @@ export type Database = {
         Args: { p_chave: string; p_valor: Json }
         Returns: undefined
       }
+      devolucao_motivo_valido: { Args: { p_motivo: string }; Returns: boolean }
       devolver_para_fila: {
         Args: { p_observacao?: string; p_pedido_id: string }
         Returns: {

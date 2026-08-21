@@ -112,6 +112,19 @@ export const RETURN_CONDITIONS: { key: ReturnCondition; label: string; estoque: 
   { key: "outra", label: "Outra", estoque: "Quarentena" },
 ];
 
+/**
+ * Motivo comercial da devolução — independente da condição física da peça.
+ * O destino do estoque é decidido pela condição, nunca pelo motivo.
+ */
+export const RETURN_REASONS: { key: string; label: string }[] = [
+  { key: "arrependimento", label: "Arrependimento do cliente" },
+  { key: "tamanho/cor divergente", label: "Tamanho ou cor divergente" },
+  { key: "defeito alegado", label: "Defeito alegado" },
+  { key: "erro no envio", label: "Erro no envio" },
+  { key: "outro", label: "Outro (descrever)" },
+];
+
+
 export interface ReturnItemInput {
   slug: string;
   size: string;

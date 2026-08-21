@@ -271,8 +271,76 @@ def run() -> int:
         else:
             rest("DELETE", "/configuracoes_loja?dados->>_gate_mvp=eq." + TAG, prefer="return=minimal")
             check("M-22 configuração restaurada sem resíduo do gate", True)
+        # ───────────── C1 — regressões do fechamento ─────────────
+        # C-01: metricas_financeiras não pode explodir com max(jsonb).
+        for periodo in ("7d", "30d", "90d", "ano", "todos"):
+            m = rpc("metricas_financeiras", {"p_periodo": periodo}, admin_tk)
+            check(f"C-01 metricas_financeiras({periodo}) retorna JSON válido",
+                  isinstance(m, dict) and m.get("periodo") == periodo
+                  and isinstance(m.get("topProdutos"), list), str(m)[:180])
+
+        # Pedido pago R$500 para exercitar devolução parcial.
+        slug_d = f"gate-mvp-d-{TAG}"
+        prod_d = novo_produto(slug_d, "M", 4, preco=500)
+        produtos.append(prod_d)
+        p3 = rpc("criar_pedido", pedido_args(slug_d, "M", 2, fone(3)), ANON)[0]
+        orders.append(p3["id"])
+        for st in ("em_atendimento", "aguardando_pagamento"):
+            rpc("transicionar_pedido", {"p_pedido_id": p3["id"], "p_novo_status": st}, admin_tk)
+        rpc("registrar_pagamento", {"p_pedido_id": p3["id"], "p_estado": "confirmado",
+                                    "p_comprovante_url": None, "p_observacao": "gate c1"}, admin_tk)
+        for st in ("separado", "aguardando_retirada", "finalizado"):
+            rpc("transicionar_pedido", {"p_pedido_id": p3["id"], "p_novo_status": st}, admin_tk)
+
+        antes_d = variacao(prod_d, "M")
+        rpc("registrar_devolucao", {
+            "p_pedido_id": p3["id"],
+            "p_itens": [{"slug": slug_d, "size": "M", "quantity": 1, "condicao": "vendavel"}],
+            "p_motivo": "tamanho/cor divergente", "p_valor_estornado": 100,
+            "p_observacoes": None, "p_evidencias": []}, admin_tk)
+        depois_d = variacao(prod_d, "M")
+        check("C-02 motivo 'tamanho/cor divergente' é aceito e condição vendável retorna ao estoque",
+              depois_d["quantidade"] == antes_d["quantidade"] + 1, f"{antes_d} → {depois_d}")
+
+        quar_antes = rest("GET", f"/produto_variacoes?produto_id=eq.{prod_d}&tamanho=eq.M"
+                                 "&select=quantidade_quarentena")[0]["quantidade_quarentena"]
+        rpc("registrar_devolucao", {
+            "p_pedido_id": p3["id"],
+            "p_itens": [{"slug": slug_d, "size": "M", "quantity": 1, "condicao": "avariada"}],
+            "p_motivo": "defeito alegado", "p_valor_estornado": 0,
+            "p_observacoes": None, "p_evidencias": []}, admin_tk)
+        quar_depois = rest("GET", f"/produto_variacoes?produto_id=eq.{prod_d}&tamanho=eq.M"
+                                  "&select=quantidade_quarentena")[0]["quantidade_quarentena"]
+        check("C-03 condição avariada envia a peça para quarentena",
+              quar_depois == quar_antes + 1, f"{quar_antes} → {quar_depois}")
+
+        lanc3 = ledger(p3["id"])
+        check("C-04 pagamento 1000 com estorno 100 deixa 900 líquidos no ledger",
+              abs(sum(float(l["valor"]) for l in lanc3) - 900) < 0.005, str(lanc3))
+
+        for motivo in ("arrependimento", "outro"):
+            try:
+                rpc("registrar_devolucao", {
+                    "p_pedido_id": p3["id"],
+                    "p_itens": [{"slug": slug_d, "size": "M", "quantity": 9,
+                                 "condicao": "usada"}],
+                    "p_motivo": motivo, "p_valor_estornado": 0,
+                    "p_observacoes": None, "p_evidencias": []}, admin_tk)
+                msg = ""
+            except urllib.error.HTTPError as exc:
+                msg = getattr(exc, "detail", str(exc))
+            check(f"C-05 motivo '{motivo}' é aceito (recusa só por quantidade)",
+                  "Motivo" not in msg and "Condi" not in msg, msg[:160])
+
+        # C-06: pedido cancelado sem pagamento não gera nada no financeiro.
+        p4 = rpc("criar_pedido", pedido_args(slug_d, "M", 1, fone(4)), ANON)[0]
+        orders.append(p4["id"])
+        rpc("transicionar_pedido", {"p_pedido_id": p4["id"], "p_novo_status": "cancelado"}, admin_tk)
+        check("C-06 pedido cancelado não pago não gera lançamento financeiro",
+              ledger(p4["id"]) == [], str(ledger(p4["id"])))
     finally:
         limpar(orders, produtos, users)
+
 
     return 0
 

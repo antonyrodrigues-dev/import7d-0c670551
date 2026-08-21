@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/features/catalog";
 import { useOrderFinance, usePermissions } from "../hooks";
 import { nextPaymentStates } from "../lib/paymentMachine";
-import { PAYMENT_STATES, RETURN_CONDITIONS } from "../types";
+import { PAYMENT_STATES, RETURN_CONDITIONS, RETURN_REASONS } from "../types";
 import type {
   AdminOrder,
   LedgerEntry,
@@ -337,7 +337,9 @@ function ReturnTab({
 }) {
   const [qtd, setQtd] = useState<Record<number, number>>({});
   const [cond, setCond] = useState<Record<number, ReturnCondition>>({});
+  const [motivoKey, setMotivoKey] = useState(RETURN_REASONS[0]!.key);
   const [motivo, setMotivo] = useState("");
+
   const [valor, setValor] = useState("0");
   const [obs, setObs] = useState("");
 
@@ -367,8 +369,10 @@ function ReturnTab({
     .filter((i) => i.quantity > 0);
 
   const valorNum = Number(valor.replace(",", "."));
+  const motivoFinal = motivoKey === "outro" ? motivo.trim() : motivoKey;
   const invalido =
-    itens.length === 0 || !motivo.trim() || !Number.isFinite(valorNum) || valorNum < 0;
+    itens.length === 0 || !motivoFinal || !Number.isFinite(valorNum) || valorNum < 0;
+
 
   return (
     <div className="mt-3 flex flex-col gap-3">
@@ -420,13 +424,28 @@ function ReturnTab({
           </ul>
           <div className="grid gap-2 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-[10px] tracking-luxe uppercase">
-              Motivo
-              <input
-                value={motivo}
-                onChange={(e) => setMotivo(e.target.value)}
+              Motivo comercial
+              <select
+                value={motivoKey}
+                onChange={(e) => setMotivoKey(e.target.value)}
                 className="h-10 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm normal-case tracking-normal"
-              />
+              >
+                {RETURN_REASONS.map((r) => (
+                  <option key={r.key} value={r.key}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+              {motivoKey === "outro" && (
+                <input
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  placeholder="Descreva o motivo"
+                  className="h-10 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm normal-case tracking-normal"
+                />
+              )}
             </label>
+
             <label className="flex flex-col gap-1 text-[10px] tracking-luxe uppercase">
               Valor estornado (R$)
               <input
@@ -452,16 +471,18 @@ function ReturnTab({
             onClick={async () => {
               const ok = await onSubmit({
                 itens,
-                motivo: motivo.trim(),
+                motivo: motivoFinal,
                 valorEstornado: valorNum,
                 observacoes: obs.trim() || null,
               });
               if (ok) {
                 setQtd({});
+                setMotivoKey(RETURN_REASONS[0]!.key);
                 setMotivo("");
                 setValor("0");
                 setObs("");
               }
+
             }}
           >
             Registrar devolução
