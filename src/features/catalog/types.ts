@@ -10,6 +10,7 @@ export interface PublicProduct {
   name: string;
   description: string;
   category: string;
+  brand: string;
   price: number;
   sizes: string[];
   image: string;
@@ -25,6 +26,10 @@ export interface PublicProduct {
    * aparece na vitrine em MODO PRÉVIA: visível, porém não comprável.
    */
   compravel: boolean;
+  /** Peça está ativa no acervo e pode entrar no funil de reserva. */
+  reservavel: boolean;
+  /** Existe ao menos um tamanho confirmado com saldo. */
+  tamanhoConfirmado: boolean;
   /** O preço exibido é o preço oficial confirmado pela loja. */
   precoConfirmado: boolean;
   /** Preço no cartão (quando confirmado). */
@@ -40,9 +45,12 @@ export const formatBRL = (value: number) =>
     minimumFractionDigits: 0,
   });
 
+/** Texto único usado sempre que o dado oficial ainda não existe. */
+export const SOB_CONSULTA = "Sob consulta";
+
 /**
  * Rótulo de preço da vitrine. Peça sem preço confirmado NUNCA exibe número —
  * o preço é definido no atendimento.
  */
 export const priceLabel = (p: PublicProduct): string =>
-  p.precoConfirmado ? formatBRL(p.price) : "Sob consulta";
+  p.precoConfirmado ? formatBRL(p.price) : SOB_CONSULTA;
