@@ -15,6 +15,7 @@ import type {
   OperationalParams,
   PaymentEntry,
   PaymentInput,
+  PendencyItemInput,
   QueueOrder,
   RemoteNotification,
   ReturnInput,
