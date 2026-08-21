@@ -34,7 +34,12 @@ describe("matriz de permissões — autoridade única de autorização", () => {
   });
 
   it("vendedor mantém o essencial operacional", () => {
-    for (const perm of ["orders:view", "orders:edit", "inventory:view", "queue:view"] as Permission[]) {
+    for (const perm of [
+      "orders:view",
+      "orders:edit",
+      "inventory:view",
+      "queue:view",
+    ] as Permission[]) {
       expect(can(["vendedor"], perm), `vendedor precisa de ${perm}`).toBe(true);
     }
   });

@@ -31,7 +31,18 @@ beforeEach(() => {
 describe("carrinho × catálogo oficial", () => {
   it("descarta item cujo produto não existe mais", () => {
     useReserva.setState({
-      items: [{ slug: "fantasma", name: "X", price: 10, image: "", size: "M", quantity: 1, precoPendente: false, tamanhoPendente: false }],
+      items: [
+        {
+          slug: "fantasma",
+          name: "X",
+          price: 10,
+          image: "",
+          size: "M",
+          quantity: 1,
+          precoPendente: false,
+          tamanhoPendente: false,
+        },
+      ],
     });
     useReserva.getState().syncWithCatalog();
     expect(useReserva.getState().items).toHaveLength(0);
@@ -40,8 +51,26 @@ describe("carrinho × catálogo oficial", () => {
   it("descarta tamanho esgotado e corrige preço/nome defasados", () => {
     useReserva.setState({
       items: [
-        { slug: "polo-x", name: "Nome Velho", price: 1, image: "", size: "M", quantity: 1, precoPendente: false, tamanhoPendente: false },
-        { slug: "polo-x", name: "Nome Velho", price: 1, image: "", size: "G", quantity: 1, precoPendente: false, tamanhoPendente: false },
+        {
+          slug: "polo-x",
+          name: "Nome Velho",
+          price: 1,
+          image: "",
+          size: "M",
+          quantity: 1,
+          precoPendente: false,
+          tamanhoPendente: false,
+        },
+        {
+          slug: "polo-x",
+          name: "Nome Velho",
+          price: 1,
+          image: "",
+          size: "G",
+          quantity: 1,
+          precoPendente: false,
+          tamanhoPendente: false,
+        },
       ],
     });
     useReserva.getState().syncWithCatalog();

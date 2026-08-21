@@ -148,7 +148,10 @@ function FilterPanel({
   onReset: () => void;
 }) {
   const dirty =
-    category !== "todas" || brand !== "todas" || disponibilidade !== "todas" || sort !== "curadoria";
+    category !== "todas" ||
+    brand !== "todas" ||
+    disponibilidade !== "todas" ||
+    sort !== "curadoria";
   const selectClass =
     "h-11 w-full appearance-none border border-[color:var(--forest-deep)]/20 bg-transparent px-4 text-[11px] tracking-luxe uppercase text-[color:var(--forest-deep)] transition-colors duration-300 hover:border-[color:var(--forest-deep)] focus:outline-none focus:ring-1 focus:ring-[color:var(--forest-vivid)]";
 
@@ -278,9 +281,13 @@ export function FullGrid() {
     });
     const ordered = [...base];
     if (sort === "preco_asc") {
-      ordered.sort((a, b) => Number(b.precoConfirmado) - Number(a.precoConfirmado) || a.price - b.price);
+      ordered.sort(
+        (a, b) => Number(b.precoConfirmado) - Number(a.precoConfirmado) || a.price - b.price,
+      );
     } else if (sort === "preco_desc") {
-      ordered.sort((a, b) => Number(b.precoConfirmado) - Number(a.precoConfirmado) || b.price - a.price);
+      ordered.sort(
+        (a, b) => Number(b.precoConfirmado) - Number(a.precoConfirmado) || b.price - a.price,
+      );
     } else if (sort === "nome") {
       ordered.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
     } else {

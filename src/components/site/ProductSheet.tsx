@@ -37,7 +37,11 @@ export function ProductSheet({ product, open, onOpenChange }: Props) {
     ? 1
     : Math.max(0, Math.min(MAX_QTY, product.stockBySize?.[size] ?? 0));
   const canAdd =
-    status.reservavel && (tamanhoPendente || Boolean(size)) && maxQty > 0 && qty >= 1 && qty <= maxQty;
+    status.reservavel &&
+    (tamanhoPendente || Boolean(size)) &&
+    maxQty > 0 &&
+    qty >= 1 &&
+    qty <= maxQty;
   const settings = useStoreSettings();
   const consultaUrl = useMemo(
     () => buildConsultaUrl(settings.whatsapp, product, size || null),

@@ -16,12 +16,7 @@ import { toast } from "sonner";
 import { useReserva } from "@/store/reserva";
 import { useCheckout, type CheckoutStep, type PendingOrder } from "@/store/checkout";
 import { formatBRL } from "@/features/catalog";
-import {
-  hasPendencias,
-  itemPriceLabel,
-  itemSizeLabel,
-  totalLabel,
-} from "@/lib/reserva-format";
+import { hasPendencias, itemPriceLabel, itemSizeLabel, totalLabel } from "@/lib/reserva-format";
 import { buildReservaMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { buildOrder, type OrderPickup } from "@/lib/order";
 import { applyOfficialSnapshot } from "@/lib/official-order";
