@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { OrderFinancePanel } from "./OrderFinancePanel";
+import { OrderPendenciesPanel } from "./OrderPendenciesPanel";
 import { OrderAuditTrail } from "./OrderAuditTrail";
 import { StatusBadge } from "./StatusBadge";
 import { operationalNextStatuses } from "../lib/statusMachine";
@@ -144,6 +145,8 @@ export function OrderDetailSheet({
                 {formatBRL(order.valorTotal)}
               </p>
             </section>
+
+            <OrderPendenciesPanel order={order} canEdit={canEdit} />
 
             <OrderFinancePanel order={order} />
 

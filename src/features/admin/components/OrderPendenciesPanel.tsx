@@ -12,13 +12,7 @@ import { formatBRL } from "@/features/catalog";
 import { useOrderPendencies } from "../hooks";
 import type { AdminOrder, PendencyItemInput } from "../types";
 
-export function OrderPendenciesPanel({
-  order,
-  canEdit,
-}: {
-  order: AdminOrder;
-  canEdit: boolean;
-}) {
+export function OrderPendenciesPanel({ order, canEdit }: { order: AdminOrder; canEdit: boolean }) {
   const pendente = order.pendenciaPreco || order.pendenciaTamanho;
   const { state, resolver } = useOrderPendencies(order.id);
   const inicial = useMemo<PendencyItemInput[]>(

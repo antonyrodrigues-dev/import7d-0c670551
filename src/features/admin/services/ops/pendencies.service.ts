@@ -27,7 +27,10 @@ export async function resolvePendencies(
       return false;
     }
     if (!Number.isFinite(it.price) || it.price <= 0) {
-      handleAdminError(new Error("Defina um preço válido para todas as peças."), "pendencies.resolve");
+      handleAdminError(
+        new Error("Defina um preço válido para todas as peças."),
+        "pendencies.resolve",
+      );
       return false;
     }
   }
