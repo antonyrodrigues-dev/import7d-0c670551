@@ -124,7 +124,6 @@ export const RETURN_REASONS: { key: string; label: string }[] = [
   { key: "outro", label: "Outro (descrever)" },
 ];
 
-
 export interface ReturnItemInput {
   slug: string;
   size: string;
