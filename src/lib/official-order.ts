@@ -28,8 +28,10 @@ interface SnapshotShape {
     name?: string;
     size?: string;
     quantity?: number | string;
-    price?: number | string;
+    price?: number | string | null;
     image?: string | null;
+    precoPendente?: boolean;
+    tamanhoPendente?: boolean;
   }[];
   subtotal?: number | string;
   entrega?: { metodo?: string; endereco?: Address | null; retirada?: OrderPickup | null };
@@ -56,15 +58,21 @@ export function applyOfficialSnapshot(localOrder: Order, row: CriarPedidoRow): O
   const snap = (row.snapshot ?? {}) as SnapshotShape;
 
   const itens = (snap.produtos ?? [])
-    .map((p) => ({
-      slug: String(p.slug ?? ""),
-      name: String(p.name ?? ""),
-      size: String(p.size ?? ""),
-      quantity: num(p.quantity),
-      price: num(p.price),
-      image: p.image ?? "",
-    }))
-    .filter((i) => i.slug && i.size && i.quantity > 0);
+    .map((p) => {
+      const size = String(p.size ?? "");
+      const price = num(p.price);
+      return {
+        slug: String(p.slug ?? ""),
+        name: String(p.name ?? ""),
+        size,
+        quantity: num(p.quantity),
+        price,
+        image: p.image ?? "",
+        precoPendente: p.precoPendente ?? !(price > 0),
+        tamanhoPendente: p.tamanhoPendente ?? size === "",
+      };
+    })
+    .filter((i) => i.slug && i.quantity > 0);
   if (itens.length === 0) throw new Error("Snapshot oficial vazio.");
 
   const total = num(row.valor_total);
