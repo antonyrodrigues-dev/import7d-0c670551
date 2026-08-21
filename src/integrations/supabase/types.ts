@@ -528,6 +528,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -548,6 +550,8 @@ export type Database = {
           itens: Json
           numero_pedido?: string
           pagamento_estado?: string
+          pendencia_preco?: boolean
+          pendencia_tamanho?: boolean
           responsavel_id?: string | null
           status?: string
           valor_devolvido?: number
@@ -568,6 +572,8 @@ export type Database = {
           itens?: Json
           numero_pedido?: string
           pagamento_estado?: string
+          pendencia_preco?: boolean
+          pendencia_tamanho?: boolean
           responsavel_id?: string | null
           status?: string
           valor_devolvido?: number
@@ -1062,7 +1068,9 @@ export type Database = {
           preco: number | null
           preco_cartao: number | null
           preco_confirmado: boolean | null
+          reservavel: boolean | null
           slug: string | null
+          tamanho_confirmado: boolean | null
           variacoes: Json | null
         }
         Insert: {
@@ -1081,7 +1089,9 @@ export type Database = {
           preco?: never
           preco_cartao?: never
           preco_confirmado?: never
+          reservavel?: never
           slug?: string | null
+          tamanho_confirmado?: never
           variacoes?: never
         }
         Update: {
@@ -1100,7 +1110,9 @@ export type Database = {
           preco?: never
           preco_cartao?: never
           preco_confirmado?: never
+          reservavel?: never
           slug?: string | null
+          tamanho_confirmado?: never
           variacoes?: never
         }
         Relationships: []
@@ -1143,6 +1155,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -1182,6 +1196,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -1247,6 +1263,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -1281,6 +1299,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -1441,6 +1461,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -1456,6 +1478,37 @@ export type Database = {
         }
       }
       reserva_minutos: { Args: never; Returns: number }
+      resolver_pendencias_pedido: {
+        Args: { p_itens: Json; p_pedido_id: string }
+        Returns: {
+          atendente_nome: string | null
+          atribuido_em: string | null
+          atualizado_em: string
+          canal: string
+          consumo_aplicado: boolean
+          criado_em: string
+          frete_status: string
+          id: string
+          idempotency_key: string | null
+          itens: Json
+          numero_pedido: string
+          pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
+          responsavel_id: string | null
+          status: string
+          valor_devolvido: number
+          valor_total: number
+          whatsapp_confirmacao_origem: string | null
+          whatsapp_declarado_enviado_em: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pedidos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       salvar_configuracoes_loja: {
         Args: { p_dados: Json }
         Returns: {
@@ -1495,6 +1548,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
@@ -1524,6 +1579,8 @@ export type Database = {
           itens: Json
           numero_pedido: string
           pagamento_estado: string
+          pendencia_preco: boolean
+          pendencia_tamanho: boolean
           responsavel_id: string | null
           status: string
           valor_devolvido: number
