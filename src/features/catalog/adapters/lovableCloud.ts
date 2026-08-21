@@ -21,6 +21,9 @@ interface Row {
   parcelamento: string | null;
   preco_confirmado: boolean | null;
   compravel: boolean | null;
+  reservavel: boolean | null;
+  tamanho_confirmado: boolean | null;
+  marca: string | null;
   destaque: boolean | null;
   variacoes: unknown;
 }
@@ -66,6 +69,7 @@ function mapRow(row: Row): PublicProduct {
     name: row.nome ?? "",
     description: row.descricao ?? "",
     category: row.categoria ?? "",
+    brand: row.marca ?? "",
     price: Number(row.preco) || 0,
     sizes,
     image: images[0] ?? "",
@@ -74,6 +78,8 @@ function mapRow(row: Row): PublicProduct {
     stock,
     stockBySize,
     compravel: Boolean(row.compravel),
+    reservavel: Boolean(row.reservavel),
+    tamanhoConfirmado: Boolean(row.tamanho_confirmado),
     precoConfirmado: Boolean(row.preco_confirmado),
     precoCartao: row.preco_cartao === null ? null : Number(row.preco_cartao) || null,
     parcelamento: row.parcelamento ?? null,
@@ -85,7 +91,7 @@ export const lovableCloudCatalog: CatalogDataSource = {
     const { data, error } = await supabase
       .from("catalogo_publico")
       .select(
-        "slug, nome, categoria, descricao, imagens, preco, preco_cartao, parcelamento, preco_confirmado, compravel, destaque, variacoes",
+        "slug, nome, marca, categoria, descricao, imagens, preco, preco_cartao, parcelamento, preco_confirmado, compravel, reservavel, tamanho_confirmado, destaque, variacoes",
       )
       .order("criado_em", { ascending: true });
     if (error) throw error;
