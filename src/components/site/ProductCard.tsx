@@ -1,11 +1,20 @@
 import { memo, useEffect, useMemo, useState } from "react";
+import { ArrowUpDown, Search, SlidersHorizontal, X } from "lucide-react";
 import {
   categoriesOf,
+  formatBRL,
   priceLabel,
   productPublicState,
   useCatalog,
   type PublicProduct,
 } from "@/features/catalog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ProductSheet } from "./ProductSheet";
 import { SafeImage } from "./SafeImage";
 import { EmptyState, LoadingState } from "@/features/admin/components/AdminUI";
