@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ResponsiveDataTable, type DataTableColumn } from "@/features/admin/components/DataTable";
 import { StatusBadge } from "@/features/admin/components/StatusBadge";
 import { OrderDetailSheet } from "@/features/admin/components/OrderDetailSheet";
+import { QueuePanel } from "@/features/admin/components/QueuePanel";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
 import {
   ORDERS_TABS,
@@ -31,6 +32,11 @@ import type { OrdersTabKey } from "@/features/admin/lib/orderView";
 import type { AdminOrder } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
+  validateSearch: (search: Record<string, unknown>): { tab?: OrdersTabKey } => {
+    const t = search["tab"];
+    const valid = ORDERS_TABS.some((x) => x.key === t);
+    return valid ? { tab: t as OrdersTabKey } : {};
+  },
   head: () => ({
     meta: [{ title: "Pedidos — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
   }),
@@ -55,10 +61,15 @@ function withinPeriod(iso: string, period: PeriodFilter): boolean {
 function PedidosPage() {
   const { orders, state, error, refresh, setStatus, cancelWithRefund } = useOrders();
   const { can, displayName, email } = usePermissions();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const responsavel = (displayName ?? email ?? "").trim() || undefined;
   const canEdit = can("orders:edit");
+  const canSeeQueue = can("queue:view");
 
-  const [tab, setTab] = useState<OrdersTabKey>("todos");
+  const tab: OrdersTabKey = search.tab ?? "todos";
+  const setTab = (next: OrdersTabKey) =>
+    void navigate({ search: next === "todos" ? {} : { tab: next }, replace: true });
   const [query, setQuery] = useState("");
   const [period, setPeriod] = useState<PeriodFilter>("todos");
   const [responsavelFiltro, setResponsavelFiltro] = useState<string>("todos");
@@ -233,6 +244,12 @@ function PedidosPage() {
           </button>
         ))}
       </nav>
+
+      {tab === "atendimento" && canSeeQueue && (
+        <section aria-label="Fila de atendimento" className="flex flex-col gap-6">
+          <QueuePanel />
+        </section>
+      )}
 
       {state === "error" && (
         <ErrorState message={error ?? "Falha ao carregar."} onRetry={refresh} />

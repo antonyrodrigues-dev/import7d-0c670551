@@ -49,9 +49,9 @@ describe("mensagem e link de WhatsApp — fonte única do pedido", () => {
     expect(url.startsWith("https://wa.me/54988887777?text=")).toBe(true);
   });
 
-  it("número inválido cai no fallback e nunca gera link quebrado", () => {
-    const url = buildWhatsAppUrl(buildOrder(baseInput), "123");
-    expect(url).toMatch(/^https:\/\/wa\.me\/\d{10,}\?text=.+/);
+  it("sem número configurado não existe fallback hardcoded — falha explícita", () => {
+    expect(() => buildWhatsAppUrl(buildOrder(baseInput), "123")).toThrow(/não configurado/i);
+    expect(() => buildWhatsAppUrl(buildOrder(baseInput), "")).toThrow(/não configurado/i);
   });
 
   it("o texto do link é a própria mensagem codificada", () => {

@@ -1478,37 +1478,73 @@ export type Database = {
         }
       }
       reserva_minutos: { Args: never; Returns: number }
-      resolver_pendencias_pedido: {
-        Args: { p_itens: Json; p_pedido_id: string }
-        Returns: {
-          atendente_nome: string | null
-          atribuido_em: string | null
-          atualizado_em: string
-          canal: string
-          consumo_aplicado: boolean
-          criado_em: string
-          frete_status: string
-          id: string
-          idempotency_key: string | null
-          itens: Json
-          numero_pedido: string
-          pagamento_estado: string
-          pendencia_preco: boolean
-          pendencia_tamanho: boolean
-          responsavel_id: string | null
-          status: string
-          valor_devolvido: number
-          valor_total: number
-          whatsapp_confirmacao_origem: string | null
-          whatsapp_declarado_enviado_em: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "pedidos"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      resolver_pendencias_pedido:
+        | {
+            Args: { p_itens: Json; p_pedido_id: string }
+            Returns: {
+              atendente_nome: string | null
+              atribuido_em: string | null
+              atualizado_em: string
+              canal: string
+              consumo_aplicado: boolean
+              criado_em: string
+              frete_status: string
+              id: string
+              idempotency_key: string | null
+              itens: Json
+              numero_pedido: string
+              pagamento_estado: string
+              pendencia_preco: boolean
+              pendencia_tamanho: boolean
+              responsavel_id: string | null
+              status: string
+              valor_devolvido: number
+              valor_total: number
+              whatsapp_confirmacao_origem: string | null
+              whatsapp_declarado_enviado_em: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "pedidos"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_itens: Json
+              p_motivo_preco?: string
+              p_pedido_id: string
+            }
+            Returns: {
+              atendente_nome: string | null
+              atribuido_em: string | null
+              atualizado_em: string
+              canal: string
+              consumo_aplicado: boolean
+              criado_em: string
+              frete_status: string
+              id: string
+              idempotency_key: string | null
+              itens: Json
+              numero_pedido: string
+              pagamento_estado: string
+              pendencia_preco: boolean
+              pendencia_tamanho: boolean
+              responsavel_id: string | null
+              status: string
+              valor_devolvido: number
+              valor_total: number
+              whatsapp_confirmacao_origem: string | null
+              whatsapp_declarado_enviado_em: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "pedidos"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       salvar_configuracoes_loja: {
         Args: { p_dados: Json }
         Returns: {

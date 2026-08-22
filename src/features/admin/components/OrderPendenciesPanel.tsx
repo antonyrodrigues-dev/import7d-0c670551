@@ -1,37 +1,48 @@
 /**
  * 7D IMPORTS — Pendências do pedido (funil único de reserva).
  *
- * Apresentação pura: a validação real (catálogo, tamanho confirmado, saldo
- * e total oficial) acontece na RPC `resolver_pendencias_pedido`.
+ * Apresentação pura. O PREÇO OFICIAL É SEMPRE O DO CATÁLOGO: a RPC
+ * `resolver_pendencias_pedido` ignora qualquer valor enviado por atendente.
+ * Somente o Admin Master pode propor preço excepcional, obrigatoriamente com
+ * motivo — que fica registrado na auditoria do pedido (antes/depois).
  */
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatBRL } from "@/features/catalog";
-import { useOrderPendencies } from "../hooks";
+import { useOrderPendencies, usePermissions } from "../hooks";
 import type { AdminOrder, PendencyItemInput } from "../types";
+
+interface Draft {
+  size: string;
+  price: string;
+}
 
 export function OrderPendenciesPanel({ order, canEdit }: { order: AdminOrder; canEdit: boolean }) {
   const pendente = order.pendenciaPreco || order.pendenciaTamanho;
+  const { isAdmin } = usePermissions();
   const { state, resolver } = useOrderPendencies(order.id);
-  const inicial = useMemo<PendencyItemInput[]>(
-    () => order.itens.map((it) => ({ size: it.size ?? "", price: it.price > 0 ? it.price : 0 })),
+  const inicial = useMemo<Draft[]>(
+    () => order.itens.map((it) => ({ size: it.size ?? "", price: "" })),
     [order.itens],
   );
-  const [draft, setDraft] = useState<PendencyItemInput[]>(inicial);
+  const [draft, setDraft] = useState<Draft[]>(inicial);
+  const [motivo, setMotivo] = useState("");
 
   if (!pendente) return null;
 
-  const update = (idx: number, patch: Partial<PendencyItemInput>) =>
+  const update = (idx: number, patch: Partial<Draft>) =>
     setDraft((d) => d.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
 
-  const previsto = draft.reduce(
-    (acc, it, i) => acc + (it.price || 0) * (order.itens[i]?.quantity ?? 1),
-    0,
-  );
-  const incompleto = draft.some((it) => !it.size.trim() || !(it.price > 0));
+  const overrides = draft.some((d) => Number(d.price) > 0);
+  const incompleto = draft.some((it) => !it.size.trim());
   const salvando = state === "saving";
+  const bloqueado = incompleto || (overrides && !motivo.trim());
+
+  const payload: PendencyItemInput[] = draft.map((d) => ({
+    size: d.size,
+    price: isAdmin && Number(d.price) > 0 ? Number(d.price) : null,
+  }));
 
   return (
     <section
@@ -47,14 +58,19 @@ export function OrderPendenciesPanel({ order, canEdit }: { order: AdminOrder; ca
           : order.pendenciaTamanho
             ? "Este pedido tem peças sem tamanho confirmado."
             : "Este pedido tem peças sem preço confirmado."}{" "}
-        Confirme os dados abaixo para reservar o estoque e liberar o pagamento.
+        Confirme o tamanho para reservar o estoque. O valor aplicado é sempre o preço oficial do
+        catálogo.
       </p>
 
       <ul className="mt-4 space-y-3">
         {order.itens.map((it, idx) => (
           <li
             key={`${order.id}-pend-${idx}`}
-            className="grid gap-2 border-b border-[color:var(--border)] pb-3 sm:grid-cols-[minmax(0,1fr)_7rem_9rem] sm:items-end"
+            className={`grid gap-2 border-b border-[color:var(--border)] pb-3 sm:items-end ${
+              isAdmin
+                ? "sm:grid-cols-[minmax(0,1fr)_7rem_9rem]"
+                : "sm:grid-cols-[minmax(0,1fr)_7rem]"
+            }`}
           >
             <div className="min-w-0">
               <p className="truncate text-sm text-[color:var(--forest-deep)]">{it.name}</p>
@@ -74,37 +90,51 @@ export function OrderPendenciesPanel({ order, canEdit }: { order: AdminOrder; ca
                 aria-label={`Tamanho de ${it.name}`}
               />
             </label>
-            <label className="block">
-              <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Preço unitário
-              </span>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                inputMode="decimal"
-                value={draft[idx]?.price ? String(draft[idx].price) : ""}
-                onChange={(e) => update(idx, { price: Number(e.target.value) })}
-                disabled={!canEdit || salvando}
-                placeholder="0,00"
-                aria-label={`Preço de ${it.name}`}
-              />
-            </label>
+            {isAdmin && (
+              <label className="block">
+                <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                  Preço excepcional
+                </span>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={draft[idx]?.price ?? ""}
+                  onChange={(e) => update(idx, { price: e.target.value })}
+                  disabled={!canEdit || salvando}
+                  placeholder="Catálogo"
+                  aria-label={`Preço excepcional de ${it.name}`}
+                />
+              </label>
+            )}
           </li>
         ))}
       </ul>
 
+      {isAdmin && overrides && (
+        <label className="mt-4 block">
+          <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            Motivo do preço excepcional (obrigatório)
+          </span>
+          <Input
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            disabled={!canEdit || salvando}
+            placeholder="Ex.: acordo comercial autorizado"
+            aria-label="Motivo do preço excepcional"
+          />
+        </label>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-[color:var(--muted-foreground)]">
-          Subtotal previsto:{" "}
-          <span className="tabular-nums text-[color:var(--forest-deep)]">
-            {formatBRL(previsto)}
-          </span>
+          O total oficial é recalculado pelo servidor com os preços do catálogo.
         </p>
         <Button
           size="sm"
-          disabled={!canEdit || incompleto || salvando}
-          onClick={() => void resolver(draft)}
+          disabled={!canEdit || bloqueado || salvando}
+          onClick={() => void resolver(payload, motivo || undefined)}
         >
           {salvando ? "Confirmando…" : "Confirmar e reservar"}
         </Button>

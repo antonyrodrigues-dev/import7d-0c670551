@@ -67,8 +67,15 @@ export interface AdminOpsDataSource {
   registerPayment(input: PaymentInput): Promise<void>;
   /** Frete oficial do pedido — calculado e gravado pelo servidor. */
   setShippingCost(pedidoId: string, valor: number): Promise<void>;
-  /** Resolve pendências de tamanho/preço de um pedido (reserva + total no banco). */
-  resolvePendencies(pedidoId: string, itens: PendencyItemInput[]): Promise<void>;
+  /**
+   * Resolve pendências de tamanho/preço de um pedido (reserva + total no banco).
+   * `motivoPreco` só é considerado para preço excepcional de Admin Master.
+   */
+  resolvePendencies(
+    pedidoId: string,
+    itens: PendencyItemInput[],
+    motivoPreco?: string,
+  ): Promise<void>;
 
   // Ledger financeiro (imutável, restrito ao Admin Master pela RLS)
   listLedger(pedidoId: string): Promise<LedgerEntry[]>;
@@ -264,10 +271,14 @@ export const opsDataSource: AdminOpsDataSource = {
     if (error) throw error;
   },
 
-  async resolvePendencies(pedidoId, itens) {
+  async resolvePendencies(pedidoId, itens, motivoPreco) {
     const { error } = await supabase.rpc("resolver_pendencias_pedido", {
       p_pedido_id: pedidoId,
-      p_itens: itens.map((i) => ({ size: i.size, price: i.price })),
+      p_itens: itens.map((i) => ({
+        size: i.size,
+        ...(i.price != null && i.price > 0 ? { price: i.price } : {}),
+      })),
+      ...(motivoPreco ? { p_motivo_preco: motivoPreco } : {}),
     });
     if (error) throw error;
   },

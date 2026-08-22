@@ -9,7 +9,6 @@ import type { AdminNavKey, EmployeeRole, OrderStatus, Permission } from "./types
 
 export const ADMIN_NAV: { key: AdminNavKey; label: string; path: string }[] = [
   { key: "dashboard", label: "Dashboard", path: "/admin" },
-  { key: "atendimentos", label: "Atendimentos", path: "/admin/atendimentos" },
   { key: "pedidos", label: "Pedidos", path: "/admin/pedidos" },
   { key: "financeiro", label: "Financeiro", path: "/admin/financeiro" },
   { key: "estoque", label: "Estoque", path: "/admin/estoque" },
@@ -78,7 +77,6 @@ export const LOW_STOCK_THRESHOLD = 3;
 /** Permissão exigida para exibir cada item do menu administrativo. */
 export const ADMIN_NAV_PERMISSION: Record<AdminNavKey, Permission> = {
   dashboard: "orders:view",
-  atendimentos: "queue:view",
   pedidos: "orders:view",
   financeiro: "finance:view",
   estoque: "inventory:view",

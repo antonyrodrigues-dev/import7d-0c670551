@@ -86,7 +86,7 @@ export function SearchDrawer() {
                   {results.map((p) => (
                     <li key={p.slug}>
                       <a
-                        href={`#acervo`}
+                        href={`#peca-${p.slug}`}
                         onClick={() => setSearchOpen(false)}
                         className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[color:var(--border)] py-3 transition-colors hover:bg-[color:var(--cream-deep)]/50"
                       >

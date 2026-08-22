@@ -26,7 +26,6 @@ export type AsyncState = AdminAsyncState;
 
 export type AdminNavKey =
   | "dashboard"
-  | "atendimentos"
   | "pedidos"
   | "financeiro"
   | "estoque"

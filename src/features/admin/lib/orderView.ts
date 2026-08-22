@@ -21,7 +21,6 @@ export type BadgeTone = "neutral" | "info" | "warn" | "success" | "danger";
 /** Abas operacionais da central de pedidos. */
 export type OrdersTabKey =
   | "todos"
-  | "novo"
   | "atendimento"
   | "pagamento_confirmado"
   | "em_separacao"
@@ -38,11 +37,16 @@ export interface OrdersTab {
 
 export const ORDERS_TABS: OrdersTab[] = [
   { key: "todos", label: "Todos", statuses: [] },
-  { key: "novo", label: "Novos", statuses: ["novo", "whatsapp_declarado"] },
   {
     key: "atendimento",
     label: "Atendimento",
-    statuses: ["aguardando_atendimento", "em_atendimento", "aguardando_pagamento"],
+    statuses: [
+      "novo",
+      "whatsapp_declarado",
+      "aguardando_atendimento",
+      "em_atendimento",
+      "aguardando_pagamento",
+    ],
   },
   {
     key: "pagamento_confirmado",
@@ -56,7 +60,7 @@ export const ORDERS_TABS: OrdersTab[] = [
     statuses: ["aguardando_retirada", "enviado"],
   },
   { key: "finalizado", label: "Finalizados", statuses: ["finalizado", "devolvido"] },
-  { key: "cancelado", label: "Cancelados", statuses: ["cancelado"] },
+  { key: "cancelado", label: "Cancelados e reembolsos", statuses: ["cancelado"] },
 ];
 
 /** Pipeline em andamento — espelha a definição usada pelo Dashboard. */

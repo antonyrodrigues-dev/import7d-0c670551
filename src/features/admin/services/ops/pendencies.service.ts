@@ -16,6 +16,7 @@ import type { PendencyItemInput } from "../../types";
 export async function resolvePendencies(
   pedidoId: string,
   itens: PendencyItemInput[],
+  motivoPreco?: string,
 ): Promise<boolean> {
   if (itens.length === 0) {
     handleAdminError(new Error("Pedido sem itens para resolver."), "pendencies.resolve");
@@ -26,18 +27,23 @@ export async function resolvePendencies(
       handleAdminError(new Error("Defina o tamanho de todas as peças."), "pendencies.resolve");
       return false;
     }
-    if (!Number.isFinite(it.price) || it.price <= 0) {
-      handleAdminError(
-        new Error("Defina um preço válido para todas as peças."),
-        "pendencies.resolve",
-      );
-      return false;
-    }
+  }
+  const override = itens.some((i) => i.price != null && i.price > 0);
+  if (override && !motivoPreco?.trim()) {
+    handleAdminError(
+      new Error("Preço excepcional exige um motivo registrado."),
+      "pendencies.resolve",
+    );
+    return false;
   }
   try {
     await opsDataSource.resolvePendencies(
       pedidoId,
-      itens.map((i) => ({ size: i.size.trim(), price: Math.round(i.price * 100) / 100 })),
+      itens.map((i) => ({
+        size: i.size.trim(),
+        price: i.price != null && i.price > 0 ? Math.round(i.price * 100) / 100 : null,
+      })),
+      motivoPreco?.trim() || undefined,
     );
     logger.info("Pendências resolvidas.", { pedidoId, origin: "pendencies.service" });
     return true;
