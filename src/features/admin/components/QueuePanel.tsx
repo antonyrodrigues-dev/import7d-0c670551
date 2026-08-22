@@ -10,7 +10,6 @@ import {
   UserCheck,
 } from "lucide-react";
 import { PageHeader } from "@/features/admin/components/PageHeader";
-// eslint-disable-next-line no-restricted-imports
 import {
   ConfirmDialog,
   EmptyState,
