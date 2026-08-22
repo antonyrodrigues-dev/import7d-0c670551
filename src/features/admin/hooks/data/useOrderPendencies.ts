@@ -13,10 +13,10 @@ export function useOrderPendencies(pedidoId: string | null) {
   const refreshOrders = useOrdersStore((s) => s.refresh);
 
   const resolver = useCallback(
-    async (itens: PendencyItemInput[]) => {
+    async (itens: PendencyItemInput[], motivoPreco?: string) => {
       if (!pedidoId) return false;
       setState("saving");
-      const ok = await resolvePendencies(pedidoId, itens);
+      const ok = await resolvePendencies(pedidoId, itens, motivoPreco);
       if (ok) {
         toast.success("Pendências resolvidas. Total do pedido recalculado.");
         await refreshOrders();
