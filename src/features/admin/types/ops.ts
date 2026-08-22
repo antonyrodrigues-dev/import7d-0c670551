@@ -312,8 +312,13 @@ export interface ReservationRow {
   expiraEm: IsoDateTime | null;
 }
 
-/** Entrada de resolução de pendência de um item do pedido (ordem preservada). */
+/**
+ * Entrada de resolução de pendência de um item do pedido (ordem preservada).
+ *
+ * `price` é APENAS uma proposta de preço excepcional do Admin Master. O preço
+ * oficial é sempre o do catálogo: a RPC ignora este campo para atendentes.
+ */
 export interface PendencyItemInput {
   size: string;
-  price: number;
+  price?: number | null;
 }
