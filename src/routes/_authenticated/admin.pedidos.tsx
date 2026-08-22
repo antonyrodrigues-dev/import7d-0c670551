@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ResponsiveDataTable, type DataTableColumn } from "@/features/admin/components/DataTable";
 import { StatusBadge } from "@/features/admin/components/StatusBadge";
 import { OrderDetailSheet } from "@/features/admin/components/OrderDetailSheet";
+import { QueuePanel } from "@/features/admin/components/QueuePanel";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
 import {
   ORDERS_TABS,
@@ -243,6 +244,12 @@ function PedidosPage() {
           </button>
         ))}
       </nav>
+
+      {tab === "atendimento" && canSeeQueue && (
+        <section aria-label="Fila de atendimento" className="flex flex-col gap-6">
+          <QueuePanel />
+        </section>
+      )}
 
       {state === "error" && (
         <ErrorState message={error ?? "Falha ao carregar."} onRetry={refresh} />
