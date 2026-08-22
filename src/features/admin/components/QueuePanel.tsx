@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -10,6 +10,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { PageHeader } from "@/features/admin/components/PageHeader";
+// eslint-disable-next-line no-restricted-imports
 import {
   ConfirmDialog,
   EmptyState,
@@ -25,14 +26,11 @@ import { useQueue, useTeam, usePermissions } from "@/features/admin/hooks";
 import type { BadgeTone } from "@/features/admin/lib/orderView";
 import type { QueueOrder } from "@/features/admin/types";
 
-export const Route = createFileRoute("/_authenticated/admin/atendimentos")({
-  head: () => ({
-    meta: [{ title: "Atendimentos — 7D IMPORTS" }, { name: "robots", content: "noindex,nofollow" }],
-  }),
-  component: AtendimentosPage,
-});
-
-function AtendimentosPage() {
+/**
+ * Fila de atendimento — vive dentro da central de Pedidos (aba Atendimento).
+ * Não existe mais rota própria: Pedidos é o único ponto de entrada operacional.
+ */
+export function QueuePanel() {
   return (
     <PermissionGate
       perm="queue:view"
@@ -92,8 +90,8 @@ function FilaView() {
   return (
     <>
       <PageHeader
-        eyebrow="Painel"
-        title="Atendimentos"
+        eyebrow="Pedidos"
+        title="Fila de atendimento"
         description="Fila oficial de pedidos aguardando e em atendimento, sincronizada em tempo real."
         actions={
           <Button
