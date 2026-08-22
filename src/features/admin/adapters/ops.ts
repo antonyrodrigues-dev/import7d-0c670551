@@ -271,10 +271,14 @@ export const opsDataSource: AdminOpsDataSource = {
     if (error) throw error;
   },
 
-  async resolvePendencies(pedidoId, itens) {
+  async resolvePendencies(pedidoId, itens, motivoPreco) {
     const { error } = await supabase.rpc("resolver_pendencias_pedido", {
       p_pedido_id: pedidoId,
-      p_itens: itens.map((i) => ({ size: i.size, price: i.price })),
+      p_itens: itens.map((i) => ({
+        size: i.size,
+        ...(i.price != null && i.price > 0 ? { price: i.price } : {}),
+      })),
+      ...(motivoPreco ? { p_motivo_preco: motivoPreco } : {}),
     });
     if (error) throw error;
   },
