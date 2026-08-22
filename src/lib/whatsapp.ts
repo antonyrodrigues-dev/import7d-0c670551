@@ -100,18 +100,18 @@ export function buildReservaMessage(order: Order): string {
 }
 
 /**
- * Link de WhatsApp do pedido. O número oficial vem das Configurações da loja
- * (banco); o atendente default é apenas fallback quando ainda não há config.
+ * Link de WhatsApp do pedido.
+ *
+ * FONTE ÚNICA: o número oficial vem SEMPRE das Configurações da loja (banco).
+ * Não existe fallback hardcoded — sem número configurado, não há link.
  */
-export function buildWhatsAppUrl(
-  order: Order,
-  attendantOrPhone: Attendant | string = DEFAULT_ATTENDANT,
-): string {
+export function buildWhatsAppUrl(order: Order, phone: string): string {
+  const digits = String(phone ?? "").replace(/\D/g, "");
+  if (digits.length < 10) {
+    throw new Error(
+      "Número de WhatsApp da loja não configurado. Ajuste em Configurações antes de enviar pedidos.",
+    );
+  }
   const msg = buildReservaMessage(order);
-  const phone =
-    typeof attendantOrPhone === "string"
-      ? attendantOrPhone.replace(/\D/g, "")
-      : attendantOrPhone.phone;
-  const target = phone.length >= 10 ? phone : DEFAULT_ATTENDANT.phone;
-  return `https://wa.me/${target}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
 }
