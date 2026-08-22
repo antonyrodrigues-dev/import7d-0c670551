@@ -1,4 +1,3 @@
-
 import { formatBRL } from "@/features/catalog";
 import { DELIVERY_LABEL, PAYMENT_LABEL } from "@/lib/checkout";
 import type { Order } from "@/lib/order";

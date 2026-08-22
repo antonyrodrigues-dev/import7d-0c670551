@@ -298,7 +298,8 @@ function FiltersSheet({
                 onChange={(e) =>
                   onChange({
                     ...value,
-                    priceMax: Number(e.target.value) >= priceCeiling ? null : Number(e.target.value),
+                    priceMax:
+                      Number(e.target.value) >= priceCeiling ? null : Number(e.target.value),
                   })
                 }
                 aria-label="Preço máximo"
@@ -382,7 +383,10 @@ export function FullGrid() {
       if (filters.disponibilidade === "reservaveis" && !p.compravel) return false;
       if (filters.disponibilidade === "sob_consulta" && p.compravel) return false;
       if (filters.priceMax != null && p.precoConfirmado && p.price > filters.priceMax) return false;
-      if (term && ![p.name, p.brand, p.category, p.description].some((f) => f?.toLowerCase().includes(term)))
+      if (
+        term &&
+        ![p.name, p.brand, p.category, p.description].some((f) => f?.toLowerCase().includes(term))
+      )
         return false;
       return true;
     });

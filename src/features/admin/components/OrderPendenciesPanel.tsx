@@ -67,7 +67,9 @@ export function OrderPendenciesPanel({ order, canEdit }: { order: AdminOrder; ca
           <li
             key={`${order.id}-pend-${idx}`}
             className={`grid gap-2 border-b border-[color:var(--border)] pb-3 sm:items-end ${
-              isAdmin ? "sm:grid-cols-[minmax(0,1fr)_7rem_9rem]" : "sm:grid-cols-[minmax(0,1fr)_7rem]"
+              isAdmin
+                ? "sm:grid-cols-[minmax(0,1fr)_7rem_9rem]"
+                : "sm:grid-cols-[minmax(0,1fr)_7rem]"
             }`}
           >
             <div className="min-w-0">
