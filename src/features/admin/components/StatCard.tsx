@@ -50,9 +50,9 @@ function StatCardImpl({
         </p>
         {icon && <span className="text-[color:var(--gold)]">{icon}</span>}
       </div>
-      <p className="font-display text-3xl tabular-nums text-[color:var(--forest-deep)]">
+      <div className="font-display text-3xl tabular-nums text-[color:var(--forest-deep)]">
         {loading ? <Skeleton className="h-8 w-24" /> : value}
-      </p>
+      </div>
       {trend && !loading && (
         <p className={`flex items-center gap-1 text-[11px] font-medium tabular-nums ${trendClass}`}>
           <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />
