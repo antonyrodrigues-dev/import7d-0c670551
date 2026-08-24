@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useInventoryStore } from "../../stores/inventory";
 import {
   archiveProduct,
+  confirmConference,
   createProduct,
   deleteProduct,
   duplicateProduct,
@@ -10,7 +11,7 @@ import {
   restoreProduct,
   updateProduct,
 } from "../../services/inventory.service";
-import type { ProductWritePayload } from "../../adapters/types";
+import type { ConferenceInput, ProductWritePayload } from "../../adapters/types";
 import type { InventoryItem, MovementKind } from "../../types";
 
 export function useInventory(options: { auto?: boolean } = { auto: true }) {
@@ -89,6 +90,20 @@ export function useInventory(options: { auto?: boolean } = { auto: true }) {
     [refresh],
   );
 
+  const confer = useCallback(
+    async (input: ConferenceInput) => {
+      const result = await confirmConference(input);
+      toast.success(
+        result.canPublish
+          ? "Peça conferida e publicada na vitrine."
+          : `Peça conferida. Pendente: ${result.blockingReasons.join(" · ") || "revisão"}`,
+      );
+      await refresh();
+      return result;
+    },
+    [refresh],
+  );
+
   return {
     ...store,
     create,
@@ -98,5 +113,6 @@ export function useInventory(options: { auto?: boolean } = { auto: true }) {
     restore,
     remove,
     adjustStock,
+    confer,
   };
 }

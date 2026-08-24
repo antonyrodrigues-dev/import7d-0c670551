@@ -52,6 +52,28 @@ export interface ProductWritePayload {
 
 export type MovementKindDB = "entrada" | "saida" | "ajuste" | "reposicao" | "consumo_pedido";
 
+/** Origem física do tamanho conferido — só valores confirmados são aceitos. */
+export type ConfirmedSizeOrigin = "confirmado_etiqueta" | "confirmado_medicao";
+
+/** Dados coletados no Modo Conferência Rápida do Estoque. */
+export interface ConferenceInput {
+  productId: string;
+  price: number;
+  cardPrice?: number | null;
+  installments?: string | null;
+  size: string;
+  origin: ConfirmedSizeOrigin;
+  evidence: string;
+  quantity: number;
+}
+
+export interface ConferenceResult {
+  productId: string;
+  publishStatus: string;
+  canPublish: boolean;
+  blockingReasons: string[];
+}
+
 /** Uma linha de composição de kit gravada no banco. */
 export interface KitComponentWritePayload {
   kitId: string;
@@ -95,8 +117,16 @@ export interface AdminDataSource {
     kind: MovementKindDB,
     observacao?: string,
   ): Promise<void>;
+  /**
+   * Conferência física da peça em UMA operação atômica no banco
+   * (`conferir_produto`): preço oficial, tamanho com origem + evidência,
+   * quantidade contada e marcação de conferência. O banco reavalia a
+   * publicação — nada é decidido no cliente.
+   */
+  confirmConference(input: ConferenceInput): Promise<ConferenceResult>;
   /** Envia a foto para o armazenamento privado e devolve a URL utilizável. */
   uploadProductImage(file: File, slug: string): Promise<string>;
+
   /** Assina mudanças de catálogo/estoque em tempo real. Devolve o cancelador. */
   subscribeInventory(onChange: () => void): () => void;
 
