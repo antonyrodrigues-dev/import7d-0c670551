@@ -1,105 +1,62 @@
 /**
- * Serviço do Dashboard — deriva métricas dos serviços de domínio.
- * Isola completamente a UI da forma como as métricas são calculadas.
+ * 7D IMPORTS — Serviço do Dashboard.
+ *
+ * AUTORIDADE FINANCEIRA: o ledger, via RPC `metricas_dashboard`.
+ * Dashboard = Financeiro = ledger. Nenhum valor é recalculado no navegador
+ * e o vendedor NÃO recebe métricas financeiras globais (o servidor omite).
  */
 
-import type { AdminOrder, DashboardMetrics, InventoryItem, TrendInfo } from "../types";
-import { LOW_STOCK_THRESHOLD } from "../constants";
+import { adminDataSource } from "../adapters";
+import { toAdminError, type AdminError } from "../lib/errors";
+import type { AdminDashboard } from "../types";
 
-function trendFrom(current: number, previous: number, comparedTo: string): TrendInfo {
-  if (previous === 0 && current === 0) {
-    return { deltaPct: 0, direction: "flat", comparedTo };
-  }
-  if (previous === 0) {
-    return { deltaPct: 100, direction: "up", comparedTo };
-  }
-  const deltaPct = ((current - previous) / previous) * 100;
-  const direction: TrendInfo["direction"] =
-    Math.abs(deltaPct) < 1 ? "flat" : deltaPct > 0 ? "up" : "down";
-  return { deltaPct: Math.round(deltaPct * 10) / 10, direction, comparedTo };
+const num = (v: unknown): number => {
+  const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
+};
+
+/**
+ * O banco devolve o offset curto ("+00"); o parser de datas do navegador
+ * exige "+00:00". Normalizamos aqui, na borda, uma única vez.
+ */
+function normalizeIso(v: unknown): string {
+  if (typeof v !== "string") return new Date().toISOString();
+  const fixed = /[+-]\d{2}$/.test(v) ? `${v}:00` : v;
+  const d = new Date(fixed);
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 }
 
-export function buildDashboardMetrics(
-  orders: AdminOrder[],
-  inventory: InventoryItem[],
-  customersCount: number,
-): DashboardMetrics {
-  const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const prevMonth = new Date(now);
-  prevMonth.setMonth(now.getMonth() - 1);
-
-  const isSameDay = (d: string) => {
-    const x = new Date(d);
-    return (
-      x.getFullYear() === now.getFullYear() &&
-      x.getMonth() === now.getMonth() &&
-      x.getDate() === now.getDate()
-    );
-  };
-  const isYesterday = (d: string) => {
-    const x = new Date(d);
-    return (
-      x.getFullYear() === yesterday.getFullYear() &&
-      x.getMonth() === yesterday.getMonth() &&
-      x.getDate() === yesterday.getDate()
-    );
-  };
-  const isSameMonth = (d: string) => {
-    const x = new Date(d);
-    return x.getFullYear() === now.getFullYear() && x.getMonth() === now.getMonth();
-  };
-  const isPrevMonth = (d: string) => {
-    const x = new Date(d);
-    return x.getFullYear() === prevMonth.getFullYear() && x.getMonth() === prevMonth.getMonth();
-  };
-
-  const finalizados = orders.filter((o) => o.status === "finalizado");
-  const pedidosHoje = orders.filter((o) => isSameDay(o.criadoEm)).length;
-  const pedidosOntem = orders.filter((o) => isYesterday(o.criadoEm)).length;
-  const pedidosPendentes = orders.filter(
-    (o) => o.status !== "finalizado" && o.status !== "cancelado",
-  ).length;
-  const faturamentoDia = finalizados
-    .filter((o) => isSameDay(o.criadoEm))
-    .reduce((a, o) => a + o.valorTotal, 0);
-  const faturamentoOntem = finalizados
-    .filter((o) => isYesterday(o.criadoEm))
-    .reduce((a, o) => a + o.valorTotal, 0);
-  const faturamentoMes = finalizados
-    .filter((o) => isSameMonth(o.criadoEm))
-    .reduce((a, o) => a + o.valorTotal, 0);
-  const faturamentoMesAnterior = finalizados
-    .filter((o) => isPrevMonth(o.criadoEm))
-    .reduce((a, o) => a + o.valorTotal, 0);
-  const finalizadosMes = finalizados.filter((o) => isSameMonth(o.criadoEm));
-  const finalizadosMesAnterior = finalizados.filter((o) => isPrevMonth(o.criadoEm));
-  const ticketMedio = finalizados.length
-    ? finalizados.reduce((a, o) => a + o.valorTotal, 0) / finalizados.length
-    : 0;
-  const ticketMedioMes = finalizadosMes.length
-    ? finalizadosMes.reduce((a, o) => a + o.valorTotal, 0) / finalizadosMes.length
-    : 0;
-  const ticketMedioMesAnterior = finalizadosMesAnterior.length
-    ? finalizadosMesAnterior.reduce((a, o) => a + o.valorTotal, 0) / finalizadosMesAnterior.length
-    : 0;
-
+export function parseDashboard(raw: unknown): AdminDashboard {
+  const d = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   return {
-    pedidosHoje,
-    pedidosPendentes,
-    pedidosFinalizados: finalizados.length,
-    clientes: customersCount,
-    produtos: inventory.length,
-    estoqueBaixo: inventory.filter((i) => i.quantity <= LOW_STOCK_THRESHOLD).length,
-    reservasEmAndamento: orders.filter((o) => o.status === "reservado").length,
-    ticketMedio,
-    faturamentoDia,
-    faturamentoMes,
-    pedidosHojeTrend: trendFrom(pedidosHoje, pedidosOntem, "ontem"),
-    faturamentoDiaTrend: trendFrom(faturamentoDia, faturamentoOntem, "ontem"),
-    faturamentoMesTrend: trendFrom(faturamentoMes, faturamentoMesAnterior, "mês anterior"),
-    ticketMedioTrend: trendFrom(ticketMedioMes, ticketMedioMesAnterior, "mês anterior"),
-    atualizadoEm: now.toISOString(),
+    financeiroVisivel: Boolean(d.financeiroVisivel),
+    receitaLiquidaDia: num(d.receitaLiquidaDia),
+    receitaLiquidaMes: num(d.receitaLiquidaMes),
+    vendasMes: num(d.vendasMes),
+    ticketMedioMes: num(d.ticketMedioMes),
+    pedidosHoje: num(d.pedidosHoje),
+    pedidosEmAberto: num(d.pedidosEmAberto),
+    atendimentosAguardando: num(d.atendimentosAguardando),
+    atendimentosAtrasados: num(d.atendimentosAtrasados),
+    pedidosComPendencia: num(d.pedidosComPendencia),
+    pedidosFinalizados: num(d.pedidosFinalizados),
+    clientes: num(d.clientes),
+    produtos: num(d.produtos),
+    estoqueBaixo: num(d.estoqueBaixo),
+    pendenciasEstoque: num(d.pendenciasEstoque),
+    atualizadoEm: normalizeIso(d.atualizadoEm),
   };
+}
+
+export interface DashboardResult {
+  metrics: AdminDashboard | null;
+  error: AdminError | null;
+}
+
+export async function fetchDashboard(): Promise<DashboardResult> {
+  try {
+    return { metrics: parseDashboard(await adminDataSource.dashboardMetrics()), error: null };
+  } catch (e) {
+    return { metrics: null, error: toAdminError(e, "dashboard.fetchDashboard") };
+  }
 }

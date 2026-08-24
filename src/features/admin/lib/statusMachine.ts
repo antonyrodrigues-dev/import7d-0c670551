@@ -50,3 +50,18 @@ export const PAYMENT_ONLY_STATUSES: OrderStatus[] = ["pagamento_confirmado"];
 export function operationalNextStatuses(from: OrderStatus): OrderStatus[] {
   return nextStatuses(from).filter((s) => !PAYMENT_ONLY_STATUSES.includes(s));
 }
+
+/** Pedidos vivos: tudo que ainda exige ação da equipe. */
+export const OPERATIONAL_STATUSES: OrderStatus[] = [
+  "novo",
+  "whatsapp_declarado",
+  "aguardando_atendimento",
+  "em_atendimento",
+  "aguardando_pagamento",
+  "pagamento_confirmado",
+  "separado",
+  "reservado",
+  "aguardando_retirada",
+  "enviado",
+];
+

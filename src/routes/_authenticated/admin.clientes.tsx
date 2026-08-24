@@ -1,13 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { memo, useMemo, useState } from "react";
+import { memo, useState } from "react";
 import { formatBRL } from "@/features/catalog";
 import { PageHeader, EmptyState } from "@/features/admin/components/PageHeader";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
-import { useOrders, useCustomers } from "@/features/admin/hooks";
+import { useCustomers, useCustomerHistory } from "@/features/admin/hooks/data/useCustomers";
 import type { AdminCustomer } from "@/features/admin/types";
-import { formatPhoneBR, digitsOnly, capitalizeName } from "@/lib/masks";
-
-const PAGE_SIZE = 20;
+import { formatPhoneBR, capitalizeName } from "@/lib/masks";
 
 export const Route = createFileRoute("/_authenticated/admin/clientes")({
   head: () => ({
@@ -17,32 +15,10 @@ export const Route = createFileRoute("/_authenticated/admin/clientes")({
 });
 
 function ClientesPage() {
-  useOrders();
-  const { customers, query, sortBy, setQuery, setSortBy } = useCustomers();
-  const [page, setPage] = useState(1);
+  // A base é agregada no servidor a partir do ledger: busca, paginação e
+  // valor gasto não são recalculados no navegador.
+  const { customers, query, setQuery, page, setPage, totalPages, total, state } = useCustomers();
   const [detailId, setDetailId] = useState<string | null>(null);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const qDigits = digitsOnly(query);
-    const base = q
-      ? customers.filter(
-          (c) =>
-            c.nome.toLowerCase().includes(q) ||
-            (qDigits.length > 0 && digitsOnly(c.telefone).includes(qDigits)) ||
-            c.cidade.toLowerCase().includes(q),
-        )
-      : customers;
-    const sorted = [...base].sort((a, b) => {
-      if (sortBy === "valor") return b.valorGasto - a.valorGasto;
-      if (sortBy === "nome") return a.nome.localeCompare(b.nome);
-      return (b.ultimaCompra ?? "").localeCompare(a.ultimaCompra ?? "");
-    });
-    return sorted;
-  }, [customers, query, sortBy]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visiveis = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const detalhe = detailId ? (customers.find((c) => c.id === detailId) ?? null) : null;
 
   return (
@@ -50,33 +26,26 @@ function ClientesPage() {
       <PageHeader
         eyebrow="Painel"
         title="Clientes"
-        description="Base derivada dos pedidos recebidos."
+        description="Base consolidada no servidor: telefone normalizado e valor gasto apurado pelo financeiro."
       />
       <section aria-label="Controles" className="flex flex-wrap gap-3">
         <input
           type="search"
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="Pesquisar por nome, telefone ou cidade"
           className="h-11 flex-1 min-w-[220px] border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm"
           aria-label="Pesquisar clientes"
         />
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="h-11 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm"
-          aria-label="Ordenar"
+        <p
+          aria-live="polite"
+          className="flex h-11 items-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
         >
-          <option value="valor">Ordenar por valor</option>
-          <option value="recente">Ordenar por última compra</option>
-          <option value="nome">Ordenar por nome</option>
-        </select>
+          {state === "loading" ? "Carregando…" : `${total} cliente(s)`}
+        </p>
       </section>
 
-      {visiveis.length === 0 ? (
+      {customers.length === 0 ? (
         <EmptyState
           title="Nenhum cliente encontrado"
           description="Assim que houver pedidos, a base será populada aqui."
@@ -97,7 +66,7 @@ function ClientesPage() {
               </tr>
             </thead>
             <tbody>
-              {visiveis.map((c) => (
+              {customers.map((c) => (
                 <CustomerRow key={c.id} customer={c} onOpen={setDetailId} />
               ))}
             </tbody>
@@ -105,10 +74,10 @@ function ClientesPage() {
         </div>
       )}
 
-      {filtered.length > PAGE_SIZE && (
+      {totalPages > 1 && (
         <nav aria-label="Paginação" className="flex items-center justify-end gap-3">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
             className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase disabled:opacity-40"
           >
@@ -118,7 +87,7 @@ function ClientesPage() {
             Página {page} de {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
             className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase disabled:opacity-40"
           >
@@ -162,7 +131,8 @@ const CustomerRow = memo(function CustomerRow({ customer: c, onOpen }: CustomerR
 });
 
 function CustomerDetail({ customer, onClose }: { customer: AdminCustomer; onClose: () => void }) {
-  const historico = [...customer.historico].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
+  // Histórico carregado sob demanda — a listagem não paga esse custo.
+  const { orders, loading } = useCustomerHistory(customer.telefone);
   return (
     <div
       role="dialog"
@@ -221,26 +191,26 @@ function CustomerDetail({ customer, onClose }: { customer: AdminCustomer; onClos
 
         <section aria-label="Histórico de pedidos" className="mt-6">
           <h3 className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-            Histórico ({historico.length})
+            Histórico {loading ? "· carregando…" : `(${orders.length})`}
           </h3>
           <ol className="mt-3 flex flex-col gap-3">
-            {historico.map((h) => (
+            {orders.map((o) => (
               <li
-                key={h.id}
+                key={o.id}
                 className="border-l-2 border-[color:var(--gold)]/60 bg-[color:var(--cream-deep)]/30 p-3"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-display text-lg tabular-nums text-[color:var(--forest-deep)]">
-                    {h.numero}
+                    {o.numero}
                   </span>
-                  <span className="tabular-nums">{formatBRL(h.valorTotal)}</span>
+                  <span className="tabular-nums">{formatBRL(o.valorTotal)}</span>
                 </div>
                 <p className="mt-1 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                  {new Date(h.criadoEm).toLocaleString("pt-BR")}
+                  {new Date(o.criadoEm).toLocaleString("pt-BR")} · {o.status.replace(/_/g, " ")}
                 </p>
               </li>
             ))}
-            {historico.length === 0 && (
+            {!loading && orders.length === 0 && (
               <li className="text-sm text-[color:var(--muted-foreground)]">
                 Sem pedidos registrados.
               </li>

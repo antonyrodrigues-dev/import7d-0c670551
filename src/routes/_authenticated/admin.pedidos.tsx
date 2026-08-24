@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import { formatBRL } from "@/features/catalog";
 import {
@@ -16,11 +16,9 @@ import { QueuePanel } from "@/features/admin/components/QueuePanel";
 import { useOrders, usePermissions } from "@/features/admin/hooks";
 import {
   ORDERS_TABS,
-  countByTab,
   deliveryLabel,
   formatDateTimeSP,
   itemsSummary,
-  matchesTab,
   netValue,
   paymentLabel,
   paymentTone,
@@ -29,6 +27,7 @@ import {
   statusTone,
 } from "@/features/admin/lib/orderView";
 import type { OrdersTabKey } from "@/features/admin/lib/orderView";
+import { ORDERS_PAGE_SIZE } from "@/features/admin/stores/orders";
 import type { AdminOrder } from "@/features/admin/types";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
@@ -43,23 +42,23 @@ export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   component: PedidosPage,
 });
 
-type PeriodFilter = "todos" | "hoje" | "7d" | "30d";
-
-function withinPeriod(iso: string, period: PeriodFilter): boolean {
-  if (period === "todos") return true;
-  const d = new Date(iso).getTime();
-  const now = Date.now();
-  if (period === "hoje") {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return d >= today.getTime();
-  }
-  const days = period === "7d" ? 7 : 30;
-  return d >= now - days * 86_400_000;
-}
-
 function PedidosPage() {
-  const { orders, state, error, refresh, setStatus, cancelWithRefund } = useOrders();
+  // A lista é filtrada, buscada e paginada NO SERVIDOR: o navegador nunca
+  // carrega a base inteira só para esconder linhas.
+  const {
+    orders,
+    state,
+    error,
+    refresh,
+    setStatus,
+    cancelWithRefund,
+    query,
+    setQuery,
+    setStatuses,
+    page,
+    setPage,
+    total,
+  } = useOrders();
   const { can, displayName, email } = usePermissions();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -68,36 +67,18 @@ function PedidosPage() {
   const canSeeQueue = can("queue:view");
 
   const tab: OrdersTabKey = search.tab ?? "todos";
-  const setTab = (next: OrdersTabKey) =>
-    void navigate({ search: next === "todos" ? {} : { tab: next }, replace: true });
-  const [query, setQuery] = useState("");
-  const [period, setPeriod] = useState<PeriodFilter>("todos");
-  const [responsavelFiltro, setResponsavelFiltro] = useState<string>("todos");
   const [selected, setSelected] = useState<AdminOrder | null>(null);
 
-  const responsaveis = useMemo(
-    () =>
-      Array.from(new Set(orders.map((o) => o.responsavel).filter((r): r is string => Boolean(r)))),
-    [orders],
-  );
+  // Aba = conjunto de status enviado ao servidor. Fonte única: ORDERS_TABS.
+  useEffect(() => {
+    setStatuses(ORDERS_TABS.find((t) => t.key === tab)?.statuses ?? []);
+  }, [tab, setStatuses]);
 
-  const tabCounts = useMemo(() => countByTab(orders), [orders]);
+  const setTab = (next: OrdersTabKey) =>
+    void navigate({ search: next === "todos" ? {} : { tab: next }, replace: true });
 
-  const visiveis = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return orders.filter((o) => {
-      if (!matchesTab(o, tab)) return false;
-      if (!withinPeriod(o.criadoEm, period)) return false;
-      if (responsavelFiltro !== "todos" && o.responsavel !== responsavelFiltro) return false;
-      if (q) {
-        const hay = [o.numero, o.cliente.nome, o.cliente.telefone, o.cliente.cidade ?? ""]
-          .join(" ")
-          .toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-  }, [orders, tab, period, responsavelFiltro, query]);
+  const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
+  const visiveis = orders;
 
   const columns: DataTableColumn<AdminOrder>[] = [
     {
@@ -203,30 +184,12 @@ function PedidosPage() {
           className="h-11 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm md:col-span-2"
           aria-label="Pesquisar pedidos"
         />
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
-          className="h-11 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm"
-          aria-label="Filtrar por período"
+        <p
+          aria-live="polite"
+          className="flex h-11 items-center text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)] md:col-span-2"
         >
-          <option value="todos">Todo o período</option>
-          <option value="hoje">Hoje</option>
-          <option value="7d">Últimos 7 dias</option>
-          <option value="30d">Últimos 30 dias</option>
-        </select>
-        <select
-          value={responsavelFiltro}
-          onChange={(e) => setResponsavelFiltro(e.target.value)}
-          className="h-11 border border-[color:var(--border)] bg-[color:var(--cream)] px-3 text-sm"
-          aria-label="Filtrar por responsável"
-        >
-          <option value="todos">Todos os responsáveis</option>
-          {responsaveis.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+          {state === "loading" ? "Carregando…" : `${total} pedido(s) neste filtro`}
+        </p>
       </section>
 
       <nav className="flex flex-wrap gap-2" aria-label="Filtro de status">
@@ -240,7 +203,7 @@ function PedidosPage() {
                 : "border-[color:var(--border)] text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
             }`}
           >
-            {t.label} · {tabCounts[t.key]}
+            {t.label}
           </button>
         ))}
       </nav>
@@ -279,6 +242,28 @@ function PedidosPage() {
           onRowClick={(o) => setSelected(o)}
           renderCard={(o) => <OrderCard order={o} onOpen={() => setSelected(o)} />}
         />
+      )}
+
+      {totalPages > 1 && (
+        <nav aria-label="Paginação de pedidos" className="flex items-center justify-end gap-3">
+          <button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase disabled:opacity-40"
+          >
+            Anterior
+          </button>
+          <span className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+            Página {page} de {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="h-10 border border-[color:var(--border)] px-4 text-[11px] tracking-luxe uppercase disabled:opacity-40"
+          >
+            Próxima
+          </button>
+        </nav>
       )}
 
       <OrderDetailSheet

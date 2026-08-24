@@ -7,6 +7,7 @@
  */
 
 import type {
+  AdminCustomer,
   AdminOrder,
   Employee,
   EmployeeRole,
@@ -14,6 +15,32 @@ import type {
   KitAvailability,
   OrderStatus,
 } from "../types";
+
+/** Consulta paginada de pedidos resolvida no servidor. */
+export interface OrdersPageQuery {
+  statuses?: OrderStatus[];
+  busca?: string;
+  offset: number;
+  limit: number;
+}
+
+export interface OrdersPage {
+  orders: AdminOrder[];
+  total: number;
+}
+
+/** Consulta paginada de clientes resolvida no servidor. */
+export interface CustomersPageQuery {
+  busca?: string;
+  offset: number;
+  limit: number;
+}
+
+export interface CustomersPage {
+  customers: AdminCustomer[];
+  total: number;
+}
+
 
 /** Um evento da trilha imutável do pedido (`pedido_eventos`). */
 export interface OrderAuditEntry {
@@ -89,6 +116,13 @@ export interface AdminDataSource {
 
   // Pedidos
   listOrders(): Promise<AdminOrder[]>;
+  /** Página de pedidos filtrada e contada no servidor (`listar_pedidos`). */
+  listOrdersPage(query: OrdersPageQuery): Promise<OrdersPage>;
+  /** Base de clientes agregada no servidor a partir do ledger (`listar_clientes`). */
+  listCustomers(query: CustomersPageQuery): Promise<CustomersPage>;
+  /** Snapshot do dashboard calculado no servidor (`metricas_dashboard`). */
+  dashboardMetrics(): Promise<Record<string, unknown>>;
+
   /**
    * Transiciona o pedido de forma atômica: valida a máquina de estados,
    * aplica consumo/estorno de estoque na MESMA transação do banco e grava

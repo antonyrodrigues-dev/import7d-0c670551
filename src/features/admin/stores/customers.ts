@@ -1,31 +1,37 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AdminCustomer, AsyncState } from "../types";
+import type { AdminAsyncState, AdminCustomer } from "../types";
 
 interface CustomersStore {
-  state: AsyncState;
+  state: AdminAsyncState;
   customers: AdminCustomer[];
+  total: number;
+  page: number;
   query: string;
-  sortBy: "valor" | "recente" | "nome";
   setQuery: (q: string) => void;
-  setSortBy: (s: "valor" | "recente" | "nome") => void;
-  set: (customers: AdminCustomer[]) => void;
+  setPage: (p: number) => void;
+  setState: (s: AdminAsyncState) => void;
+  set: (customers: AdminCustomer[], total: number) => void;
 }
 
+/** Persistimos apenas estado de UI (busca). A lista vem sempre do servidor. */
 export const useCustomersStore = create<CustomersStore>()(
   persist(
     (set) => ({
       state: "idle",
       customers: [],
+      total: 0,
+      page: 1,
       query: "",
-      sortBy: "valor",
-      setQuery: (query) => set({ query }),
-      setSortBy: (sortBy) => set({ sortBy }),
-      set: (customers) => set({ customers, state: "ready" }),
+      setQuery: (query) => set({ query, page: 1 }),
+      setPage: (page) => set({ page }),
+      setState: (state) => set({ state }),
+      set: (customers, total) =>
+        set({ customers, total, state: customers.length === 0 ? "empty" : "ready" }),
     }),
     {
       name: "7d-admin-customers-ui",
-      partialize: (s) => ({ query: s.query, sortBy: s.sortBy }),
+      partialize: (s) => ({ query: s.query }),
     },
   ),
 );

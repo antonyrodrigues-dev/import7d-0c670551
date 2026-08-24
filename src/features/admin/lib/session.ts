@@ -31,7 +31,7 @@ export function resetAdminSession(queryClient?: QueryClient): void {
   useInventoryStore.setState({ items: [], state: "idle" });
   useCustomersStore.setState({ customers: [], state: "idle" });
   useEmployeesStore.setState({ employees: [], state: "idle", error: null });
-  useDashboardStore.setState({ metrics: null, loading: false });
+  useDashboardStore.setState({ metrics: null, state: "idle", error: null });
   useNotificationsStore.getState().clear();
 
   queryClient?.clear();

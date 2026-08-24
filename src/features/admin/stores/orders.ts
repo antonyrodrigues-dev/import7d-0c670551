@@ -2,46 +2,57 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { toast } from "sonner";
 import type { AdminOrder, AsyncState, OrderStatus } from "../types";
-import { listOrders } from "../services/orders.service";
+import { listOrdersPage } from "../services/orders.service";
 import { logEvent } from "./logs";
 
-/**
- * Filtro da UI de pedidos. `"pendentes"` cobre o pipeline completo em
- * andamento (novo → pagamento_confirmado → separado → reservado →
- * aguardando_retirada → enviado) — usado pelo drill-down do dashboard.
- */
-export type OrdersFilter = OrderStatus | "todos" | "pendentes";
+export const ORDERS_PAGE_SIZE = 25;
 
 interface OrdersStore {
   state: AsyncState;
   error: string | null;
+  /** Página atual — NUNCA a base inteira. A filtragem é server-side. */
   orders: AdminOrder[];
-  /** UI — persistido. */
-  filter: OrdersFilter;
-  setFilter: (f: OrdersFilter) => void;
+  total: number;
+  page: number;
+  query: string;
+  statuses: OrderStatus[];
+  setQuery: (q: string) => void;
+  setPage: (p: number) => void;
+  setStatuses: (s: OrderStatus[]) => void;
   refresh: () => Promise<void>;
-  /** Substitui a coleção completa. Uso restrito ao `orders.service`. */
+  /** Substitui a página corrente. Uso restrito ao `orders.service`. */
   replace: (orders: AdminOrder[]) => void;
 }
 
 /**
- * Persistimos APENAS estado de UI (filtro). Os pedidos vêm do backend em
+ * Persistimos APENAS estado de UI. Os pedidos vêm paginados do servidor a
  * cada carga — persistir seria criar uma segunda fonte da verdade.
  */
 export const useOrdersStore = create<OrdersStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       state: "idle",
       error: null,
       orders: [],
-      filter: "todos",
-      setFilter: (filter) => set({ filter }),
+      total: 0,
+      page: 1,
+      query: "",
+      statuses: [],
+      setQuery: (query) => set({ query, page: 1 }),
+      setPage: (page) => set({ page }),
+      setStatuses: (statuses) => set({ statuses, page: 1 }),
       replace: (orders) => set({ orders }),
       refresh: async () => {
+        const { page, query, statuses } = get();
         set({ state: "loading", error: null });
         try {
-          const orders = await listOrders();
-          set({ orders, state: "ready" });
+          const { orders, total } = await listOrdersPage({
+            statuses,
+            busca: query,
+            offset: (page - 1) * ORDERS_PAGE_SIZE,
+            limit: ORDERS_PAGE_SIZE,
+          });
+          set({ orders, total, state: "ready" });
         } catch (e) {
           const message = (e as Error).message ?? "Falha ao carregar pedidos";
           set({ state: "error", error: message });
@@ -52,7 +63,7 @@ export const useOrdersStore = create<OrdersStore>()(
     }),
     {
       name: "7d-admin-orders-ui",
-      partialize: (s) => ({ filter: s.filter }),
+      partialize: (s) => ({ query: s.query }),
     },
   ),
 );
