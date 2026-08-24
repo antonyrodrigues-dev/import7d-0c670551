@@ -1,13 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+  AlertTriangle,
   Boxes,
   CheckCircle2,
-  ClipboardList,
   Clock,
   DollarSign,
   PackageX,
   ShoppingBag,
-  Timer,
   TrendingUp,
   Users,
   Wallet,
@@ -16,30 +15,18 @@ import { PageHeader } from "@/features/admin/components/PageHeader";
 import { StatCard } from "@/features/admin/components/StatCard";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { formatBRL } from "@/features/catalog";
-import { useOrders, useInventory, useCustomers, useDashboard } from "@/features/admin/hooks";
-import { useReserva } from "@/store/reserva";
+import { useDashboard } from "@/features/admin/hooks";
 import { useOrdersStore } from "@/features/admin/stores/orders";
 import { useInventoryStore } from "@/features/admin/stores/inventory";
-import type { OrderStatus, TrendInfo } from "@/features/admin/types";
-import type { OrdersFilter } from "@/features/admin/stores/orders";
-
-function toStatTrend(t: TrendInfo | undefined) {
-  if (!t) return undefined;
-  const sign = t.deltaPct > 0 ? "+" : t.deltaPct < 0 ? "" : "";
-  const label =
-    t.direction === "flat"
-      ? `Estável vs. ${t.comparedTo}`
-      : `${sign}${t.deltaPct.toFixed(1)}% vs. ${t.comparedTo}`;
-  return { direction: t.direction, label };
-}
+import { OPERATIONAL_STATUSES } from "@/features/admin/lib/statusMachine";
+import type { OrderStatus } from "@/features/admin/types";
 
 function formatUpdatedAt(iso: string | undefined): string {
   if (!iso) return "";
   try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(iso));
+    return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(
+      new Date(iso),
+    );
   } catch {
     return "";
   }
@@ -53,21 +40,15 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 function DashboardPage() {
-  // Fluxo obrigatório: hooks disparam os fetches; useDashboard alimenta a
-  // store única de métricas; os cards apenas consomem.
-  const { state: ordersState } = useOrders();
-  useInventory();
-  useCustomers();
-  const { metrics: m } = useDashboard();
-
-  const reservaItems = useReserva((s) => s.items);
-  const loading = ordersState === "loading" || !m;
+  // Fonte única: RPC `metricas_dashboard`. Nenhum card calcula nada e nenhum
+  // pedido é carregado no navegador só para virar número.
+  const { metrics: m, loading, error } = useDashboard();
   const navigate = useNavigate();
-  const setOrderFilter = useOrdersStore((s) => s.setFilter);
+  const setStatuses = useOrdersStore((s) => s.setStatuses);
   const setStockFilter = useInventoryStore((s) => s.setFilterStatus);
 
-  const goOrders = (filter: OrdersFilter) => {
-    setOrderFilter(filter);
+  const goOrders = (statuses: OrderStatus[]) => {
+    setStatuses(statuses);
     void navigate({ to: "/admin/pedidos" });
   };
   const goStock = (filter?: "ativos" | "inativos" | "todos" | "baixo") => {
@@ -81,8 +62,13 @@ function DashboardPage() {
       <PageHeader
         eyebrow="Painel"
         title="Dashboard"
-        description="Visão consolidada dos pedidos, estoque e reservas em andamento."
+        description="Visão consolidada da operação: atendimentos, pendências, estoque e financeiro."
       />
+      {error && (
+        <p role="alert" className="mb-4 border border-[color:var(--border)] p-3 text-sm">
+          {error}
+        </p>
+      )}
       {m?.atualizadoEm && (
         <p className="mb-4 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
           Última atualização · {formatUpdatedAt(m.atualizadoEm)}
@@ -93,23 +79,54 @@ function DashboardPage() {
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         <StatCard
+          label="Aguardando atendimento"
+          value={m?.atendimentosAguardando ?? 0}
+          icon={<Clock className="h-5 w-5" />}
+          hint="Pedidos sem responsável ativo"
+          loading={loading}
+          onClick={() => goOrders(["novo", "whatsapp_declarado", "aguardando_atendimento"])}
+          ariaLabel="Ver fila de atendimento"
+        />
+        <StatCard
+          label="Atendimentos atrasados"
+          value={m?.atendimentosAtrasados ?? 0}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          hint="Sem movimento há mais de 24h"
+          trend={
+            m && m.atendimentosAtrasados > 0
+              ? { direction: "down", label: "Exige ação hoje" }
+              : { direction: "flat", label: "Nenhum atraso" }
+          }
+          loading={loading}
+          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          ariaLabel="Ver pedidos em andamento"
+        />
+        <StatCard
+          label="Pedidos com pendência"
+          value={m?.pedidosComPendencia ?? 0}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          hint="Falta confirmar tamanho ou preço"
+          loading={loading}
+          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          ariaLabel="Ver pedidos com pendência"
+        />
+        <StatCard
           label="Pedidos hoje"
           value={m?.pedidosHoje ?? 0}
           icon={<ShoppingBag className="h-5 w-5" />}
-          hint="Pedidos criados no dia atual"
-          trend={toStatTrend(m?.pedidosHojeTrend)}
+          hint="Criados no dia atual"
           loading={loading}
-          onClick={() => goOrders("todos")}
+          onClick={() => goOrders([])}
           ariaLabel="Ver pedidos"
         />
         <StatCard
-          label="Pedidos pendentes"
-          value={m?.pedidosPendentes ?? 0}
+          label="Pedidos em aberto"
+          value={m?.pedidosEmAberto ?? 0}
           icon={<Clock className="h-5 w-5" />}
-          hint="Aguardando separação, retirada ou envio"
+          hint="Ainda não finalizados nem cancelados"
           loading={loading}
-          onClick={() => goOrders("pendentes")}
-          ariaLabel="Ver pedidos pendentes"
+          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          ariaLabel="Ver pedidos em aberto"
         />
         <StatCard
           label="Pedidos finalizados"
@@ -117,14 +134,14 @@ function DashboardPage() {
           icon={<CheckCircle2 className="h-5 w-5" />}
           hint="Concluídos com sucesso"
           loading={loading}
-          onClick={() => goOrders("finalizado")}
+          onClick={() => goOrders(["finalizado"])}
           ariaLabel="Ver pedidos finalizados"
         />
         <StatCard
           label="Clientes"
           value={m?.clientes ?? 0}
           icon={<Users className="h-5 w-5" />}
-          hint="Base derivada dos pedidos"
+          hint="Base consolidada por telefone"
           loading={loading}
           onClick={goClients}
           ariaLabel="Ver clientes"
@@ -133,7 +150,7 @@ function DashboardPage() {
           label="Produtos"
           value={m?.produtos ?? 0}
           icon={<Boxes className="h-5 w-5" />}
-          hint="Itens cadastrados no catálogo"
+          hint="Itens publicáveis no catálogo"
           loading={loading}
           onClick={() => goStock("todos")}
           ariaLabel="Ver estoque"
@@ -152,48 +169,40 @@ function DashboardPage() {
           ariaLabel="Ver itens com estoque baixo"
         />
         <StatCard
-          label="Reserva em andamento"
-          value={reservaItems.length}
-          icon={<ClipboardList className="h-5 w-5" />}
-          hint="Itens em rascunho de reserva"
-        />
-        <StatCard
-          label="Ticket médio"
-          value={formatBRL(m?.ticketMedio ?? 0)}
-          icon={<TrendingUp className="h-5 w-5" />}
-          hint="Valor médio por pedido concluído"
-          trend={toStatTrend(m?.ticketMedioTrend)}
+          label="Peças a conferir"
+          value={m?.pendenciasEstoque ?? 0}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          hint="Sem preço, tamanho ou conferência"
           loading={loading}
-          onClick={() => goOrders("finalizado")}
-          ariaLabel="Ver pedidos finalizados"
+          onClick={() => goStock("todos")}
+          ariaLabel="Ver conferência de estoque"
         />
-        <StatCard
-          label="Faturamento do dia"
-          value={formatBRL(m?.faturamentoDia ?? 0)}
-          icon={<DollarSign className="h-5 w-5" />}
-          hint="Pedidos concluídos hoje"
-          trend={toStatTrend(m?.faturamentoDiaTrend)}
-          loading={loading}
-          onClick={() => goOrders("finalizado")}
-          ariaLabel="Ver pedidos finalizados"
-        />
-        <StatCard
-          label="Faturamento do mês"
-          value={formatBRL(m?.faturamentoMes ?? 0)}
-          icon={<Wallet className="h-5 w-5" />}
-          hint="Acumulado no mês corrente"
-          trend={toStatTrend(m?.faturamentoMesTrend)}
-          loading={loading}
-          onClick={() => goOrders("finalizado")}
-          ariaLabel="Ver pedidos finalizados"
-        />
-        <StatCard
-          label="Tempo médio"
-          value="—"
-          icon={<Timer className="h-5 w-5" />}
-          hint="Aguardando amostragem suficiente"
-          loading={loading}
-        />
+
+        {m?.financeiroVisivel && (
+          <>
+            <StatCard
+              label="Receita líquida (dia)"
+              value={formatBRL(m.receitaLiquidaDia)}
+              icon={<DollarSign className="h-5 w-5" />}
+              hint="Financeiro: recebido − estornos"
+              loading={loading}
+            />
+            <StatCard
+              label="Receita líquida (mês)"
+              value={formatBRL(m.receitaLiquidaMes)}
+              icon={<Wallet className="h-5 w-5" />}
+              hint="Acumulado do mês pelo financeiro"
+              loading={loading}
+            />
+            <StatCard
+              label="Ticket médio (mês)"
+              value={formatBRL(m.ticketMedioMes)}
+              icon={<TrendingUp className="h-5 w-5" />}
+              hint={`${m.vendasMes} venda(s) no mês`}
+              loading={loading}
+            />
+          </>
+        )}
       </section>
     </PermissionGate>
   );

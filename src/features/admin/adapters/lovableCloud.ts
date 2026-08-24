@@ -10,13 +10,18 @@ import { logger } from "../lib/logger";
 import type {
   AdminIdentity,
   AdminDataSource,
+  CustomersPage,
+  CustomersPageQuery,
   KitComponentWritePayload,
+  OrdersPage,
+  OrdersPageQuery,
   ProductWritePayload,
   MovementKindDB,
   OrderAuditEntry,
   ConferenceInput,
   ConferenceResult,
 } from "./types";
+
 import type {
   AdminOrder,
   Employee,
@@ -271,6 +276,68 @@ export const lovableCloudDataSource: AdminDataSource = {
     if (error) throw error;
     return (data ?? []).map((r) => mapRow(r as PedidoRow));
   },
+
+  /**
+   * Página de pedidos calculada no servidor (`listar_pedidos`): filtro por
+   * status, busca por número/nome/telefone/cidade e contagem total — o
+   * navegador nunca carrega a história inteira para filtrar.
+   */
+  async listOrdersPage(query: OrdersPageQuery): Promise<OrdersPage> {
+    const { data, error } = await supabase.rpc("listar_pedidos", {
+      p_statuses: query.statuses && query.statuses.length > 0 ? query.statuses : undefined,
+      p_busca: query.busca && query.busca.trim() ? query.busca.trim() : undefined,
+      p_offset: query.offset,
+      p_limit: query.limit,
+    });
+    if (error) throw error;
+    const rows = (data ?? []) as { pedido: unknown; total_count: number }[];
+    return {
+      orders: rows.map((r) => mapRow(r.pedido as PedidoRow)),
+      total: rows.length > 0 ? Number(rows[0]?.total_count ?? 0) : 0,
+    };
+  },
+
+  /** Base de clientes agregada no servidor a partir do ledger. */
+  async listCustomers(query: CustomersPageQuery): Promise<CustomersPage> {
+    const { data, error } = await supabase.rpc("listar_clientes", {
+      p_busca: query.busca && query.busca.trim() ? query.busca.trim() : undefined,
+      p_offset: query.offset,
+      p_limit: query.limit,
+    });
+    if (error) throw error;
+    const rows = (data ?? []) as {
+      telefone: string;
+      nome: string;
+      cidade: string;
+      pedidos: number;
+      ultima_compra: string | null;
+      valor_gasto: number | string;
+      total_count: number;
+    }[];
+    return {
+      customers: rows.map((r) => ({
+        id: r.telefone,
+        nome: r.nome,
+        telefone: r.telefone,
+        cidade: r.cidade,
+        historico: [],
+        pedidos: Number(r.pedidos) || 0,
+        ultimaCompra: r.ultima_compra,
+        valorGasto: Number(r.valor_gasto) || 0,
+        status: "ativo" as const,
+      })),
+      total: rows.length > 0 ? Number(rows[0]?.total_count ?? 0) : 0,
+    };
+  },
+
+  /** Snapshot oficial do painel — ledger é a autoridade financeira. */
+  async dashboardMetrics(): Promise<Record<string, unknown>> {
+    const { data, error } = await supabase.rpc("metricas_dashboard");
+    if (error) throw error;
+    return (data ?? {}) as Record<string, unknown>;
+  },
+
+
 
   async transitionOrder(id: string, status: OrderStatus): Promise<void> {
     // Chamada única: o banco valida transição, consome/estorna estoque e

@@ -4,7 +4,9 @@
  */
 
 import { adminDataSource } from "../adapters";
+import type { OrdersPage, OrdersPageQuery } from "../adapters/types";
 import type { AdminOrder, OrderStatus } from "../types";
+
 import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
 import { notify } from "./notifications.service";
@@ -28,6 +30,17 @@ export function listOrders(): Promise<AdminOrder[]> {
     throw handleAdminError(e, "orders.service.listOrders");
   });
 }
+
+/**
+ * Página de pedidos resolvida no servidor: status, busca e contagem total.
+ * É o caminho padrão da lista — `listOrders` fica para rotinas internas.
+ */
+export function listOrdersPage(query: OrdersPageQuery): Promise<OrdersPage> {
+  return adminDataSource.listOrdersPage(query).catch((e) => {
+    throw handleAdminError(e, "orders.service.listOrdersPage");
+  });
+}
+
 
 /**
  * Ponto de entrada canônico para mudança de status.

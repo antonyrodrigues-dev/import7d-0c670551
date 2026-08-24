@@ -1370,6 +1370,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      equipe_autorizada: { Args: never; Returns: boolean }
       expirar_reservas: { Args: never; Returns: number }
       expirar_reservas_variacao: {
         Args: { p_produto_id: string; p_tamanho: string }
@@ -1411,6 +1412,18 @@ export type Database = {
         Args: { p_motivo: string; p_pedido_id: string }
         Returns: undefined
       }
+      listar_clientes: {
+        Args: { p_busca?: string; p_limit?: number; p_offset?: number }
+        Returns: {
+          cidade: string
+          nome: string
+          pedidos: number
+          telefone: string
+          total_count: number
+          ultima_compra: string
+          valor_gasto: number
+        }[]
+      }
       listar_equipe: {
         Args: never
         Returns: {
@@ -1425,7 +1438,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      listar_pedidos: {
+        Args: {
+          p_busca?: string
+          p_limit?: number
+          p_offset?: number
+          p_statuses?: string[]
+        }
+        Returns: {
+          pedido: Json
+          total_count: number
+        }[]
+      }
+      metricas_dashboard: { Args: never; Returns: Json }
       metricas_financeiras: { Args: { p_periodo?: string }; Returns: Json }
+      normalizar_telefone: { Args: { p: string }; Returns: string }
       parametro_int: {
         Args: { p_chave: string; p_default: number }
         Returns: number
