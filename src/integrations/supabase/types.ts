@@ -1216,6 +1216,19 @@ export type Database = {
         Args: { p_telefone: string }
         Returns: undefined
       }
+      conferir_produto: {
+        Args: {
+          p_evidencia: string
+          p_origem: string
+          p_parcelamento?: string
+          p_preco: number
+          p_preco_cartao?: number
+          p_produto_id: string
+          p_quantidade: number
+          p_tamanho: string
+        }
+        Returns: Json
+      }
       confirmar_whatsapp_checkout: {
         Args: { p_idempotency_key: string; p_pedido_id: string }
         Returns: {

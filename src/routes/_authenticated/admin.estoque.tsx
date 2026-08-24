@@ -42,6 +42,7 @@ import { useCatalogQuality } from "@/features/admin/hooks/data/useCatalogQuality
 import { matchesQualityFilter } from "@/features/admin/services/catalogQuality.service";
 import { CatalogQualityPanel } from "@/features/admin/components/CatalogQualityPanel";
 import { KitCompositionDialog } from "@/features/admin/components/KitCompositionDialog";
+import { InventoryConference } from "@/features/admin/components/InventoryConference";
 import { PriceRuleDialog } from "@/features/admin/components/PriceRuleDialog";
 import { SITUATION_LABEL } from "@/features/admin/lib/catalogLabels";
 import type { InventoryItem, CatalogQualityFilter } from "@/features/admin/types";
@@ -90,6 +91,7 @@ function EstoquePage() {
     restore,
     remove,
     refresh,
+    confer,
   } = useInventory();
   const { can, isAdmin } = usePermissions();
   const { items: diagnostics, summary, refresh: refreshQuality } = useCatalogQuality();
@@ -111,6 +113,13 @@ function EstoquePage() {
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [kitDialog, setKitDialog] = useState<InventoryItem | null>(null);
   const [priceRuleOpen, setPriceRuleOpen] = useState(false);
+  const [conferenceOpen, setConferenceOpen] = useState(false);
+
+  // Peças que ainda dependem de confirmação humana — fonte: diagnóstico do banco.
+  const pendingConference = useMemo(
+    () => diagnostics.filter((d) => !d.archived && !d.canPublish),
+    [diagnostics],
+  );
 
   const runConfirm = async () => {
     if (!confirm) return;
@@ -161,12 +170,27 @@ function EstoquePage() {
                   Regra de preço
                 </Button>
               )}
+              {isAdmin && (
+                <Button variant="outline" onClick={() => setConferenceOpen(true)}>
+                  Conferência rápida · {pendingConference.length}
+                </Button>
+              )}
               <Button onClick={() => setDrawer({ mode: "create" })}>
                 <Plus className="h-4 w-4 mr-1" /> Novo produto
               </Button>
             </div>
           )
         }
+      />
+
+      <InventoryConference
+        open={conferenceOpen}
+        onOpenChange={setConferenceOpen}
+        pending={pendingConference}
+        onConfirm={async (input) => {
+          await confer(input);
+          await refreshQuality();
+        }}
       />
 
       <CatalogQualityPanel

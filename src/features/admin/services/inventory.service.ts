@@ -7,8 +7,14 @@
  */
 
 import { adminDataSource } from "../adapters";
-import type { ProductWritePayload, MovementKindDB } from "../adapters/types";
+import type {
+  ProductWritePayload,
+  MovementKindDB,
+  ConferenceInput,
+  ConferenceResult,
+} from "../adapters/types";
 import type { InventoryItem, MovementKind } from "../types";
+
 import { handleAdminError } from "../lib/errors";
 import { logger } from "../lib/logger";
 
@@ -139,3 +145,32 @@ export async function registerMovement(
 // O consumo de estoque por pedido virou atômico no banco, dentro da RPC
 // `transicionar_pedido`, guiado por `pedidos.consumo_aplicado`. LocalStorage
 // não é mais autoridade de negócio.
+
+/**
+ * Conferência física de UMA peça (Modo Conferência Rápida).
+ *
+ * Validação de forma acontece aqui; a autoridade é o banco, que grava tudo
+ * numa transação só e reavalia se a peça pode ir à vitrine. Nunca há
+ * confirmação em massa: cada peça exige confirmação humana individual.
+ */
+export async function confirmConference(input: ConferenceInput): Promise<ConferenceResult> {
+  try {
+    if (!input.size.trim()) throw new Error("Informe o tamanho conferido.");
+    if (!input.evidence.trim())
+      throw new Error("Descreva a evidência do tamanho (etiqueta/medição).");
+    if (!(input.price > 0)) throw new Error("Preço oficial deve ser maior que zero.");
+    if (input.quantity < 0) throw new Error("Quantidade física não pode ser negativa.");
+    const result = await adminDataSource.confirmConference({
+      ...input,
+      size: input.size.trim().toUpperCase(),
+      evidence: input.evidence.trim(),
+    });
+    logger.info(`Conferência física registrada`, {
+      kind: "stock.adjust",
+      productId: input.productId,
+    });
+    return result;
+  } catch (e) {
+    throw handleAdminError(e, "inventory.service.confirmConference");
+  }
+}

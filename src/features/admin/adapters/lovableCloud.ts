@@ -14,6 +14,8 @@ import type {
   ProductWritePayload,
   MovementKindDB,
   OrderAuditEntry,
+  ConferenceInput,
+  ConferenceResult,
 } from "./types";
 import type {
   AdminOrder,
@@ -458,6 +460,32 @@ export const lovableCloudDataSource: AdminDataSource = {
       p_pedido_id: undefined,
     });
     if (error) throw error;
+  },
+
+  async confirmConference(input: ConferenceInput): Promise<ConferenceResult> {
+    // Uma chamada, uma transação: preço + tamanho + evidência + quantidade
+    // física + marcação de conferido. O banco decide a publicação.
+    const { data, error } = await supabase.rpc("conferir_produto", {
+      p_produto_id: input.productId,
+      p_preco: input.price,
+      p_tamanho: input.size,
+      p_origem: input.origin,
+      p_evidencia: input.evidence,
+      p_quantidade: Math.max(0, Math.floor(input.quantity)),
+      p_preco_cartao: input.cardPrice ?? undefined,
+      p_parcelamento: input.installments ?? undefined,
+    });
+    if (error) throw error;
+    const payload = (data ?? {}) as {
+      statusPublicacao?: string;
+      avaliacao?: { canPublish?: boolean; blockingReasons?: string[] };
+    };
+    return {
+      productId: input.productId,
+      publishStatus: payload.statusPublicacao ?? "revisao_pendente",
+      canPublish: Boolean(payload.avaliacao?.canPublish),
+      blockingReasons: payload.avaliacao?.blockingReasons ?? [],
+    };
   },
 
   async listKitComposition(kitId: string): Promise<KitAvailability[]> {
