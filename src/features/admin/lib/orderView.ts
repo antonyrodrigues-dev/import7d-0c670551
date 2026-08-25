@@ -59,8 +59,10 @@ export const ORDERS_TABS: OrdersTab[] = [
     label: "Retirada e envio",
     statuses: ["aguardando_retirada", "enviado"],
   },
-  { key: "finalizado", label: "Finalizados", statuses: ["finalizado", "devolvido"] },
-  { key: "cancelado", label: "Cancelados e reembolsos", statuses: ["cancelado"] },
+  { key: "finalizado", label: "Finalizados", statuses: ["finalizado"] },
+  // Devolução é reversão de venda: pertence à aba de cancelamentos/reembolsos,
+  // nunca a "Finalizados" — senão o funil conta a mesma venda duas vezes.
+  { key: "cancelado", label: "Cancelados e reembolsos", statuses: ["cancelado", "devolvido"] },
 ];
 
 /** Pipeline em andamento — espelha a definição usada pelo Dashboard. */
