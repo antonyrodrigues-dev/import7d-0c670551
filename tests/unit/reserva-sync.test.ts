@@ -16,6 +16,7 @@ const produto = (over: Partial<PublicProduct> = {}): PublicProduct =>
     category: "polos",
     description: "",
     stock: 2,
+    saldoFisico: 2,
     compravel: true,
     reservavel: true,
     tamanhoConfirmado: true,
@@ -109,6 +110,7 @@ describe("carrinho × catálogo oficial", () => {
       sizes: [],
       stockBySize: {},
       stock: 0,
+      saldoFisico: 1,
       tamanhoConfirmado: false,
       precoConfirmado: false,
       compravel: false,
@@ -125,5 +127,22 @@ describe("carrinho × catálogo oficial", () => {
       precoPendente: true,
       tamanhoPendente: true,
     });
+  });
+
+  it("peça sob consulta ESGOTADA não entra na reserva", () => {
+    const esgotada = produto({
+      slug: "sob-consulta-esgotada",
+      sizes: [],
+      stockBySize: {},
+      stock: 0,
+      saldoFisico: 0,
+      tamanhoConfirmado: false,
+      precoConfirmado: false,
+      compravel: false,
+      price: 0,
+    });
+    useCatalogStore.setState({ products: [esgotada] });
+    useReserva.getState().addItem(esgotada, "", 1);
+    expect(useReserva.getState().items).toHaveLength(0);
   });
 });
