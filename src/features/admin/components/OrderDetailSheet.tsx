@@ -181,25 +181,24 @@ export function OrderDetailSheet({
 }
 
 function OrderTimeline({ order }: { order: AdminOrder }) {
-  if (order.status === "cancelado") {
+  if (order.status === "cancelado" || order.status === "devolvido") {
     return (
       <div className="mt-4 flex items-center gap-2 border border-red-300 bg-red-50 px-3 py-2 text-[11px] tracking-luxe uppercase text-red-700">
-        <XCircle className="h-4 w-4" /> Pedido cancelado
+        <XCircle className="h-4 w-4" />
+        {order.status === "cancelado" ? "Pedido cancelado" : "Pedido devolvido"}
       </div>
     );
   }
-  const stages =
-    order.status === "reservado"
-      ? ["novo", "pagamento_confirmado", "reservado", ...TIMELINE_STAGES.slice(3)]
-      : TIMELINE_STAGES;
-  const currentIdx = Math.max(0, stages.indexOf(order.status));
+  // Timeline enxuta: as 5 etapas que a loja realmente enxerga. Os estados
+  // técnicos continuam no banco e na trilha de auditoria.
+  const currentIdx = Math.max(0, visualStageIndex(order.status));
   return (
     <ol className="mt-4 flex flex-wrap items-center gap-y-2" aria-label="Linha do tempo do pedido">
-      {stages.map((s, i) => {
+      {VISUAL_STAGES.map((stage, i) => {
         const done = i < currentIdx;
         const current = i === currentIdx;
         return (
-          <li key={s} className="flex items-center gap-1 whitespace-nowrap">
+          <li key={stage.key} className="flex items-center gap-1 whitespace-nowrap">
             <div
               className={`flex h-6 w-6 items-center justify-center rounded-full border text-[10px] ${
                 done
@@ -219,9 +218,9 @@ function OrderTimeline({ order }: { order: AdminOrder }) {
                   : "text-[color:var(--muted-foreground)]"
               }`}
             >
-              {statusLabel(s)}
+              {stage.label}
             </span>
-            {i < stages.length - 1 && (
+            {i < VISUAL_STAGES.length - 1 && (
               <div
                 className={`mx-1 h-px w-6 ${
                   done ? "bg-[color:var(--forest-deep)]" : "bg-[color:var(--border)]"
@@ -236,6 +235,11 @@ function OrderTimeline({ order }: { order: AdminOrder }) {
   );
 }
 
+/**
+ * UMA ação primária por estado — nunca uma lista de status crus. O plano vem
+ * de `orderActionPlan` (fonte única), que só oferece o que o banco aceita e
+ * esconde ações financeiras enquanto houver pendência de preço ou tamanho.
+ */
 function StatusActions({
   order,
   canEdit,
@@ -248,8 +252,9 @@ function StatusActions({
   onCancelWithRefund?: (id: string, motivo?: string) => Promise<void>;
 }) {
   const [confirmCancel, setConfirmCancel] = useState(false);
-  const next = operationalNextStatuses(order.status);
+  const plan = orderActionPlan(order);
   const pago = order.pagamentoEstado === "confirmado";
+
   if (!canEdit) {
     return (
       <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
@@ -257,40 +262,58 @@ function StatusActions({
       </p>
     );
   }
-  if (next.length === 0) {
-    return (
-      <p className="mt-3 text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-        Este pedido não possui próximas etapas.
-      </p>
-    );
-  }
-  const primaries = next.filter((s: OrderStatus) => s !== "cancelado");
-  const canCancel = next.includes("cancelado");
+
+  const primary = plan.primary;
+  const secondary = plan.secondary;
+
   return (
     <div className="mt-3 space-y-2">
+      {plan.pendencies.length > 0 && (
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+          Pendências: {plan.pendencies.join(" · ")}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
-        {primaries.map((s: OrderStatus) => (
-          <Button key={s} size="sm" onClick={() => void onStatus(order.id, s)}>
-            Avançar para {statusLabel(s)}
+        {primary?.kind === "status" && primary.status && (
+          <Button size="sm" onClick={() => void onStatus(order.id, primary.status as OrderStatus)}>
+            {primary.label}
           </Button>
-        ))}
-        {canCancel && (
+        )}
+        {(secondary?.kind === "cancel" || secondary?.kind === "refund") && (
           <Button
             size="sm"
             variant="outline"
             className="text-red-600 hover:text-red-700"
             onClick={() => setConfirmCancel(true)}
-            disabled={pago && !onCancelWithRefund}
+            disabled={secondary.kind === "refund" && !onCancelWithRefund}
           >
-            {pago ? "Cancelar com estorno" : "Cancelar pedido"}
+            {secondary.label}
           </Button>
         )}
       </div>
-      {order.status === "aguardando_pagamento" && (
+
+      {primary?.hint && (
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          {primary.hint}
+        </p>
+      )}
+      {primary?.kind === "pendency" && (
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Confirme tamanho e preço no bloco de pendências deste pedido.
+        </p>
+      )}
+      {primary?.kind === "payment" && (
         <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
           Confirmação de pagamento só pelo painel financeiro deste pedido.
         </p>
       )}
+      {!primary && !secondary && (
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          Este pedido não possui próximas etapas.
+        </p>
+      )}
+
       <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -321,3 +344,4 @@ function StatusActions({
     </div>
   );
 }
+

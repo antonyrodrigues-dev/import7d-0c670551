@@ -9,11 +9,15 @@ const clampQty = (n: number, max = MAX_QTY) =>
 
 /**
  * Teto real de um par produto/tamanho.
- * Peça sob consulta (sem tamanho confirmado) entra no mesmo funil, limitada a
- * 1 unidade — a equipe confirma tamanho e saldo no atendimento.
+ * Peça sob consulta (sem tamanho confirmado) entra no mesmo funil, mas o teto
+ * é o SALDO FÍSICO real do servidor — nunca um "1" arbitrário. Saldo zero
+ * significa esgotada e ela não entra na Reserva.
  */
-function stockCap(p: Pick<PublicProduct, "stockBySize" | "tamanhoConfirmado">, size: string) {
-  if (!size) return p.tamanhoConfirmado ? 0 : 1;
+function stockCap(
+  p: Pick<PublicProduct, "stockBySize" | "tamanhoConfirmado" | "saldoFisico">,
+  size: string,
+) {
+  if (!size) return p.tamanhoConfirmado ? 0 : Math.min(MAX_QTY, Math.max(0, p.saldoFisico ?? 0));
   return Math.min(MAX_QTY, p.stockBySize?.[size] ?? 0);
 }
 

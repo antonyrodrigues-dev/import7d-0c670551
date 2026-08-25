@@ -21,6 +21,12 @@ export interface PublicProduct {
   /** Estoque por tamanho (para o ProductSheet desabilitar opções sem saldo). */
   stockBySize: Record<string, number>;
   /**
+   * Saldo físico REAL da peça, somando TODAS as variações (com ou sem tamanho
+   * confirmado), já descontados holds e quarentena. É a autoridade de
+   * disponibilidade da vitrine: 0 = Indisponível, mesmo "sob consulta".
+   */
+  saldoFisico: number;
+  /**
    * Peça pode ser reservada agora (preço confirmado, tamanho confirmado,
    * quantidade conferida, foto e saldo disponível). Quando `false`, a peça
    * aparece na vitrine em MODO PRÉVIA: visível, porém não comprável.
