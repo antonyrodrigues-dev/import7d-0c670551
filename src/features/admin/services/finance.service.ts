@@ -39,10 +39,12 @@ export function parseFinanceMetrics(raw: unknown, periodo: FinancePeriod): Finan
     pedidos: num(s.pedidos),
   }));
 
+  // A RPC devolve `receitaBruta` no ranking de produtos (valor faturado antes
+  // de devoluções). Ler `receita` aqui zerava a coluna inteira no painel.
   const topProdutos: FinanceProductRank[] = list(d.topProdutos).map((p) => ({
     name: String(p.name ?? "—"),
     unidades: num(p.unidades),
-    receita: num(p.receita),
+    receita: num(p.receitaBruta),
   }));
 
   const topAtendentes: FinanceAttendantRank[] = list(d.topAtendentes).map((a) => ({
