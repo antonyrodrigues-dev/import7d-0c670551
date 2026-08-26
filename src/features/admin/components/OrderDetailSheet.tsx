@@ -31,7 +31,7 @@ import { OrderFinancePanel } from "./OrderFinancePanel";
 import { OrderPendenciesPanel } from "./OrderPendenciesPanel";
 import { OrderAuditTrail } from "./OrderAuditTrail";
 import { StatusBadge } from "./StatusBadge";
-import { operationalNextStatuses } from "../lib/statusMachine";
+import { orderActionPlan, VISUAL_STAGES, visualStageIndex } from "../lib/nextAction";
 import {
   deliveryLabel,
   formatDateTimeSP,
@@ -41,15 +41,6 @@ import {
   statusTone,
 } from "../lib/orderView";
 import type { AdminOrder, OrderStatus } from "../types";
-
-const TIMELINE_STAGES: OrderStatus[] = [
-  "novo",
-  "pagamento_confirmado",
-  "separado",
-  "aguardando_retirada",
-  "enviado",
-  "finalizado",
-];
 
 export function OrderDetailSheet({
   order,
@@ -344,4 +335,3 @@ function StatusActions({
     </div>
   );
 }
-
