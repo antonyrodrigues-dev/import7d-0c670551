@@ -158,7 +158,13 @@ export interface ReturnRecord {
   valorEstornado: number;
   observacoes: string | null;
   criadoEm: IsoDateTime;
-  itens: { slug: string; tamanho: string; quantidade: number; condicao: ReturnCondition }[];
+  /** Leitura tolerante: histórico pode conter condições legadas. */
+  itens: {
+    slug: string;
+    tamanho: string;
+    quantidade: number;
+    condicao: LegacyReturnCondition;
+  }[];
 }
 
 // ─────────────────────────────────── Equipe ────────────────────────────────
