@@ -499,7 +499,8 @@ function ReturnTab({
               <ul className="mt-1 pl-3">
                 {d.itens.map((i, k) => (
                   <li key={`${d.id}-${k}`}>
-                    {i.slug} · Tam {i.tamanho} · {i.quantidade}× · {i.condicao}
+                    {i.slug} · Tam {i.tamanho} · {i.quantidade}× ·{" "}
+                    {returnConditionLabel(i.condicao)}
                   </li>
                 ))}
               </ul>
