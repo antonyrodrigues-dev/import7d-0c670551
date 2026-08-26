@@ -12,7 +12,12 @@ import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/features/catalog";
 import { useOrderFinance, usePermissions } from "../hooks";
 import { nextPaymentStates } from "../lib/paymentMachine";
-import { PAYMENT_STATES, RETURN_CONDITIONS, RETURN_REASONS } from "../types";
+import {
+  PAYMENT_STATES,
+  RETURN_CONDITIONS,
+  RETURN_REASONS,
+  returnConditionLabel,
+} from "../types";
 import type {
   AdminOrder,
   LedgerEntry,
