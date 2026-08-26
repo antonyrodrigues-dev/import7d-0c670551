@@ -95,22 +95,32 @@ export interface LedgerEntry {
 
 // ───────────────────────────────── Devoluções ──────────────────────────────
 
-export type ReturnCondition =
-  | "vendavel"
-  | "usada"
-  | "avariada"
-  | "defeituosa"
-  | "divergencia"
-  | "outra";
+/**
+ * Condição FÍSICA da peça devolvida — única dimensão que decide o destino do
+ * estoque (saldo vendável × quarentena). `divergencia`/`outra` são valores
+ * LEGADOS: continuam sendo lidos/exibidos no histórico, mas nunca podem ser
+ * emitidos por uma nova devolução (motivo comercial ≠ condição física).
+ */
+export type ReturnCondition = "vendavel" | "usada" | "avariada" | "defeituosa";
 
+export type LegacyReturnCondition = ReturnCondition | "divergencia" | "outra";
+
+/** Únicas condições ofertadas na UI de NOVA devolução. */
 export const RETURN_CONDITIONS: { key: ReturnCondition; label: string; estoque: string }[] = [
   { key: "vendavel", label: "Vendável", estoque: "Retorna ao saldo" },
-  { key: "usada", label: "Uso aparente", estoque: "Quarentena" },
+  { key: "usada", label: "Usada / uso aparente", estoque: "Quarentena" },
   { key: "avariada", label: "Avariada", estoque: "Quarentena" },
-  { key: "defeituosa", label: "Defeito", estoque: "Quarentena" },
-  { key: "divergencia", label: "Divergência", estoque: "Quarentena" },
-  { key: "outra", label: "Outra", estoque: "Quarentena" },
+  { key: "defeituosa", label: "Defeituosa", estoque: "Quarentena" },
 ];
+
+/** Rótulo de leitura, incluindo registros históricos legados. */
+export function returnConditionLabel(c: string): string {
+  const known = RETURN_CONDITIONS.find((x) => x.key === c);
+  if (known) return known.label;
+  if (c === "divergencia") return "Divergência (legado)";
+  if (c === "outra") return "Outra (legado)";
+  return c;
+}
 
 /**
  * Motivo comercial da devolução — independente da condição física da peça.
@@ -123,6 +133,7 @@ export const RETURN_REASONS: { key: string; label: string }[] = [
   { key: "erro no envio", label: "Erro no envio" },
   { key: "outro", label: "Outro (descrever)" },
 ];
+
 
 export interface ReturnItemInput {
   slug: string;
@@ -147,7 +158,13 @@ export interface ReturnRecord {
   valorEstornado: number;
   observacoes: string | null;
   criadoEm: IsoDateTime;
-  itens: { slug: string; tamanho: string; quantidade: number; condicao: ReturnCondition }[];
+  /** Leitura tolerante: histórico pode conter condições legadas. */
+  itens: {
+    slug: string;
+    tamanho: string;
+    quantidade: number;
+    condicao: LegacyReturnCondition;
+  }[];
 }
 
 // ─────────────────────────────────── Equipe ────────────────────────────────
