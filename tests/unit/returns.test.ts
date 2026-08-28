@@ -54,9 +54,7 @@ describe("devolução: motivo comercial ≠ condição física", () => {
   it("condições legadas nunca podem ser enviadas em nova devolução", () => {
     for (const legacy of ["divergencia", "outra"]) {
       const input = base({
-        itens: [
-          { slug: "polo-x", size: "M", quantity: 1, condicao: legacy as never },
-        ],
+        itens: [{ slug: "polo-x", size: "M", quantity: 1, condicao: legacy as never }],
       });
       expect(validateReturn(input)).toMatch(/condição física inválida/i);
     }

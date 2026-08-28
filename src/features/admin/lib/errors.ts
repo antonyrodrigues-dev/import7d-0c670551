@@ -99,7 +99,6 @@ export function toAdminError(e: unknown, origin: string): AdminError {
   return createAdminError(code, message, origin, { cause: e });
 }
 
-
 /**
  * Trata um erro seguindo o pipeline oficial: log estruturado + toast + retorno.
  * Nunca escreve em `console.*` diretamente.

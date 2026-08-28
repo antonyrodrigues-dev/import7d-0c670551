@@ -337,8 +337,6 @@ export const lovableCloudDataSource: AdminDataSource = {
     return (data ?? {}) as Record<string, unknown>;
   },
 
-
-
   async transitionOrder(id: string, status: OrderStatus): Promise<void> {
     // Chamada única: o banco valida transição, consome/estorna estoque e
     // registra histórico dentro da mesma transação (SELECT ... FOR UPDATE

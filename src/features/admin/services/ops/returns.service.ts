@@ -29,8 +29,7 @@ export function validateReturn(input: ReturnInput): string | null {
   if (!input.pedidoId) return "Pedido inválido.";
   if (!input.motivo.trim()) return "Informe o motivo da devolução.";
   // Motivo "outro" é um rótulo, não uma descrição: exige texto próprio.
-  if (input.motivo.trim().toLowerCase() === "outro")
-    return "Descreva o motivo da devolução.";
+  if (input.motivo.trim().toLowerCase() === "outro") return "Descreva o motivo da devolução.";
   if (input.itens.length === 0) return "Selecione ao menos um item.";
   if (input.itens.some((i) => i.quantity <= 0)) return "Quantidade deve ser maior que zero.";
   if (input.itens.some((i) => !CANONICAL_CONDITIONS.includes(i.condicao)))
