@@ -41,7 +41,6 @@ export function listOrdersPage(query: OrdersPageQuery): Promise<OrdersPage> {
   });
 }
 
-
 /**
  * Ponto de entrada canônico para mudança de status.
  *

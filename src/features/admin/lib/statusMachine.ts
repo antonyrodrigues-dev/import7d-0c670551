@@ -64,4 +64,3 @@ export const OPERATIONAL_STATUSES: OrderStatus[] = [
   "aguardando_retirada",
   "enviado",
 ];
-

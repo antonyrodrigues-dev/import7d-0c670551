@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { isClientAbort } from "./lib/client-abort";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -66,6 +67,5 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
-
   },
 };

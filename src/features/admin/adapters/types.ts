@@ -41,7 +41,6 @@ export interface CustomersPage {
   total: number;
 }
 
-
 /** Um evento da trilha imutável do pedido (`pedido_eventos`). */
 export interface OrderAuditEntry {
   id: string;
