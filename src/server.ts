@@ -21,17 +21,7 @@ async function getServerEntry(): Promise<ServerEntry> {
 // A client that navigates away / reloads mid-render aborts the socket.
 // Node surfaces it as `Error: aborted` (ECONNRESET) and h3 turns it into a 500,
 // which would otherwise render the crash page over a perfectly healthy app.
-function isClientAbort(error: unknown): boolean {
-  const seen = new Set<unknown>();
-  let current: any = error;
-  while (current && typeof current === "object" && !seen.has(current)) {
-    seen.add(current);
-    if (current.code === "ECONNRESET" || current.name === "AbortError") return true;
-    if (typeof current.message === "string" && current.message.trim() === "aborted") return true;
-    current = current.cause;
-  }
-  return false;
-}
+// Regra: só aborto real é silenciado (ver src/lib/client-abort.ts).
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
