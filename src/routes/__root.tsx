@@ -145,8 +145,10 @@ function useAuthLifecycle(queryClient: QueryClient) {
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      // Qualquer troca de identidade zera o estado anterior ANTES de qualquer
+      // refetch: nunca pode existir flash de dados do usuário anterior.
+      resetAdminSession(queryClient);
       if (event === "SIGNED_OUT") {
-        resetAdminSession(queryClient);
         void router.invalidate();
         return;
       }
