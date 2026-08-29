@@ -144,13 +144,10 @@ export async function transitionOrderStatus(
           .getState()
           .replace(useOrdersStore.getState().orders.map((o) => (o.id === id ? updated : o)));
 
-        // 4) Notificações + logs + eventos.
-        notify({
-          kind: "pedido_novo",
-          title: `Pedido ${updated.numero} · ${statusLabel(status)}`,
-          body: `${updated.cliente.nome} — atualizado para ${statusLabel(status)}.`,
-          priority: status === "cancelado" ? "alta" : "media",
-        });
+        // 4) Logs + eventos. A NOTIFICAÇÃO é emitida pelo Postgres
+        // (trigger `notificar_pedido_evento`) e chega via Realtime: fonte
+        // única, sem duplicar alerta no cliente.
+
 
         logger.info(`${updated.numero}: ${order.status} → ${status}`, {
           kind: "order.status",
