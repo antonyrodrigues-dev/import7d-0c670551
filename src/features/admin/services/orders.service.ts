@@ -9,7 +9,7 @@ import type { AdminOrder, OrderStatus } from "../types";
 
 import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
-import { notify } from "./notifications.service";
+
 import { validateStatusTransition } from "../lib/validators";
 import { PAYMENT_ONLY_STATUSES } from "../lib/statusMachine";
 import { ORDER_STATUSES } from "../constants";
@@ -144,13 +144,9 @@ export async function transitionOrderStatus(
           .getState()
           .replace(useOrdersStore.getState().orders.map((o) => (o.id === id ? updated : o)));
 
-        // 4) Notificações + logs + eventos.
-        notify({
-          kind: "pedido_novo",
-          title: `Pedido ${updated.numero} · ${statusLabel(status)}`,
-          body: `${updated.cliente.nome} — atualizado para ${statusLabel(status)}.`,
-          priority: status === "cancelado" ? "alta" : "media",
-        });
+        // 4) Logs + eventos. A NOTIFICAÇÃO é emitida pelo Postgres
+        // (trigger `notificar_pedido_evento`) e chega via Realtime: fonte
+        // única, sem duplicar alerta no cliente.
 
         logger.info(`${updated.numero}: ${order.status} → ${status}`, {
           kind: "order.status",

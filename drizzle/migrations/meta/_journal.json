@@ -15,6 +15,13 @@
       "when": 1787933763738,
       "tag": "0001_final_b_notificacao_status",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788008300658,
+      "tag": "0002_final_b_restore_kit_disponivel_anon",
+      "breakpoints": true
     }
   ]
 }

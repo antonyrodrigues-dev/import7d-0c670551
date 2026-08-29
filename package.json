@@ -18,7 +18,8 @@
     "test:db": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f tests/db/checkout-rpc.gate.sql",
     "test:db:ondad": "python3 tests/db/ondad-gate.py",
     "test:db:mvp": "python3 tests/db/mvp-gate.py",
-    "test:gate": "npm run typecheck && npm run lint && npm run test && npm run test:db:mvp && npm run test:e2e && npm run build"
+    "test:db:finalb": "python3 tests/db/final-b.gate.py",
+    "test:gate": "npm run typecheck && npm run lint && npm run test && npm run test:db:mvp && npm run test:db:finalb && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

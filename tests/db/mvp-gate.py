@@ -259,17 +259,26 @@ def run() -> int:
 
         atual = rest("GET", "/configuracoes_loja?select=id,dados")
         anterior = atual[0]["dados"] if atual else None
+        # FINAL-B: allowlist — só chaves oficiais entram; usamos `cidade`.
+        cidade_anterior = (anterior or {}).get("cidade")
         novo = dict(anterior or {})
-        novo["_gate_mvp"] = TAG
+        novo["cidade"] = f"GATE-{TAG}"
         salvo = rpc("salvar_configuracoes_loja", {"p_dados": novo}, admin_tk)
         dados = salvo["dados"] if isinstance(salvo, dict) else salvo[0]["dados"]
-        check("M-21 Admin Master grava configurações no banco", dados.get("_gate_mvp") == TAG, str(dados)[:160])
+        check("M-21 Admin Master grava configurações no banco",
+              dados.get("cidade") == f"GATE-{TAG}", str(dados)[:160])
+
+        expect_error("M-21b allowlist recusa campo desconhecido",
+                     lambda: rpc("salvar_configuracoes_loja",
+                                 {"p_dados": {**(anterior or {}), "_gate_mvp": TAG}}, admin_tk))
+
         if anterior is not None:
             rpc("salvar_configuracoes_loja", {"p_dados": anterior}, admin_tk)
             volta = rest("GET", "/configuracoes_loja?select=dados")[0]["dados"]
-            check("M-22 configuração restaurada sem resíduo do gate", "_gate_mvp" not in volta, str(volta)[:160])
+            check("M-22 configuração restaurada sem resíduo do gate",
+                  volta.get("cidade") == cidade_anterior, str(volta)[:160])
         else:
-            rest("DELETE", "/configuracoes_loja?dados->>_gate_mvp=eq." + TAG, prefer="return=minimal")
+            rest("DELETE", "/configuracoes_loja?id=eq.default", prefer="return=minimal")
             check("M-22 configuração restaurada sem resíduo do gate", True)
         # ───────────── C1 — regressões do fechamento ─────────────
         # C-01: metricas_financeiras não pode explodir com max(jsonb).
