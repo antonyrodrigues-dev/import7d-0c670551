@@ -148,7 +148,6 @@ export async function transitionOrderStatus(
         // (trigger `notificar_pedido_evento`) e chega via Realtime: fonte
         // única, sem duplicar alerta no cliente.
 
-
         logger.info(`${updated.numero}: ${order.status} → ${status}`, {
           kind: "order.status",
           orderId: id,

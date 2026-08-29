@@ -40,11 +40,16 @@ ADMIN_ONLY = [
     "qualidade_catalogo",
     "avaliar_publicacao",
     "explodir_item_pedido",
-    "kit_disponivel",
     "expirar_reservas_variacao",
     "parametro_int",
 ]
-PUBLIC_CHECKOUT = ["criar_pedido", "confirmar_whatsapp_checkout", "cancelar_pedido_checkout"]
+PUBLIC_CHECKOUT = [
+    "criar_pedido",
+    "confirmar_whatsapp_checkout",
+    "cancelar_pedido_checkout",
+    # a vitrine pública calcula saldo de kits pela view `catalogo_publico`
+    "kit_disponivel",
+]
 
 
 def grantees(fn: str) -> set[str]:
