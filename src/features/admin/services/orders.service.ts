@@ -9,7 +9,7 @@ import type { AdminOrder, OrderStatus } from "../types";
 
 import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
-import { notify } from "./notifications.service";
+
 import { validateStatusTransition } from "../lib/validators";
 import { PAYMENT_ONLY_STATUSES } from "../lib/statusMachine";
 import { ORDER_STATUSES } from "../constants";
