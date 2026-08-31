@@ -88,7 +88,8 @@
   --card-foreground: var(--ink);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--ink);
-  --primary: var(--forest);
+  /* forest-hover: mesmo verde, tom que garante AA no texto sobre botão. */
+  --primary: var(--forest-hover);
   --primary-foreground: var(--cream);
   --secondary: var(--cream-deep);
   --secondary-foreground: var(--forest-deep);
