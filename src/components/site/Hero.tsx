@@ -61,7 +61,7 @@ export function Hero() {
           >
             <a
               href="#acervo"
-              className="group inline-flex h-[56px] items-center gap-3 bg-[color:var(--forest)] px-10 text-[12px] font-medium tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 ease-out hover:bg-[color:var(--forest-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--forest-vivid)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--cream)] md:h-[60px] md:px-12"
+              className="group inline-flex h-[56px] items-center gap-3 bg-[color:var(--forest-hover)] px-10 text-[12px] font-medium tracking-luxe uppercase text-[color:var(--cream)] transition-colors duration-300 ease-out hover:bg-[color:var(--forest-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--forest-vivid)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--cream)] md:h-[60px] md:px-12"
             >
               <span>Explorar acervo</span>
               <ArrowRight

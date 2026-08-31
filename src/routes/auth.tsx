@@ -107,7 +107,7 @@ function AuthPage() {
         className="w-full max-w-md"
         aria-describedby="auth-restricted-note"
       >
-        <div className="flex items-center gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+        <div className="flex items-center gap-2 text-[10px] tracking-luxe uppercase text-[color:var(--gold-ink)]">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
           Acesso restrito
         </div>
@@ -176,7 +176,7 @@ function AuthPage() {
               <p
                 id="auth-caps-warning"
                 role="status"
-                className="text-[11px] tracking-luxe uppercase text-[color:var(--gold)]"
+                className="text-[11px] tracking-luxe uppercase text-[color:var(--gold-ink)]"
               >
                 Caps Lock está ativo
               </p>

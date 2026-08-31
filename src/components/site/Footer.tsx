@@ -102,14 +102,14 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {BRAND.name} · Todos os direitos reservados
           </p>
-          <p className="text-[color:var(--forest-deep)]/60">Curadoria · Caxias do Sul · Brasil</p>
-          <p className="text-[color:var(--forest-deep)]/45">
+          <p className="text-[color:var(--forest-deep)]/80">Curadoria · Caxias do Sul · Brasil</p>
+          <p className="text-[color:var(--forest-deep)]/75">
             Criado pela{" "}
             <a
               href="https://aurhea.com.br"
               target="_blank"
               rel="noopener noreferrer"
-              className="tracking-[0.32em] text-[color:var(--forest-deep)]/70 transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
+              className="tracking-[0.32em] underline underline-offset-4 text-[color:var(--forest-deep)] transition-colors duration-300 hover:text-[color:var(--forest-deep)]"
             >
               AURHEA
             </a>
