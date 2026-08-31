@@ -70,6 +70,8 @@
   --gold: #d2a54b;
   --gold-soft: #e3c890;
   --gold-bright: #e0b45f;
+  /* Mesmo dourado, escurecido só para texto pequeno sobre fundo claro (WCAG AA). */
+  --gold-ink: #7d5a12;
   --ink: #090d0a;
   --background: var(--cream);
   --foreground: var(--ink);
