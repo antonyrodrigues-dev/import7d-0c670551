@@ -20,7 +20,7 @@ function PrivacidadePage() {
   return (
     <main className="min-h-dvh bg-[color:var(--cream)] px-6 py-24 text-[color:var(--forest-deep)] md:px-12">
       <article className="mx-auto max-w-[780px]">
-        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold)]">
+        <p className="text-[10px] tracking-luxe uppercase text-[color:var(--gold-ink)]">
           Documento legal
         </p>
         <h1 className="mt-4 font-display text-4xl md:text-5xl">Política de Privacidade</h1>
