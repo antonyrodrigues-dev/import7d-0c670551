@@ -331,7 +331,7 @@ function FiltersSheet({
             onClick={() => onOpenChange(false)}
             className="h-11 bg-[color:var(--forest-vivid)] px-8 text-[10px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest-hover)]"
           >
-            Ver resultado
+            Aplicar
           </button>
         </div>
       </SheetContent>
