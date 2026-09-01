@@ -104,26 +104,25 @@ const Card = memo(function Card({
           className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 origin-left bg-[color:var(--gold)] transition-transform duration-700 group-hover:scale-x-100"
         />
       </div>
-      <div className="mt-5 flex items-baseline justify-between gap-4">
-        <div className="min-w-0">
-          <p className="truncate text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-            {p.brand ? `${p.brand} · ` : ""}
-            {p.category}
-          </p>
-          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">
-            {p.name}
-          </h3>
-        </div>
-        <span
-          className={`shrink-0 font-display font-medium text-[color:var(--forest-deep)] ${
+      <div className="mt-6">
+        <p className="truncate text-[11px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+          {p.brand ? `${p.brand} · ` : ""}
+          {p.category}
+        </p>
+        <h3 className="mt-3 line-clamp-2 font-display text-2xl leading-snug text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)] md:text-3xl">
+          {p.name}
+        </h3>
+        <p
+          className={`mt-4 font-display font-medium text-[color:var(--forest-deep)] ${
             p.precoConfirmado
-              ? "text-lg tabular-nums"
-              : "text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
+              ? "text-xl tabular-nums md:text-2xl"
+              : "text-[11px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
           }`}
         >
           {priceLabel(p)}
-        </span>
+        </p>
       </div>
+
     </button>
   );
 });
@@ -155,12 +154,47 @@ function activeChips(f: Filters): { key: keyof Filters; label: string }[] {
   return chips;
 }
 
-const optionClass = (active: boolean) =>
-  `h-9 px-4 text-[10px] tracking-luxe uppercase transition-colors duration-300 ${
-    active
-      ? "bg-[color:var(--forest-vivid)] text-[color:var(--cream)]"
-      : "border border-[color:var(--forest-deep)]/20 text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
-  }`;
+/**
+ * Campo de filtro compacto — select nativo (popover no desktop, roda nativa no
+ * mobile). Mantém o cabeçalho do acervo limpo: nenhuma parede de categorias.
+ */
+function SelectField({
+  label,
+  value,
+  options,
+  allLabel,
+  onChange,
+  testId,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  allLabel: string;
+  onChange: (v: string) => void;
+  testId?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        data-testid={testId}
+        aria-label={label}
+        className="h-11 w-full max-w-full border border-[color:var(--forest-deep)]/20 bg-transparent px-3 text-sm text-[color:var(--forest-deep)] focus:border-[color:var(--forest-deep)] focus:outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.value === value && o.label === allLabel ? allLabel : o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 
 /**
  * Painel de filtros — TODAS as categorias vivem aqui dentro. O acervo nunca
@@ -203,91 +237,60 @@ function FiltersSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-8 px-6 py-6">
-          <fieldset>
-            <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-              Categoria
-            </legend>
-            <div className="flex flex-wrap gap-2" data-testid="acervo-filtro-categorias">
-              {["todas", ...categories].map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-pressed={c === value.category}
-                  onClick={() => onChange({ ...value, category: c })}
-                  className={optionClass(c === value.category)}
-                >
-                  {c === "todas" ? "Todas" : c}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+        <div className="flex-1 space-y-6 px-6 py-6">
+          <SelectField
+            label="Categoria"
+            testId="acervo-filtro-categorias"
+            allLabel="Todas"
+            value={value.category}
+            onChange={(c) => onChange({ ...value, category: c })}
+            options={[
+              { value: "todas", label: "Todas" },
+              ...categories.map((c) => ({ value: c, label: c })),
+            ]}
+          />
 
           {brands.length > 0 && (
-            <fieldset>
-              <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Marca
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {["todas", ...brands].map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    aria-pressed={b === value.brand}
-                    onClick={() => onChange({ ...value, brand: b })}
-                    className={optionClass(b === value.brand)}
-                  >
-                    {b === "todas" ? "Todas" : b}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <SelectField
+              label="Marca"
+              allLabel="Todas"
+              value={value.brand}
+              onChange={(b) => onChange({ ...value, brand: b })}
+              options={[
+                { value: "todas", label: "Todas" },
+                ...brands.map((b) => ({ value: b, label: b })),
+              ]}
+            />
           )}
 
           {sizes.length > 0 && (
-            <fieldset>
-              <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Tamanho
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {["todos", ...sizes].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    aria-pressed={s === value.size}
-                    onClick={() => onChange({ ...value, size: s })}
-                    className={optionClass(s === value.size)}
-                  >
-                    {s === "todos" ? "Todos" : s}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <SelectField
+              label="Tamanho"
+              allLabel="Todos"
+              value={value.size}
+              onChange={(s) => onChange({ ...value, size: s })}
+              options={[
+                { value: "todos", label: "Todos" },
+                ...sizes.map((s) => ({ value: s, label: s })),
+              ]}
+            />
           )}
 
-          <fieldset>
-            <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-              Disponibilidade
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(DISPONIBILIDADE_LABEL) as Disponibilidade[]).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={k === value.disponibilidade}
-                  onClick={() => onChange({ ...value, disponibilidade: k })}
-                  className={optionClass(k === value.disponibilidade)}
-                >
-                  {DISPONIBILIDADE_LABEL[k]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <SelectField
+            label="Disponibilidade"
+            allLabel="Todas"
+            value={value.disponibilidade}
+            onChange={(d) => onChange({ ...value, disponibilidade: d as Disponibilidade })}
+            options={(Object.keys(DISPONIBILIDADE_LABEL) as Disponibilidade[]).map((k) => ({
+              value: k,
+              label: DISPONIBILIDADE_LABEL[k],
+            }))}
+          />
 
           {priceCeiling > 0 && (
             <fieldset>
-              <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Faixa de preço
+              <legend className="mb-2 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                Preço
               </legend>
               <input
                 type="range"
@@ -314,6 +317,7 @@ function FiltersSheet({
           )}
         </div>
 
+
         <div className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-[color:var(--border)] bg-[color:var(--cream)] px-6 py-4">
           <button
             type="button"
@@ -327,7 +331,7 @@ function FiltersSheet({
             onClick={() => onOpenChange(false)}
             className="h-11 bg-[color:var(--forest-vivid)] px-8 text-[10px] tracking-luxe uppercase text-[color:var(--cream)] transition-colors hover:bg-[color:var(--forest-hover)]"
           >
-            Ver resultado
+            Aplicar
           </button>
         </div>
       </SheetContent>
