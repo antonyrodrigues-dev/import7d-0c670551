@@ -154,12 +154,47 @@ function activeChips(f: Filters): { key: keyof Filters; label: string }[] {
   return chips;
 }
 
-const optionClass = (active: boolean) =>
-  `h-9 px-4 text-[10px] tracking-luxe uppercase transition-colors duration-300 ${
-    active
-      ? "bg-[color:var(--forest-vivid)] text-[color:var(--cream)]"
-      : "border border-[color:var(--forest-deep)]/20 text-[color:var(--forest-deep)] hover:border-[color:var(--forest-deep)]"
-  }`;
+/**
+ * Campo de filtro compacto — select nativo (popover no desktop, roda nativa no
+ * mobile). Mantém o cabeçalho do acervo limpo: nenhuma parede de categorias.
+ */
+function SelectField({
+  label,
+  value,
+  options,
+  allLabel,
+  onChange,
+  testId,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  allLabel: string;
+  onChange: (v: string) => void;
+  testId?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        data-testid={testId}
+        aria-label={label}
+        className="h-11 w-full max-w-full border border-[color:var(--forest-deep)]/20 bg-transparent px-3 text-sm text-[color:var(--forest-deep)] focus:border-[color:var(--forest-deep)] focus:outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.value === value && o.label === allLabel ? allLabel : o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 
 /**
  * Painel de filtros — TODAS as categorias vivem aqui dentro. O acervo nunca
