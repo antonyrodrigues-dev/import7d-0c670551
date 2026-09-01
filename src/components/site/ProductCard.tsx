@@ -237,91 +237,60 @@ function FiltersSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-8 px-6 py-6">
-          <fieldset>
-            <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-              Categoria
-            </legend>
-            <div className="flex flex-wrap gap-2" data-testid="acervo-filtro-categorias">
-              {["todas", ...categories].map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-pressed={c === value.category}
-                  onClick={() => onChange({ ...value, category: c })}
-                  className={optionClass(c === value.category)}
-                >
-                  {c === "todas" ? "Todas" : c}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+        <div className="flex-1 space-y-6 px-6 py-6">
+          <SelectField
+            label="Categoria"
+            testId="acervo-filtro-categorias"
+            allLabel="Todas"
+            value={value.category}
+            onChange={(c) => onChange({ ...value, category: c })}
+            options={[
+              { value: "todas", label: "Todas" },
+              ...categories.map((c) => ({ value: c, label: c })),
+            ]}
+          />
 
           {brands.length > 0 && (
-            <fieldset>
-              <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Marca
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {["todas", ...brands].map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    aria-pressed={b === value.brand}
-                    onClick={() => onChange({ ...value, brand: b })}
-                    className={optionClass(b === value.brand)}
-                  >
-                    {b === "todas" ? "Todas" : b}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <SelectField
+              label="Marca"
+              allLabel="Todas"
+              value={value.brand}
+              onChange={(b) => onChange({ ...value, brand: b })}
+              options={[
+                { value: "todas", label: "Todas" },
+                ...brands.map((b) => ({ value: b, label: b })),
+              ]}
+            />
           )}
 
           {sizes.length > 0 && (
-            <fieldset>
-              <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Tamanho
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {["todos", ...sizes].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    aria-pressed={s === value.size}
-                    onClick={() => onChange({ ...value, size: s })}
-                    className={optionClass(s === value.size)}
-                  >
-                    {s === "todos" ? "Todos" : s}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <SelectField
+              label="Tamanho"
+              allLabel="Todos"
+              value={value.size}
+              onChange={(s) => onChange({ ...value, size: s })}
+              options={[
+                { value: "todos", label: "Todos" },
+                ...sizes.map((s) => ({ value: s, label: s })),
+              ]}
+            />
           )}
 
-          <fieldset>
-            <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-              Disponibilidade
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(DISPONIBILIDADE_LABEL) as Disponibilidade[]).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={k === value.disponibilidade}
-                  onClick={() => onChange({ ...value, disponibilidade: k })}
-                  className={optionClass(k === value.disponibilidade)}
-                >
-                  {DISPONIBILIDADE_LABEL[k]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <SelectField
+            label="Disponibilidade"
+            allLabel="Todas"
+            value={value.disponibilidade}
+            onChange={(d) => onChange({ ...value, disponibilidade: d as Disponibilidade })}
+            options={(Object.keys(DISPONIBILIDADE_LABEL) as Disponibilidade[]).map((k) => ({
+              value: k,
+              label: DISPONIBILIDADE_LABEL[k],
+            }))}
+          />
 
           {priceCeiling > 0 && (
             <fieldset>
-              <legend className="mb-3 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
-                Faixa de preço
+              <legend className="mb-2 text-[9px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
+                Preço
               </legend>
               <input
                 type="range"
@@ -347,6 +316,7 @@ function FiltersSheet({
             </fieldset>
           )}
         </div>
+
 
         <div className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-[color:var(--border)] bg-[color:var(--cream)] px-6 py-4">
           <button
