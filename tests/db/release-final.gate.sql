@@ -22,8 +22,8 @@ BEGIN
   VALUES ('GATE-A','gate-a','Gate A','7D','Camiseta','[]'::jsonb, 0, 'a_confirmar',
           true, false, 'multi_variante', 'publicado', true)
   RETURNING id INTO v_pid;
-  INSERT INTO public.produto_variacoes (produto_id, tamanho, quantidade, origem_tamanho)
-  VALUES (v_pid, 'M', 3, 'confirmado_etiqueta');
+  INSERT INTO public.produto_variacoes (produto_id, tamanho, quantidade, origem_tamanho, origem_tamanho_evidencia)
+  VALUES (v_pid, 'M', 3, 'confirmado_etiqueta', 'etiqueta gate');
 
   SELECT * INTO v_ped FROM public.criar_pedido(
     jsonb_build_array(jsonb_build_object('slug','gate-a','size','M','quantity',1)),
