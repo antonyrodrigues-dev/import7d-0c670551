@@ -7,6 +7,7 @@
 -- Executa dentro de uma transação e faz ROLLBACK: não deixa dados de teste.
 
 BEGIN;
+SET LOCAL ROLE postgres;
 
 DO $$
 DECLARE
