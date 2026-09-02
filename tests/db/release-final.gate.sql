@@ -19,7 +19,7 @@ BEGIN
   -- ---------- Fixture A: preço PENDENTE, tamanho confirmado, saldo 3 ----------
   INSERT INTO public.produtos (sku, slug, nome, marca, categoria, imagens, preco, preco_status,
                                ativo, destaque, modelo_estoque, status_publicacao, quantidade_conferida)
-  VALUES ('GATE-A','gate-a','Gate A','7D','Camiseta','[]'::jsonb, 0, 'pendente',
+  VALUES ('GATE-A','gate-a','Gate A','7D','Camiseta','[]'::jsonb, 0, 'a_confirmar',
           true, false, 'multi_variante', 'publicado', true)
   RETURNING id INTO v_pid;
   INSERT INTO public.produto_variacoes (produto_id, tamanho, quantidade, origem_tamanho)
@@ -58,7 +58,7 @@ BEGIN
   -- ---------- Fixture C: preço E tamanho pendentes ----------
   INSERT INTO public.produtos (sku, slug, nome, marca, categoria, imagens, preco, preco_status,
                                ativo, destaque, modelo_estoque, status_publicacao, quantidade_conferida)
-  VALUES ('GATE-C','gate-c','Gate C','7D','Suéter','[]'::jsonb, 0, 'pendente',
+  VALUES ('GATE-C','gate-c','Gate C','7D','Suéter','[]'::jsonb, 0, 'a_confirmar',
           true, false, 'peca_unica', 'publicado', false)
   RETURNING id INTO v_pid;
   INSERT INTO public.produto_variacoes (produto_id, tamanho, quantidade, origem_tamanho)
