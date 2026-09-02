@@ -6,8 +6,6 @@
 --
 -- Executa dentro de uma transação e faz ROLLBACK: não deixa dados de teste.
 
-BEGIN;
-SET LOCAL ROLE anon;
 
 DO $$
 DECLARE
@@ -94,7 +92,7 @@ BEGIN
   IF NOT v_ok THEN RAISE EXCEPTION 'R-04 FAIL: estoque zero gerou pedido'; END IF;
   RAISE NOTICE 'PASS R-04 estoque zero rejeitado (%)', v_msg;
 
-  RAISE NOTICE 'RELEASE-FINAL PENDENCIAS GATE: 4/4 PASS';
+  -- Rollback deliberado: o gate nunca deixa dados de teste no banco.
+  RAISE EXCEPTION 'RELEASE-FINAL PENDENCIAS GATE: 4/4 PASS (rollback)';
 END $$;
 
-ROLLBACK;
