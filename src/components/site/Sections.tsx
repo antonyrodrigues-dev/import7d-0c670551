@@ -86,7 +86,6 @@ export function CatalogSection() {
               <span className="text-[color:var(--forest-deep)]"> sob consulta</span>.
             </p>
           </div>
-
         </Reveal>
         <FullGrid />
       </div>

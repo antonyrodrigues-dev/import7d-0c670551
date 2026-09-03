@@ -122,7 +122,6 @@ const Card = memo(function Card({
           {priceLabel(p)}
         </p>
       </div>
-
     </button>
   );
 });
@@ -194,7 +193,6 @@ function SelectField({
     </label>
   );
 }
-
 
 /**
  * Painel de filtros — TODAS as categorias vivem aqui dentro. O acervo nunca
@@ -316,7 +314,6 @@ function FiltersSheet({
             </fieldset>
           )}
         </div>
-
 
         <div className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-[color:var(--border)] bg-[color:var(--cream)] px-6 py-4">
           <button
