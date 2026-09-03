@@ -22,6 +22,13 @@
       "when": 1788008300658,
       "tag": "0002_final_b_restore_kit_disponivel_anon",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788402289203,
+      "tag": "0003_bloqueia_pagamento_sem_frete",
+      "breakpoints": true
     }
   ]
 }
