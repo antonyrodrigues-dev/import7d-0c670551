@@ -11,7 +11,6 @@
 
 import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
-import { useNotificationsStore } from "../stores/notifications";
 import { useCustomersStore } from "../stores/customers";
 import { useDashboardStore } from "../stores/dashboard";
 import { useSettingsStore } from "../stores/settings";
@@ -23,7 +22,6 @@ export interface AdminSnapshot {
   at: string;
   orders: ReturnType<typeof useOrdersStore.getState>;
   inventory: ReturnType<typeof useInventoryStore.getState>;
-  notifications: ReturnType<typeof useNotificationsStore.getState>;
   customers: ReturnType<typeof useCustomersStore.getState>;
   dashboard: ReturnType<typeof useDashboardStore.getState>;
   settings: ReturnType<typeof useSettingsStore.getState>;
@@ -36,7 +34,6 @@ export function captureAdminSnapshot(): AdminSnapshot {
     at: new Date().toISOString(),
     orders: useOrdersStore.getState(),
     inventory: useInventoryStore.getState(),
-    notifications: useNotificationsStore.getState(),
     customers: useCustomersStore.getState(),
     dashboard: useDashboardStore.getState(),
     settings: useSettingsStore.getState(),
@@ -46,7 +43,6 @@ export function captureAdminSnapshot(): AdminSnapshot {
 export function restoreAdminSnapshot(snap: AdminSnapshot): void {
   useOrdersStore.setState(snap.orders, false);
   useInventoryStore.setState(snap.inventory, false);
-  useNotificationsStore.setState(snap.notifications, false);
   useCustomersStore.setState(snap.customers, false);
   useDashboardStore.setState(snap.dashboard, false);
   useSettingsStore.setState(snap.settings, false);

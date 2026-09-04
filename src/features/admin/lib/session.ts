@@ -15,7 +15,6 @@ import { useInventoryStore } from "../stores/inventory";
 import { useCustomersStore } from "../stores/customers";
 import { useEmployeesStore } from "../stores/employees";
 import { useDashboardStore } from "../stores/dashboard";
-import { useNotificationsStore } from "../stores/notifications";
 
 /**
  * Limpa TODO o estado administrativo em memória e derruba o Realtime.
@@ -32,7 +31,8 @@ export function resetAdminSession(queryClient?: QueryClient): void {
   useCustomersStore.setState({ customers: [], state: "idle" });
   useEmployeesStore.setState({ employees: [], state: "idle", error: null });
   useDashboardStore.setState({ metrics: null, state: "idle", error: null });
-  useNotificationsStore.getState().clear();
+  // Legado: remove qualquer resíduo do antigo cache local de notificações.
+  if (typeof localStorage !== "undefined") localStorage.removeItem("7d-admin-notifications");
 
   queryClient?.clear();
 }

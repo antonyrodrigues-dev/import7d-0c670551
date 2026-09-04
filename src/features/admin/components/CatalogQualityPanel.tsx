@@ -9,7 +9,7 @@ const CARDS: { key: CatalogQualityFilter; label: string; field: keyof CatalogQua
   { key: "ativosValidos", label: "Ativos válidos", field: "ativosValidos" },
   { key: "preview", label: "Em conferência", field: "preview" },
   { key: "rascunhos", label: "Rascunhos", field: "rascunhos" },
-  { key: "semPreco", label: "Sem preço", field: "semPreco" },
+  { key: "semPreco", label: "Preço a confirmar", field: "semPreco" },
   { key: "semTamanho", label: "Sem tamanho", field: "semTamanho" },
   { key: "semFoto", label: "Sem foto", field: "semFoto" },
   { key: "semQuantidadeConferida", label: "Qtd. não conferida", field: "semQuantidadeConferida" },
