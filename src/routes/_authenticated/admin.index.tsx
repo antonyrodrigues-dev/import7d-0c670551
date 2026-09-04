@@ -42,12 +42,11 @@ function DashboardPage() {
   // pedido é carregado no navegador só para virar número.
   const { metrics: m, loading, error } = useDashboard();
   const navigate = useNavigate();
-  const setStatuses = useOrdersStore((s) => s.setStatuses);
   const setStockFilter = useInventoryStore((s) => s.setFilterStatus);
 
-  const goOrders = (statuses: OrderStatus[]) => {
-    setStatuses(statuses);
-    void navigate({ to: "/admin/pedidos" });
+  // O filtro viaja pela URL: sobrevive a F5, voltar/avançar e link direto.
+  const goOrders = (tab: OrdersTabKey) => {
+    void navigate({ to: "/admin/pedidos", search: tab === "todos" ? {} : { tab } });
   };
   const goStock = (filter?: "ativos" | "inativos" | "todos" | "baixo") => {
     if (filter) setStockFilter(filter);
