@@ -16,10 +16,8 @@ import { StatCard } from "@/features/admin/components/StatCard";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { formatBRL } from "@/features/catalog";
 import { useDashboard } from "@/features/admin/hooks";
-import { useOrdersStore } from "@/features/admin/stores/orders";
 import { useInventoryStore } from "@/features/admin/stores/inventory";
-import { OPERATIONAL_STATUSES } from "@/features/admin/lib/statusMachine";
-import type { OrderStatus } from "@/features/admin/types";
+import type { OrdersTabKey } from "@/features/admin/lib/orderView";
 
 function formatUpdatedAt(iso: string | undefined): string {
   if (!iso) return "";
@@ -44,12 +42,11 @@ function DashboardPage() {
   // pedido é carregado no navegador só para virar número.
   const { metrics: m, loading, error } = useDashboard();
   const navigate = useNavigate();
-  const setStatuses = useOrdersStore((s) => s.setStatuses);
   const setStockFilter = useInventoryStore((s) => s.setFilterStatus);
 
-  const goOrders = (statuses: OrderStatus[]) => {
-    setStatuses(statuses);
-    void navigate({ to: "/admin/pedidos" });
+  // O filtro viaja pela URL: sobrevive a F5, voltar/avançar e link direto.
+  const goOrders = (tab: OrdersTabKey) => {
+    void navigate({ to: "/admin/pedidos", search: tab === "todos" ? {} : { tab } });
   };
   const goStock = (filter?: "ativos" | "inativos" | "todos" | "baixo") => {
     if (filter) setStockFilter(filter);
@@ -84,7 +81,7 @@ function DashboardPage() {
           icon={<Clock className="h-5 w-5" />}
           hint="Pedidos sem responsável ativo"
           loading={loading}
-          onClick={() => goOrders(["novo", "whatsapp_declarado", "aguardando_atendimento"])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver fila de atendimento"
         />
         <StatCard
@@ -98,7 +95,7 @@ function DashboardPage() {
               : { direction: "flat", label: "Nenhum atraso" }
           }
           loading={loading}
-          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver pedidos em andamento"
         />
         <StatCard
@@ -107,7 +104,7 @@ function DashboardPage() {
           icon={<AlertTriangle className="h-5 w-5" />}
           hint="Falta confirmar tamanho ou preço"
           loading={loading}
-          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver pedidos com pendência"
         />
         <StatCard
@@ -116,7 +113,7 @@ function DashboardPage() {
           icon={<ShoppingBag className="h-5 w-5" />}
           hint="Criados no dia atual"
           loading={loading}
-          onClick={() => goOrders([])}
+          onClick={() => goOrders("todos")}
           ariaLabel="Ver pedidos"
         />
         <StatCard
@@ -125,7 +122,7 @@ function DashboardPage() {
           icon={<Clock className="h-5 w-5" />}
           hint="Ainda não finalizados nem cancelados"
           loading={loading}
-          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver pedidos em aberto"
         />
         <StatCard
@@ -134,7 +131,7 @@ function DashboardPage() {
           icon={<CheckCircle2 className="h-5 w-5" />}
           hint="Concluídos com sucesso"
           loading={loading}
-          onClick={() => goOrders(["finalizado"])}
+          onClick={() => goOrders("finalizado")}
           ariaLabel="Ver pedidos finalizados"
         />
         <StatCard

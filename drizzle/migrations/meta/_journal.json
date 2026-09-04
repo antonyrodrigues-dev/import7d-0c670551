@@ -29,6 +29,20 @@
       "when": 1788402289203,
       "tag": "0003_bloqueia_pagamento_sem_frete",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788527363712,
+      "tag": "0004_least_privilege_anon_revoke",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788527506939,
+      "tag": "0005_fix_guard_frete_pendencias",
+      "breakpoints": true
     }
   ]
 }

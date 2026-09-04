@@ -14,7 +14,6 @@ import { useOrdersStore } from "../stores/orders";
 import { useInventoryStore } from "../stores/inventory";
 import { useCustomersStore } from "../stores/customers";
 import { useEmployeesStore } from "../stores/employees";
-import { useNotificationsStore } from "../stores/notifications";
 import { useDashboardStore } from "../stores/dashboard";
 import { useSettingsStore } from "../stores/settings";
 import { useLogsStore } from "../stores/logs";
@@ -41,7 +40,6 @@ export function auditAdminArchitecture(): AuditResult {
     ["inventory", useInventoryStore],
     ["customers", useCustomersStore],
     ["employees", useEmployeesStore],
-    ["notifications", useNotificationsStore],
     ["dashboard", useDashboardStore],
     ["settings", useSettingsStore],
     ["logs", useLogsStore],
