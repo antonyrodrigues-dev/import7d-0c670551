@@ -260,22 +260,30 @@ function PaymentTab({
           />
         </label>
       </div>
+      {freteBloqueia ? (
+        <p className="text-[11px] text-[color:var(--destructive)]">
+          Defina o frete antes de confirmar o pagamento.
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         {PAYMENT_STATES.map((s) => {
           const bloqueado = requiresAdmin(s.key) && !isAdmin;
           const permitido = nextPaymentStates(atual).includes(s.key);
+          const semFrete = s.key === "confirmado" && freteBloqueia;
           return (
             <Button
               key={s.key}
               size="sm"
               variant={s.key === atual ? "default" : "outline"}
-              disabled={disabled || bloqueado || s.key === atual || !permitido}
+              disabled={disabled || bloqueado || semFrete || s.key === atual || !permitido}
               title={
                 bloqueado
                   ? "Somente o Administrador Master pode aplicar este estado."
-                  : !permitido && s.key !== atual
-                    ? `Transição não permitida a partir de "${atual}".`
-                    : undefined
+                  : semFrete
+                    ? "Defina o frete antes de confirmar o pagamento."
+                    : !permitido && s.key !== atual
+                      ? `Transição não permitida a partir de "${atual}".`
+                      : undefined
               }
               onClick={() =>
                 void onApply(s.key, {
