@@ -234,6 +234,9 @@ function PaymentTab({
 }) {
   const [comprovante, setComprovante] = useState("");
   const [obs, setObs] = useState("");
+  // Entrega com frete pendente: o total ainda é só o subtotal, então o banco
+  // recusa a confirmação. A UI espelha a mesma regra (fonte única: RPC).
+  const freteBloqueia = order.entrega === "entrega" && order.freteStatus !== "definido";
 
   return (
     <div className="mt-3 flex flex-col gap-3">
