@@ -16,10 +16,8 @@ import { StatCard } from "@/features/admin/components/StatCard";
 import { PermissionGate } from "@/features/admin/components/PermissionGate";
 import { formatBRL } from "@/features/catalog";
 import { useDashboard } from "@/features/admin/hooks";
-import { useOrdersStore } from "@/features/admin/stores/orders";
 import { useInventoryStore } from "@/features/admin/stores/inventory";
-import { OPERATIONAL_STATUSES } from "@/features/admin/lib/statusMachine";
-import type { OrderStatus } from "@/features/admin/types";
+import type { OrdersTabKey } from "@/features/admin/lib/orderView";
 
 function formatUpdatedAt(iso: string | undefined): string {
   if (!iso) return "";
