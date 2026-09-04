@@ -81,7 +81,7 @@ function DashboardPage() {
           icon={<Clock className="h-5 w-5" />}
           hint="Pedidos sem responsável ativo"
           loading={loading}
-          onClick={() => goOrders(["novo", "whatsapp_declarado", "aguardando_atendimento"])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver fila de atendimento"
         />
         <StatCard
@@ -95,7 +95,7 @@ function DashboardPage() {
               : { direction: "flat", label: "Nenhum atraso" }
           }
           loading={loading}
-          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver pedidos em andamento"
         />
         <StatCard
@@ -104,7 +104,7 @@ function DashboardPage() {
           icon={<AlertTriangle className="h-5 w-5" />}
           hint="Falta confirmar tamanho ou preço"
           loading={loading}
-          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver pedidos com pendência"
         />
         <StatCard
@@ -113,7 +113,7 @@ function DashboardPage() {
           icon={<ShoppingBag className="h-5 w-5" />}
           hint="Criados no dia atual"
           loading={loading}
-          onClick={() => goOrders([])}
+          onClick={() => goOrders("todos")}
           ariaLabel="Ver pedidos"
         />
         <StatCard
@@ -122,7 +122,7 @@ function DashboardPage() {
           icon={<Clock className="h-5 w-5" />}
           hint="Ainda não finalizados nem cancelados"
           loading={loading}
-          onClick={() => goOrders([...OPERATIONAL_STATUSES])}
+          onClick={() => goOrders("atendimento")}
           ariaLabel="Ver pedidos em aberto"
         />
         <StatCard
@@ -131,7 +131,7 @@ function DashboardPage() {
           icon={<CheckCircle2 className="h-5 w-5" />}
           hint="Concluídos com sucesso"
           loading={loading}
-          onClick={() => goOrders(["finalizado"])}
+          onClick={() => goOrders("finalizado")}
           ariaLabel="Ver pedidos finalizados"
         />
         <StatCard
