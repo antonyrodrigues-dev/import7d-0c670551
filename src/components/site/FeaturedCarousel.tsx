@@ -43,19 +43,19 @@ function Slide({ p, onOpen }: { p: PublicProduct; onOpen: (slug: string) => void
           className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-[color:var(--gold)] transition-transform duration-700 group-hover:scale-x-100"
         />
       </div>
-      <div className="mt-5 flex items-baseline justify-between gap-4">
+      <div className="mt-6 flex items-baseline justify-between gap-5 pb-1">
         <div className="min-w-0">
           <p className="text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]">
             {p.category}
           </p>
-          <h3 className="mt-1 truncate font-display text-xl text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)]">
+          <h3 className="mt-2 truncate font-display text-2xl leading-snug text-[color:var(--forest-deep)] transition-colors duration-300 group-hover:text-[color:var(--forest)] md:text-3xl">
             {p.name}
           </h3>
         </div>
         <span
-          className={`shrink-0 font-display font-medium text-[color:var(--forest-deep)] ${
+          className={`shrink-0 font-display font-medium leading-snug text-[color:var(--forest-deep)] ${
             p.precoConfirmado
-              ? "text-lg tabular-nums"
+              ? "text-xl tabular-nums md:text-2xl"
               : "text-[10px] tracking-luxe uppercase text-[color:var(--muted-foreground)]"
           }`}
         >
